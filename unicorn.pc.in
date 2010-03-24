@@ -8,4 +8,4 @@ Version: 0.1.0-hpc
 Description: Unified continuum mechanics computation
 Requires: dolfin
 Libs: -L${libdir} -lunicorn
-Cflags: -I${includedir}/include
+Cflags: -I${includedir}
