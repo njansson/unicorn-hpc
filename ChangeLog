@@ -1,0 +1,10 @@
+ - Fixed parsing
+ - Signal handler
+ - Checkpoint restart
+0.1.0: [2008-01-22]
+ - First public release of Unicorn
+ - Add framework for duality-based error estimation (ErrorEstimation,
+   SpaceTimeFunction), needs test cases and updates to UCSolver
+ - Add elastic smoothing (needed by FSI)
+ - Add TimeDependentPDE abstraction (should belong in DOLFIN)
+ - Add variants of UCSolver: ICNS, FSI, LE, CNS

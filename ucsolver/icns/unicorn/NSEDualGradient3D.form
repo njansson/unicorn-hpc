@@ -1,0 +1,27 @@
+# Copyright (c) 2005 Johan Hoffman (hoffman@cims.nyu.edu)
+# Licensed under the GNU GPL Version 2
+
+
+cell = "tetrahedron"
+
+scalar = FiniteElement("Lagrange", cell, 1)
+# Dimension of domain
+d = scalar.cell_dimension()
+vector = VectorElement("Lagrange", cell, 1)
+constant_scalar = FiniteElement("Discontinuous Lagrange", cell, 0)
+constant_tensor = VectorElement("Discontinuous Lagrange", cell, 0, d*d)
+
+def tomatrix(q):
+    return [ [q[d * i + j] for i in range(d)] for j in range(d) ]
+
+v    = TestFunction(constant_tensor)    # constant scalar test basis function
+u    = Function(vector)                 # velocity
+
+vol_inv = Function(constant_scalar)     # the inverse of volume of the element
+
+vmatrix = tomatrix(v)
+
+# the linear form of the density residual:
+L = dot(grad(u), vmatrix) * vol_inv * dx
+
+
