@@ -41,13 +41,14 @@ NSESolver::NSESolver(Mesh& mesh, NodeNormal& node_normal,
                      BoundaryCondition& bc_con,
                      real T, real nu, real ubar,
 		     Checkpoint& chkp, long& w_limit,
+		     TimeDependent& td,
                      std::string solver_type)
   : mesh(mesh), node_normal(node_normal),
     f(f), phi(phi), beta(beta),
     bc_mom(bc_mom), bc_con(bc_con),
     T(T), nu(nu), ubar(ubar),
-    chkp(chkp), w_limit(w_limit),
-    solver_type(solver_type),
+    chkp(chkp), w_limit(w_limit), 
+    td(td), solver_type(solver_type),
     errest(0), perrest(0),
     indices(0), c_indices(0)
 {
@@ -135,6 +136,7 @@ void NSESolver::solve()
   if(chkp.restart())
     t = chkp.restart_time();
   real s = T - t;
+  td.sync(&t);
 
   // Set time step (proportional to the minimum cell diameter) 
   real hmin;

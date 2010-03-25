@@ -32,6 +32,7 @@ namespace dolfin {
 		BoundaryCondition& bc_con,
 		real T, real nu, real ubar,
 		Checkpoint& chkp, long& w_limit,
+		TimeDependent& td,
 		std::string solver_type);
       
       ~NSESolver();
@@ -146,6 +147,7 @@ namespace dolfin {
 
       Checkpoint& chkp;
       long& w_limit;
+      TimeDependent& td;
       std::string solver_type;
 
       ErrorEstimate* errest;

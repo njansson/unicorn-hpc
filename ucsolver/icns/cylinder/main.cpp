@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2002-11-29
-// Last changed: 2010-03-23
+// Last changed: 2010-03-25
 //
 // A cG(1)cG(1) FEM solver for the incompressible Navier-Stokes equations 
 //
@@ -239,14 +239,16 @@ void solve(Mesh& mesh, real T, real dual_T, real nu, real ubar,
   dual_bc_mom.push_back(&dual_bc_mom2);
   dual_bc_mom.push_back(&dual_bc_mom3);
 
+  TimeDependent td;
+
   timeval st;  
   if (w_limit) {
     gettimeofday(&st, NULL);
     w_limit -= (st.tv_sec - s_time.tv_sec);
   }
 
-  NSESolver psolver(mesh, node_normal, f, phi, beta, bc_mom, 
-		    bc_con, T, nu, ubar, chkp, w_limit, "primal"); 
+  NSESolver psolver(mesh, node_normal, f, phi, beta, bc_mom, bc_con,
+		    T, nu, ubar, chkp, w_limit, td, "primal"); 
   psolver.solve();
 
   if (w_limit) {
@@ -254,8 +256,8 @@ void solve(Mesh& mesh, real T, real dual_T, real nu, real ubar,
     w_limit -= (st.tv_sec - s_time.tv_sec);
   }
 
-  NSESolver dsolver(mesh, node_normal, f, phi, beta, dual_bc_mom, 
-		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, "dual");
+  NSESolver dsolver(mesh, node_normal, f, phi, beta, dual_bc_mom, dual_bc_con,
+		    dual_T, nu, ubar, chkp, w_limit, td, "dual");
   dsolver.solve();
     
   if (w_limit) {
