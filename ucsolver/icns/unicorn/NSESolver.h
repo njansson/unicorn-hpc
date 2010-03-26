@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-03-24
+// Last changed: 2010-03-26
 
 #ifndef __NSE_SOLVER_H
 #define __NSE_SOLVER_H
@@ -88,8 +88,10 @@ namespace dolfin {
 	    dolfin_set("output destination","terminal");
 	  warning("Wall clock limit reached");
 	  itimerval itv;
-	  itv.it_value.tv_sec = 3600;
+	  itv.it_value.tv_sec = 1800;
 	  itv.it_value.tv_usec = itv.it_interval.tv_sec = itv.it_interval.tv_usec = 0;
+	  if(setitimer(ITIMER_REAL, &itv, 0) < 0)
+	    perror("setitimer failed");
 	  dolfin_set("output destination","silent");
 	  break;
 	default: break;

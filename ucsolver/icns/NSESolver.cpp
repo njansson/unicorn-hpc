@@ -6,7 +6,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-01-05
+// Last changed: 2010-03-26
 
 #include <cstring>
 #include <sstream>
@@ -907,6 +907,7 @@ void NSESolver::ComputeTangentialVectors(Mesh& mesh,  Vector& tau_1,
   Cell c(mesh, 0);
   uint local_dim = c.numEntities(0);
   uint *idx  = new uint[3 * local_dim];
+  uint *id  = new uint[3 * local_dim];
   real *tau_1_block = new real[3 * local_dim];  
   real *tau_2_block = new real[3 * local_dim];  
   real *normal_block = new real[3 * local_dim];
@@ -916,22 +917,27 @@ void NSESolver::ComputeTangentialVectors(Mesh& mesh,  Vector& tau_1,
     
     ufc.update(*cell, mesh.distdata());
     
-    (form.dofMaps())[6].tabulate_dofs(idx, ufc.cell, cell->index());
+    (form.dofMaps())[1].tabulate_dofs(idx, ufc.cell, cell->index());
     
     uint ii = 0;
+    uint jj = 0;    
     for(uint i = 0; i < 3; i++) 
     {
-      for(VertexIterator v(*cell); !v.end(); ++v) 
+      for(VertexIterator v(*cell); !v.end(); ++v, ii++) 
       {
-       	tau_1_block[ii] = node_normal.tau_1[i].get(*v);
-	tau_2_block[ii] = node_normal.tau_2[i].get(*v);
-	normal_block[ii++] = node_normal.normal[i].get(*v);
+	if (!mesh.distdata().is_ghost(v->index(), 0)) 
+	{
+	  tau_1_block[jj] = node_normal.tau_1[i].get(*v);
+	  tau_2_block[jj] = node_normal.tau_2[i].get(*v);
+	  normal_block[jj] = node_normal.normal[i].get(*v);
+	  id[jj++] = idx[ii];
+	}
       }
     }
 
-    tau_1.set(tau_1_block, 3 * local_dim, idx);
-    tau_2.set(tau_2_block, 3 * local_dim, idx);
-    normal.set(normal_block, 3 * local_dim, idx);
+    tau_1.set(tau_1_block, jj, id);
+    tau_2.set(tau_2_block, jj, id);
+    normal.set(normal_block, jj, id);
   }
 
   tau_1.apply();
@@ -941,6 +947,7 @@ void NSESolver::ComputeTangentialVectors(Mesh& mesh,  Vector& tau_1,
   delete[] tau_2_block;
   delete[] normal_block;
   delete[] idx;
+  delete[] id;
 
 }
 //-----------------------------------------------------------------------------
