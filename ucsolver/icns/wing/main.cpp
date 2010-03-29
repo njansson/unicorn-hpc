@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2002-11-29
-// Last changed: 2010-03-23
+// Last changed: 2010-03-29
 //
 // A cG(1)cG(1) FEM solver for the incompressible Navier-Stokes equations 
 //
@@ -23,6 +23,7 @@
 
 #include <dolfin.h>
 #include <unicorn/init.h>
+#include <unicorn/util.h>
 #include <unicorn/NodeNormal.h>
 #include <unicorn/SlipBC.h>
 #include <unicorn/UniParameters.h>
@@ -198,10 +199,14 @@ public:
 
 };
 
-void solve(Mesh& mesh, real T, real dual_T, real nu, real ubar, 
-	   Checkpoint& chkp, long& w_limit, timeval& s_time)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 {
   
+  real T = dolfin_get("T");
+  real dual_T = dolfin_get("dual_T");
+  real nu = dolfin_get("nu");
+  real ubar = dolfin_get("Ubar");
+
   TimeDependent td;
   Phi phi(mesh, td);
   Beta beta(mesh);
@@ -273,39 +278,13 @@ int main(int argc, char* argv[])
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
 
   real T = dolfin_get("T");
-  real dual_T = dolfin_get("dual_T");
-  real nu = dolfin_get("nu");
-  real ubar = dolfin_get("Ubar");
-  
   real alpha = dolfin_get("alpha");
   T0 = T/10.0;
   coef = alpha/ (T - T0);
   b = - T0 * coef;
+  
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
 
-  char itername[80];
-  for(int i = iter; i < (int) dolfin_get("adapt_iter") ; i++) 
-  {
-    if(dolfin::MPI::processNumber() == 0)
-      dolfin_set("output destination", "terminal");
-    message("Running iteration %d of %d", i, (int) dolfin_get("adapt_iter"));
-    dolfin_set("output destination", "silent");
-    snprintf(itername, sizeof(itername), "iter_%d", i);
-
-    if (dolfin::MPI::processNumber() == 0) 
-      if(mkdir(itername, S_IRWXU) < 0)
-	perror("mkdir failed");
-
-    MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
-
-    if(chdir(itername) < 0)
-      perror("chdir failed");
-
-    solve(mesh, T, dual_T, nu, ubar, chkp, w_limit, s_time);
-
-    if(chdir("../") < 0)
-      perror("chdir failed");
-
-  }
   dolfin_finalize();
   return 0;
 }
