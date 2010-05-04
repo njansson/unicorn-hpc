@@ -4,7 +4,7 @@ libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 Name: Unicorn
-Version: 0.1.0-hpc
+Version: @PACKAGE_VERSION@
 Description: Unified continuum mechanics computation
 Requires: dolfin
 Libs: -L${libdir} -lunicorn
