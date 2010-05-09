@@ -6,19 +6,12 @@
 // Modified by Niclas Jansson, 2008-2009.
 //
 // First added:  2007-05-01
-// Last changed: 2009-11-17
+// Last changed: 2010-05-09
 
 #ifndef __SLIPBC_H
 #define __SLIPBC_H
 
-#include <dolfin/common/Array.h>
-#include <dolfin/common/constants.h>
-#include <dolfin/fem/SubSystem.h>
-#include <dolfin/mesh/MeshFunction.h>
-#include <dolfin/mesh/Facet.h>
-#include <dolfin/mesh/SubDomain.h>
-#include <dolfin/fem/UFCMesh.h>
-
+#include <dolfin.h>
 #include "NodeNormal.h"
 
 
@@ -70,7 +63,7 @@ namespace dolfin
 
   private:
 
-    void applySlipBC(Matrix& A, Matrix& As, Vector&, Mesh& mesh, NodeNormal& normal_node, uint node, Array<uint>& nodes);
+    void applySlipBC(Matrix& A, Matrix& As, Vector&, Mesh& mesh, uint node, Array<uint>& nodes);
     
     // Do: A(row,col) = value   using setblock not setvalue
     inline void Aset(Matrix& A, uint row, uint col, real value) { A.set(&value, 1, &row, 1, &col);};

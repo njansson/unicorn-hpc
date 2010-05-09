@@ -9,16 +9,7 @@
 #ifndef __NEWSLIPBC_H
 #define __NEWSLIPBC_H
 
-#include <dolfin/common/constants.h>
-#include <dolfin/fem/SubSystem.h>
-#include <dolfin/mesh/MeshFunction.h>
-#include <dolfin/mesh/Facet.h>
-#include <dolfin/mesh/SubDomain.h>
-#include <dolfin/fem/UFCMesh.h>
-#include <dolfin/fem/DofMap.h>
-#include <dolfin/fem/BoundaryCondition.h>
-#include <dolfin/la/Matrix.h>
-
+#include <dolfin.h>
 #include <unicorn/NodeNormal.h>
 
 namespace dolfin
@@ -38,7 +29,7 @@ namespace dolfin
   public:
     
     /// Create boundary condition for sub domain
-    NewSlipBC(Mesh& mesh, SubDomain& sub_domain);
+    NewSlipBC(Mesh& mesh, SubDomain& sub_domain, NodeNormal& Node_normal);
     
     /// Create boundary condition for sub domain specified by index
     NewSlipBC(MeshFunction<uint>& sub_domains, uint sub_domain);
@@ -69,9 +60,6 @@ namespace dolfin
 
     // Do: b(row) = value   using setblock not setvalue
     void bset(Vector& b, int row, real value);
-
-    std::vector< std::vector<int> > permutations;
-    
 
     std::vector< std::vector<int> > permutations;
 
@@ -130,6 +118,9 @@ namespace dolfin
     real *row_block;
     real *zero_block;
     uint *a1_indices_array;
+
+    BoundaryMesh* boundary;
+    MeshFunction<uint> *cell_map, *vertex_map;
 
   };
 }

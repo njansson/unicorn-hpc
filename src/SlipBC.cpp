@@ -193,7 +193,7 @@ void SlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
 	  nodes.push_back(ufc.dofs[0][ci]); 
 	
 	
-	applySlipBC((Matrix&) A, *As, (Vector&) b, mesh, node_normal, node, nodes); 
+	applySlipBC((Matrix&) A, *As, (Vector&) b, mesh, node, nodes); 
 	count++;   
 	nodes.clear();
       }
@@ -227,7 +227,7 @@ void SlipBC::init(SubDomain& sub_domain)
 
 //-----------------------------------------------------------------------------
 void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh, 
-			 NodeNormal& node_normal, uint node, Array<uint>& nodes)
+			 uint node, Array<uint>& nodes)
 {
 
   int nsdim = mesh.topology().dim();
@@ -275,6 +275,7 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
     
   std::copy(a1_indices.begin(), a1_indices.end(), a1_indices_array);
   int n_type = node_normal.node_type.get(node);
+
 
   // Apply no-slip for the node on the corner  in 3D and 2D
   if ((n_type == 3 && nsdim == 3) || (n_type == 2 && nsdim == 2)) {

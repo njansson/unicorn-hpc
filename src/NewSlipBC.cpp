@@ -3,35 +3,21 @@
 //
 // Existing code for Dirichlet BC is used
 // 
-// Modified by Johan Jansson, 2008-2009. 
+// Modified by Johan Jansson, 2010. 
 // Modified by Niclas Jansson, 2010. 
 //
 // First added:  2007-05-01
 // Last changed: 2010-05-09                                                  
 
-#include <dolfin/Mesh.h>
-#include <dolfin/Vertex.h>
-#include <dolfin/Cell.h>
-#include <dolfin/Facet.h>
-#include <dolfin/SubDomain.h>
-#include <dolfin/Form.h>
-#include <dolfin/UFCMesh.h>
-#include <dolfin/UFCCell.h>
-#include <dolfin/GenericMatrix.h>
-#include <dolfin/GenericVector.h>
-#include <dolfin/SubSystem.h>
-#include "unicorn/NewSlipBC.h"
-#include "unicorn/NodeNormal.h"
-
-#include <dolfin/Point.h>
-#include <dolfin/MeshFunction.h>
-#include <dolfin/BoundaryMesh.h>
-
-#include <dolfin/UFC.h>
-#include <dolfin/SparsityPattern.h>
-#include <dolfin/SparsityPatternBuilder.h>
-
 #include <dolfin.h>
+#include <dolfin/fem/UFC.h>
+#include <dolfin/main/MPI.h>
+
+#include "unicorn/NodeNormal.h"
+#include "unicorn/NewSlipBC.h"
+
+#include <map>
+
 
 #define max(a,b)  (a > b ? a : b) ;
 
@@ -64,9 +50,10 @@ NewSlipBC::NewSlipBC(MeshFunction<uint>& sub_domains,
 NewSlipBC::NewSlipBC(Mesh& mesh,
 	       SubDomain& sub_domain,
 	       const SubSystem& sub_system)
-  : BoundaryCondition(), mesh(sub_domains.mesh()),
-    sub_domains(&sub_domains), sub_domain(sub_domain), sub_domains_local(false),
-    node_normal(mesh), As(0),  row_block(0), zero_block(0), a1_indices_array(0),
+  : BoundaryCondition(), mesh(mesh),
+    sub_domains(0), sub_domain(0), sub_domains_local(false),
+    sub_system(sub_system), user_sub_domain(&sub_domain), node_normal(mesh),
+    As(0),  row_block(0), zero_block(0), a1_indices_array(0),
     boundary(0), cell_map(0), vertex_map(0)
 {
   // Set sub domain markers
@@ -78,11 +65,10 @@ NewSlipBC::NewSlipBC(Mesh& mesh,
 NewSlipBC::NewSlipBC(MeshFunction<uint>& sub_domains,
 	       uint sub_domain,
 	       const SubSystem& sub_system)
-  : BoundaryCondition(), mesh(mesh),
-    sub_domains(0), sub_domain(0), sub_domains_local(false),
-    sub_system(sub_system), user_sub_domain(&sub_domain), node_normal(mesh),
-    As(0),  row_block(0), zero_block(0), a1_indices_array(0),
-    boundary(0), cell_map(0), vertex_map(0)
+  :  mesh(sub_domains.mesh()),
+    sub_domains(&sub_domains), sub_domain(sub_domain), sub_domains_local(false),
+    sub_system(sub_system), node_normal(node_normal), As(0), row_block(0),
+    zero_block(0), a1_indices_array(0), boundary(0), cell_map(0), vertex_map(0)
 {
   // Do nothing
 }
@@ -129,7 +115,7 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const GenericVector& x
 
 //-----------------------------------------------------------------------------
 void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map, 
-		   const ufc::form& form)
+		   const Form& form)
 {
   if(MPI::processNumber() == 0)
     dolfin_set("output destination", "terminal");
@@ -139,12 +125,7 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
   bool reassemble = dolfin_get("PDE reassemble matrix");
 
   if(reassemble)
-  {
-    node_normal.ComputeNormal();
-    // FIXME: Test
-    real alpha_max = get("PDE slip alpha max");
-    std::cout << "alpha_max: " << alpha_max << std::endl;
-  }
+    real alpha_max = dolfin_get("PDE slip alpha max");
 
   UFC ufc(form.form(), mesh, form.dofMaps());
 
@@ -225,7 +206,7 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
 	for(uint i = 0; i < gdim; i++, ci+=cdim) 
 	  nodes.push_back(ufc.dofs[0][ci]); 
 		
-	applyNewSlipBC((Matrix&) A, *As, (Vector&) b, mesh, node_normal, node, nodes); 
+	applyNewSlipBC((Matrix&) A, *As, (Vector&) b, mesh, node, nodes); 
 	count++;   
 	nodes.clear();
       }
@@ -251,18 +232,15 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
 void NewSlipBC::init(SubDomain& sub_domain)
 {
   // Create mesh function for sub domain markers on facets
-  mesh.init();
-
-  //sub_domains = new MeshFunction<uint>(mesh, mesh.topology().dim() - 1);
+  mesh.init(0);
   sub_domains = new MeshFunction<uint>(mesh, 0);
   sub_domains_local = true;
-
+  
   // Mark everything as sub domain 1
   (*sub_domains) = 1;
   
   // Mark the sub domain as sub domain 0
   sub_domain.mark(*sub_domains, 0);
-
   permutations.resize(mesh.numVertices());
   for(uint i = 0; i < permutations.size(); i++)
   {
@@ -270,9 +248,8 @@ void NewSlipBC::init(SubDomain& sub_domain)
   }
 }
 //-----------------------------------------------------------------------------
-void NewSlipBC::applyNewSlipBC(Matrix& A, Matrix& As, Vector& b,
-			 const ufc::form& form, 
-			 Mesh& mesh, NodeNormal& node_normal, uint node)
+void NewSlipBC::applyNewSlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh, 
+			       uint node, Array<uint>& nodes)
 {
 
  bool reassemble = dolfin_get("PDE reassemble matrix");
