@@ -112,7 +112,12 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const GenericVector& x
 {
 
 }
+//-----------------------------------------------------------------------------
+void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, 
+			const DofMap& dof_map, const ufc::form& form)
+{
 
+}
 //-----------------------------------------------------------------------------
 void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map, 
 		   const Form& form)
