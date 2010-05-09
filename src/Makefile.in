@@ -56,7 +56,8 @@ libunicorn_a_AR = $(AR) $(ARFLAGS)
 libunicorn_a_LIBADD =
 am_libunicorn_a_OBJECTS = ErrorEstimate.$(OBJEXT) init.$(OBJEXT) \
 	util.$(OBJEXT) NodeNormal.$(OBJEXT) SlipBC.$(OBJEXT) \
-	SpaceTimeFunction.$(OBJEXT) UniParameters.$(OBJEXT)
+	NewSlipBC.$(OBJEXT) SpaceTimeFunction.$(OBJEXT) \
+	UniParameters.$(OBJEXT)
 libunicorn_a_OBJECTS = $(am_libunicorn_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -69,15 +70,6 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libunicorn_a_SOURCES)
 DIST_SOURCES = $(libunicorn_a_SOURCES)
@@ -221,7 +213,7 @@ SUBDIRS = unicorn
 AM_CPPFLAGS = -I@srcdir@/unicorn
 nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/SpaceTimeFunction.h  unicorn/UniParameters.h unicorn/util.h
 lib_LIBRARIES = libunicorn.a
-libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp  NewSlipBC.h SpaceTimeFunction.cpp  UniParameters.cpp 
+libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp  NewSlipBC.cpp SpaceTimeFunction.cpp  UniParameters.cpp 
 all: all-recursive
 
 .SUFFIXES:
@@ -296,6 +288,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ErrorEstimate.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NewSlipBC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NodeNormal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SlipBC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SpaceTimeFunction.Po@am__quote@
