@@ -163,7 +163,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-EXTRA_DIST = ErrorEstimate.h  init.h  NodeNormal.h  SlipBC.h NewSlipBC.h SpaceTimeFunction.h  UniParameters.h util.h 
+EXTRA_DIST = ErrorEstimate.h  init.h  NodeNormal.h  SlipBC.h NewSlipBC.h NewDirichletBC.h SpaceTimeFunction.h  UniParameters.h util.h 
 all: all-am
 
 .SUFFIXES:
