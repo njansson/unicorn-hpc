@@ -1,0 +1,48 @@
+#ifndef __MESH_QUALITY_H
+#define __MESH_QUALITY_H
+
+#include <dolfin/common/constants.h>
+#include <dolfin/mesh/Mesh.h>
+#include <dolfin/mesh/MeshFunction.h>
+
+namespace dolfin { namespace unicorn
+{
+
+  class MeshQuality
+  {
+  public:
+    
+    /// Constructor
+    MeshQuality(Mesh& mesh);
+
+    bool isInverted(uint& first);
+    real cellQuality(Cell& cell) const;
+    void meshQuality();
+    void disp();
+
+    // Compute cell diameter
+    static real myDiameter(Cell& cell);
+    static real myDiameterAvg(Cell& cell);
+
+
+    Mesh& mesh;
+    MeshFunction<int> orientation;
+
+    real mu_min;
+    real mu_max;
+    real mu_avg;
+    real h_min;
+    real h_max;
+    real h_avg;
+    real vol_min;
+    real vol_max;
+
+    Point bbox_min;
+    Point bbox_max;
+
+  };
+
+
+}}
+
+#endif

@@ -35,6 +35,9 @@ NewSlipBC::NewSlipBC(Mesh& mesh, SubDomain& sub_domain, NodeNormal& Node_normal)
   init(sub_domain);
 
   sub_system = SubSystem(0);
+  if(!ParameterSystem::parameters.defined("PDE slip alpha max"))
+    dolfin_add("PDE slip alpha max", DOLFIN_PI / 1.9);
+
 }
 //-----------------------------------------------------------------------------
 NewSlipBC::NewSlipBC(MeshFunction<uint>& sub_domains,
@@ -59,6 +62,10 @@ NewSlipBC::NewSlipBC(Mesh& mesh,
   // Set sub domain markers
   init(sub_domain);
   //Function g(0);
+
+  if(!ParameterSystem::parameters.defined("PDE slip alpha max"))
+    dolfin_add("PDE slip alpha max", DOLFIN_PI / 1.9);
+
 }
 
 //-----------------------------------------------------------------------------
