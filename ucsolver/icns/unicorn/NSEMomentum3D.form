@@ -39,6 +39,12 @@ nu = Constant("tetrahedron") # viscosity
 i0 = Index()    # index for tensor notation
 i1 = Index()    # index for tensor notation
 i2 = Index()    # index for tensor notation
+cell = "tetrahedron"
+K1 = VectorElement("Lagrange", cell, 1)
+# Dimension of domain
+d = K1.cell_dimension()
+def ugradu(u, v):
+    return [dot(u, grad(v[i])) for i in range(d)]
 
 # Galerkin discretization of bilinear form  
 G_a  = (dot(v, U) + k*nu*0.5*dot(grad(v), grad(U)) + 0.5*k*v[i0]*um[i1]*U[i0].dx(i1))*dx + \
@@ -54,8 +60,6 @@ G_L  = (dot(v, u0) + k*dot(v, f) + k*div(v)*p - k*nu*0.5*dot(grad(v), grad(u0)) 
 # Least squares stabilization of linear form
 #SD_L = (- delta1*k*0.5*um[i1]*v[i0].dx(i1)*um[i2]*u0[i0].dx(i2) - delta1*k*um[i1]*v[i0].dx(i1)*p.dx(i0) - delta2*k*0.5*div(v)*div(u0))*dx
 SD_L = (- delta1*k*0.5*um[i1]*v[i0].dx(i1)*um[i2]*u0[i0].dx(i2) - delta1*k*(dot(grad(p), ugradu(um, v))) - delta2*k*0.5*div(v)*div(u0))*dx
- 
-
 
 # Bilinear and linear forms
 a = G_a + SD_a

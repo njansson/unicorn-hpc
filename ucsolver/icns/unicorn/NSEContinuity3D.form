@@ -15,6 +15,10 @@ name = "NSEContinuity3D"
 scalar = FiniteElement("Lagrange", "tetrahedron", 1)
 vector = VectorElement("Lagrange", "tetrahedron", 1)
 constant_scalar = FiniteElement("Discontinuous Lagrange", "tetrahedron", 0)
+cell = "tetrahedron"
+K1 = VectorElement("Lagrange", cell, 1)
+# Dimension of domain
+d = K1.cell_dimension()
 
 q  = TestFunction(scalar)  # test basis function
 P  = TrialFunction(scalar) # trial basis function
@@ -25,8 +29,13 @@ delta1 = Function(constant_scalar) # stabilization parameter
 i0 = Index() # index for tensor notation
 i1 = Index() # index for tensor notation
 
+def ugradu(u, v):
+    return [dot(u, grad(v[i])) for i in range(d)]
+
 # Bilinear and linear forms
 a = delta1*dot(grad(q), grad(P))*dx + 0.001*P*q*dx
-L = - q*div(uc)*dx - mult(delta1, dot( ugradu(uc, uc), grad(q))) *dx
 #L = - q*div(uc)*dx - delta1*dot(dot(uc,grad(uc)),grad(q))
+L = - q*div(uc)*dx - mult(delta1, dot( ugradu(uc, uc), grad(q))) *dx
+
+
 

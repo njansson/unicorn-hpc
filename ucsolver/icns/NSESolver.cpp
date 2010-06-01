@@ -142,7 +142,7 @@ void NSESolver::solve()
   real hmin;
   GetMinimumCellSize(mesh, hmin);  
 
-  real k = 0.25*hmin/ubar; 
+  real k = 0.15*hmin/ubar; 
 
  if(dolfin::MPI::processNumber() == 0)
    dolfin_set("output destination","terminal");
@@ -188,7 +188,7 @@ void NSESolver::solve()
       amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
       Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
       acon = new NSEContinuity3DBilinearForm(delta1);
-      Lcon = new NSEContinuity3DLinearForm(uc);
+      Lcon = new NSEContinuity3DLinearForm(uc, delta1);
       MD = new Drag3DFunctional(phi, dtu, u, um, p, fnu, delta1, delta2, f);
     }
     else if(solver_type == "dual")
