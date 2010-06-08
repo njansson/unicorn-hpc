@@ -12,6 +12,8 @@
 #include <dolfin/mesh/Face.h>
 #include <unicorn/EquiAffineMap.h>
 
+#ifndef NO_UBLAS 
+
 #include <boost/numeric/ublas/matrix.hpp>
 
 using namespace dolfin;
@@ -178,3 +180,5 @@ void EquiAffineMap::updateTetrahedron(Cell& cell)
    det = fabs(det);
 }
 //-----------------------------------------------------------------------------
+
+#endif

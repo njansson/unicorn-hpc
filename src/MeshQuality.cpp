@@ -4,6 +4,8 @@
 #include <dolfin/mesh/Edge.h>
 #include <dolfin/mesh/Vertex.h>
 
+#ifndef NO_UBLAS
+
 using namespace dolfin::unicorn;
 using namespace dolfin;
 
@@ -135,3 +137,5 @@ void MeshQuality::disp()
   cout << "bbox_max: " << bbox_max << endl;
 }
 //-----------------------------------------------------------------------------
+
+#endif

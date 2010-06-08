@@ -12,7 +12,10 @@
 #include <dolfin/common/constants.h>
 #include <dolfin/mesh/Point.h>
 #include <dolfin/mesh/Cell.h>
+
+#ifndef NO_UBLAS
 #include <dolfin/la/uBlasDenseMatrix.h>
+#endif
 
 namespace dolfin { namespace unicorn
 {
@@ -53,11 +56,13 @@ namespace dolfin { namespace unicorn
     // Determinant of Jacobian of map
     real det;
 
+#ifndef NO_UBLAS
     // Jacobian of map
     uBlasDenseMatrix B;
 
     // Inverse of Jacobian of map
     uBlasDenseMatrix C;
+#endif
 
   private:
 
