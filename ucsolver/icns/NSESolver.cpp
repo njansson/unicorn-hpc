@@ -10,6 +10,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <ostream>
@@ -323,25 +324,18 @@ void NSESolver::solve()
   Assembler assembler(mesh);
   
   // Initialize output files 
-  std::string u_fname;
-  std::string p_fname;
   std::string d_fname = "drag_file.m";
 
-  if(solver_type == "primal")
-  {
-    u_fname = "velocity.pvd";
-    p_fname = "pressure.pvd";
+  std::vector<std::pair<Function*, std::string>> output;
+  std::pair<Function*, std::string> u_output(&u, "Velocity");
+  std::pair<Function*, std::string> p_output(&p, "Pressure");
+  output.push_back(u_output);
+  output.push_back(p_output);
 
-  }
-  else
-  {
-    u_fname = "dual_velocity.pvd";
-    p_fname = "dual_pressure.pvd";
-  }
-
-
-  File file_u(u_fname.c_str(), t);  // file for saving velocity 
-  File file_p(p_fname.c_str(), t);  // file for saving pressure
+  std::ostringstream output_filename;
+  output_filename << solver_type << "_solution.pvd";
+  
+  File file_solution(output_filename.str(), t);
   File file_r("residual.pvd");
   File file_ei("ei.pvd");
 
@@ -575,8 +569,7 @@ void NSESolver::solve()
       chkp.write(solver_type, solver_type == "dual", t+k, mesh, func, vec); // FIXME +k (^-^)
       message("Save solution to file");
       dolfin_set("output destination","silent");      
-      file_p << p;
-      file_u << u;
+      file_solution << output;
 
       if(solver_type == "dual")
       {
@@ -638,8 +631,7 @@ void NSESolver::solve()
     dolfin_set("output destination","terminal");      
   chkp.write(solver_type, solver_type == "dual", t-k, mesh, func, vec); 
   message("save solution to file");
-  file_p << p;
-  file_u << u;
+  file_solution << output;
   dolfin_set("output destination","silent");      
   
 
