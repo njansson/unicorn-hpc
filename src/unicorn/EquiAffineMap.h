@@ -13,9 +13,9 @@
 #include <dolfin/mesh/Point.h>
 #include <dolfin/mesh/Cell.h>
 
-#ifndef NO_UBLAS
 #include <dolfin/la/uBlasDenseMatrix.h>
-#endif
+
+#define RM(row,col,nrow) ((row) + ((nrow)*(col)))
 
 namespace dolfin { namespace unicorn
 {
@@ -56,13 +56,11 @@ namespace dolfin { namespace unicorn
     // Determinant of Jacobian of map
     real det;
 
-#ifndef NO_UBLAS
     // Jacobian of map
-    uBlasDenseMatrix B;
+    real *B;
 
     // Inverse of Jacobian of map
-    uBlasDenseMatrix C;
-#endif
+    real *C;
 
   private:
 

@@ -4,7 +4,7 @@
 #include <dolfin/mesh/Edge.h>
 #include <dolfin/mesh/Vertex.h>
 
-#ifndef NO_UBLAS
+
 
 using namespace dolfin::unicorn;
 using namespace dolfin;
@@ -44,7 +44,12 @@ real MeshQuality::cellQuality(Cell& cell) const
 
   // FIXME: Verify that it's the Frobenius norm
   // Compute Frobenius norm
-  real Fnorm = map.B.norm();
+  //  real Fnorm = map.B.norm();
+  real Fnorm = 0.0;
+  for (uint i = 0; i < 3; i ++) 
+    for (uint j = 0; j < 3; j++)
+      Fnorm += map.B[RM(i, j, 3)] * map.B[RM(i, j, 3)];
+  Fnorm = sqrt(Fnorm);
   
   int d = cell.mesh().topology().dim();
 
@@ -138,4 +143,3 @@ void MeshQuality::disp()
 }
 //-----------------------------------------------------------------------------
 
-#endif

@@ -12,7 +12,7 @@
 #include <dolfin/mesh/Face.h>
 #include <unicorn/EquiAffineMap.h>
 
-#ifndef NO_UBLAS 
+
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -22,15 +22,19 @@ using namespace dolfin::unicorn;
 typedef std::pair<unsigned int, unsigned int> pr;
 
 //-----------------------------------------------------------------------------
-EquiAffineMap::EquiAffineMap() : B(3, 3), C(3, 3)
+EquiAffineMap::EquiAffineMap() : B(0), C(0)
 {
   det = 0.0;
-  
+  B = new real[3*3];
+  C = new real[3*3];
 }
 //-----------------------------------------------------------------------------
 EquiAffineMap::~EquiAffineMap()
 {
-  // Do nothing
+  if(B)
+    delete[] B;
+  if(C) 
+    delete[] C;
 }
 //-----------------------------------------------------------------------------
 void EquiAffineMap::update(Cell& cell)
@@ -60,10 +64,15 @@ Point EquiAffineMap::operator() (real X, real Y, real Z) const
 //-----------------------------------------------------------------------------
 Point EquiAffineMap::map(real X, real Y, real Z) const
 {
-  uBlasVector p(3), P(3);
+  real p[3] ={0.0, 0.0, 0.0};
+  real P[3] ={0.0, 0.0, 0.0};
 
   P[0] = X; P[1] = Y; P[2] = Z;
-  B.mult(P, p);
+
+  //  B.mult(P, p);
+  for (uint i = 0; i < 3; i ++) 
+    for (uint j = 0; j < 3; j++)
+      p[i] += B[RM(i, j, 3)] * P[j];
 
   p[0] += p0.x(); p[1] += p0.y(); p[2] += p0.z();
 
@@ -72,10 +81,14 @@ Point EquiAffineMap::map(real X, real Y, real Z) const
 //-----------------------------------------------------------------------------
 Point EquiAffineMap::mapinv(real X, real Y, real Z) const
 {
-  uBlasVector p(3), P(3);
+  real p[3] ={0.0, 0.0, 0.0};
+  real P[3] ={0.0, 0.0, 0.0};
 
   p[0] = X - p0.x(); p[1] = Y - p0.y(); p[2] = Z - p0.z();
-  C.mult(p, P);
+  //  C.mult(p, P);
+  for (uint i = 0; i < 3; i ++) 
+    for (uint j = 0; j < 3; j++)
+      p[i] += C[RM(i, j, 3)] * p[j];
 
   return Point(P[0], P[1], P[2]);
 }
@@ -100,21 +113,23 @@ void EquiAffineMap::updateTriangle(Cell& cell)
 //   B(0, 1) = p2.x() - p0.x(); B(1, 1) = p2.y() - p0.y();
   real a = 1.0 / sqrt(3.0);
 
-  B.setitem(pr(0, 0), -a * p0.x() + 2 * a * p1.x() - a * p2.x());
-  B.setitem(pr(1, 0), -a * p0.y() + 2 * a * p1.y() - a * p2.y());
-  B.setitem(pr(0, 1), p2.x() - p0.x());
-  B.setitem(pr(1, 1), p2.y() - p0.y());
+  B[RM(0,0,3)] = -a * p0.x() + 2 * a * p1.x() - a * p2.x();
+  B[RM(1,0,3)] = -a * p0.y() + 2 * a * p1.y() - a * p2.y();
+  B[RM(0,1,3)] =  p2.x() - p0.x();
+  B[RM(1,1,3)] =  p2.y() - p0.y();
 
   // Compute determinant
-  det = B(0, 0) * B(1, 1) - B(0, 1) * B(1, 0);
+  det = B[RM(0,0,3)] * B[RM(1,1,3)] - B[RM(0,1,3)] * B[RM(1,0,3)];
   
   // Check determinant
   if ( fabs(det) < DOLFIN_EPS )
     error("Map from reference cell is singular.");
   
   // Compute inverse of Jacobian
-  C.setitem(pr(0, 0), B(1, 1) / det); C.setitem(pr(0, 1), -B(0, 1) / det);
-  C.setitem(pr(1, 0), -B(1, 0) / det); C.setitem(pr(1, 1), B(0, 0) / det);
+  C[RM(0, 0, 3)] =  B[RM(1, 1, 3)] / det;
+  C[RM(0, 1, 3)] = -B[RM(0, 1, 3)] / det;
+  C[RM(1, 0, 3)] = -B[RM(1, 0, 3)] / det;
+  C[RM(1, 1, 3)] =  B[RM(0, 0, 3)] / det;
 
   // Take absolute value of determinant
   det = fabs(det);
@@ -135,50 +150,50 @@ void EquiAffineMap::updateTetrahedron(Cell& cell)
   real b = 1.0 / sqrt(2.0) * a;
   real c = sqrt(3.0) / sqrt(2.0);
   
-  B.setitem(pr(0, 0), -a * p0.x() + 2 * a * p1.x() - a * p2.x());
-  B.setitem(pr(0, 1), -p0.x() + p2.x());
-  B.setitem(pr(0, 2), -b * p0.x() - b * p1.x() - b * p2.x() + c * p3.x());
-  B.setitem(pr(1, 0), -a * p0.y() + 2 * a * p1.y() - a * p2.y());
-  B.setitem(pr(1, 1), -p0.y() + p2.y());
-  B.setitem(pr(1, 2), -b * p0.y() - b * p1.y() - b * p2.y() + c * p3.y());
-  B.setitem(pr(2, 0), -a * p0.z() + 2 * a * p1.z() - a * p2.z());
-  B.setitem(pr(2, 1), -p0.z() + p2.z());
-  B.setitem(pr(2, 2), -b * p0.z() - b * p1.z() - b * p2.z() + c * p3.z());
+  B[RM(0, 0, 3)] = -a * p0.x() + 2 * a * p1.x() - a * p2.x();
+  B[RM(0, 1, 3)] = -p0.x() + p2.x();
+  B[RM(0, 2, 3)] = -b * p0.x() - b * p1.x() - b * p2.x() + c * p3.x();
+  B[RM(1, 0, 3)] = -a * p0.y() + 2 * a * p1.y() - a * p2.y();
+  B[RM(1, 1, 3)] = -p0.y() + p2.y();
+  B[RM(1, 2, 3)] = -b * p0.y() - b * p1.y() - b * p2.y() + c * p3.y();
+  B[RM(2, 0, 3)] = -a * p0.z() + 2 * a * p1.z() - a * p2.z();
+  B[RM(2, 1, 3)] = -p0.z() + p2.z();
+  B[RM(2, 2, 3)] = -b * p0.z() - b * p1.z() - b * p2.z() + c * p3.z();
 
    // Compute sub-determinants
-   real d00 = B(1, 1) * B(2, 2) - B(1, 2) * B(2, 1);
-   real d01 = B(1, 2) * B(2, 0) - B(1, 0) * B(2, 2);
-   real d02 = B(1, 0) * B(2, 1) - B(1, 1) * B(2, 0);
+   real d00 = B[RM(1, 1, 3)] * B[RM(2, 2, 3)] - B[RM(1, 2, 3)] * B[RM(2, 1, 3)];
+   real d01 = B[RM(1, 2, 3)] * B[RM(2, 0, 3)] - B[RM(1, 0, 3)] * B[RM(2, 2, 3)];
+   real d02 = B[RM(1, 0, 3)] * B[RM(2, 1, 3)] - B[RM(1, 1, 3)] * B[RM(2, 0, 3)];
   
-   real d10 = B(0, 2) * B(2, 1) - B(0, 1) * B(2, 2);
-   real d11 = B(0, 0) * B(2, 2) - B(0, 2) * B(2, 0);
-   real d12 = B(0, 1) * B(2, 0) - B(0, 0) * B(2, 1);
+   real d10 = B[RM(0, 2, 3)] * B[RM(2, 1, 3)] - B[RM(0, 1, 3)] * B[RM(2, 2, 3)];
+   real d11 = B[RM(0, 0, 3)] * B[RM(2, 2, 3)] - B[RM(0, 2, 3)] * B[RM(2, 0, 3)];
+   real d12 = B[RM(0, 1, 3)] * B[RM(2, 0, 3)] - B[RM(0, 0, 3)] * B[RM(2, 1, 3)];
   
-   real d20 = B(0, 1) * B(1, 2) - B(0, 2) * B(1, 1);
-   real d21 = B(0, 2) * B(1, 0) - B(0, 0) * B(1, 2);
-   real d22 = B(0, 0) * B(1, 1) - B(0, 1) * B(1, 0);
+   real d20 = B[RM(0, 1, 3)] * B[RM(1, 2, 3)] - B[RM(0, 2, 3)] * B[RM(1, 1, 3)];
+   real d21 = B[RM(0, 2, 3)] * B[RM(1, 0, 3)] - B[RM(0, 0, 3)] * B[RM(1, 2, 3)];
+   real d22 = B[RM(0, 0, 3)] * B[RM(1, 1, 3)] - B[RM(0, 1, 3)] * B[RM(1, 0, 3)];
   
    // Compute determinant
-   det = B(0, 0) * d00 + B(1, 0) * d10 + B(2, 0) * d20;
+   det = B[RM(0, 0, 3)] * d00 + B[RM(1, 0, 3)] * d10 + B[RM(2, 0, 3)] * d20;
   
    // Check determinant
    if ( fabs(det) < DOLFIN_EPS )
      error("Map from reference cell is singular.");
   
    // Compute inverse of Jacobian
-   C.setitem(pr(0, 0), d00 / det);
-   C.setitem(pr(0, 1), d10 / det);
-   C.setitem(pr(0, 2), d20 / det);
-   C.setitem(pr(1, 0), d01 / det);
-   C.setitem(pr(1, 1), d11 / det);
-   C.setitem(pr(1, 2), d21 / det);
-   C.setitem(pr(2, 0), d02 / det);
-   C.setitem(pr(2, 1), d12 / det);
-   C.setitem(pr(2, 2), d22 / det);
+   C[RM(0, 0, 3)] = d00 / det;
+   C[RM(0, 1, 3)] = d10 / det;
+   C[RM(0, 2, 3)] = d20 / det;
+   C[RM(1, 0, 3)] = d01 / det;
+   C[RM(1, 1, 3)] = d11 / det;
+   C[RM(1, 2, 3)] = d21 / det;
+   C[RM(2, 0, 3)] = d02 / det;
+   C[RM(2, 1, 3)] = d12 / det;
+   C[RM(2, 2, 3)] = d22 / det;
 
    // Take absolute value of determinant
    det = fabs(det);
 }
 //-----------------------------------------------------------------------------
 
-#endif
+
