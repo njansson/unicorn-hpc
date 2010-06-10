@@ -136,8 +136,9 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
 
   bool reassemble = dolfin_get("PDE reassemble matrix");
 
+  real alpha_max = 0.0;
   if(reassemble)
-    real alpha_max = dolfin_get("PDE slip alpha max");
+    alpha_max = dolfin_get("PDE slip alpha max");
 
   UFC ufc(form.form(), mesh, form.dofMaps());
 
@@ -182,9 +183,6 @@ void NewSlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
     *(As->instance()) =  A;
   }
 
-  // Get the dimension of entity
-  const uint dim = (*sub_domains).dim();
-  
   Progress p("Applying Slip boundary conditions", mesh.size(0));
   
   Array<uint> nodes;

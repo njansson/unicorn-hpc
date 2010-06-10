@@ -98,13 +98,11 @@ namespace dolfin
     // Sub system
     SubSystem sub_system;
 
-    // Node normal and tangents
-    NodeNormal node_normal;
-
     // User defined sub domain
     SubDomain* user_sub_domain;
 
-
+    // Node normal and tangents
+    NodeNormal node_normal;
 
     int nzm;
 
