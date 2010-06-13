@@ -2,19 +2,16 @@
 // Licensed under the GNU GPL Version 2.
 //
 // Modified by Garth N. Wells, 2006.
+// Modified by Niclas Jansson, 2010.
 //
 // First added:  2005-05-17
-// Last changed: 2006-12-06
+// Last changed: 2010-06-13
 
 #include <dolfin/mesh/Vertex.h>
 #include <dolfin/mesh/Cell.h>
 #include <dolfin/mesh/Edge.h>
 #include <dolfin/mesh/Face.h>
 #include <unicorn/EquiAffineMap.h>
-
-
-
-#include <boost/numeric/ublas/matrix.hpp>
 
 using namespace dolfin;
 using namespace dolfin::unicorn;
@@ -95,7 +92,6 @@ Point EquiAffineMap::mapinv(real X, real Y, real Z) const
 //-----------------------------------------------------------------------------
 void EquiAffineMap::updateTriangle(Cell& cell)
 {
-  using namespace boost::numeric::ublas;
 
   assert(cell.dim() == 2);
   
