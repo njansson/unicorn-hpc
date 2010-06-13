@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2002-11-29
-// Last changed: 2010-03-29
+// Last changed: 2010-06-13
 //
 // A cG(1)cG(1) FEM solver for the incompressible Navier-Stokes equations 
 //
@@ -222,6 +222,9 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
   Phi phi(mesh);
   Beta beta(mesh);
 
+  Array<Function*> aero_f;
+  aero_f.push_back(&phi);
+
   NodeNormal node_normal(mesh);
   SlipBC slip_bc0(mesh, slipboundary, node_normal);
   DirichletBC bc_mom0(bcf_mom, mesh, iboundary);
@@ -251,7 +254,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
     w_limit -= (st.tv_sec - s_time.tv_sec);
   }
 
-  NSESolver psolver(mesh, node_normal, f, phi, beta, bc_mom, bc_con,
+  NSESolver psolver(mesh, node_normal, f, beta, aero_f, bc_mom, bc_con,
 		    T, nu, ubar, chkp, w_limit, td, "primal"); 
   psolver.solve();
 
@@ -260,7 +263,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
     w_limit -= (st.tv_sec - s_time.tv_sec);
   }
 
-  NSESolver dsolver(mesh, node_normal, f, phi, beta, dual_bc_mom, dual_bc_con,
+  NSESolver dsolver(mesh, node_normal, f, beta, aero_f, dual_bc_mom, dual_bc_con,
 		    dual_T, nu, ubar, chkp, w_limit, td, "dual");
   dsolver.solve();
     

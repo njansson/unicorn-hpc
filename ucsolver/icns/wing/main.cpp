@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2002-11-29
-// Last changed: 2010-03-29
+// Last changed: 2010-06-13
 //
 // A cG(1)cG(1) FEM solver for the incompressible Navier-Stokes equations 
 //
@@ -131,6 +131,38 @@ public:
   TimeDependent& td;
 };
 
+class Psi : public Function
+{
+public:
+  Psi(Mesh& mesh, TimeDependent& td) : Function(mesh), td(td) {}
+  void eval(real* values, const real* x) const
+  {
+    real t = td.time();
+    
+    real aoa = 0.0;
+
+    // the equation of line:
+    if (t < T0)
+      aoa = 0.0;
+    else
+      aoa = coef*t + b;
+
+    int d = cell().dim();
+    if ( (sqr(x[0]) + sqr(x[1]) + sqr(x[2]) < rd - bmarg) &&
+         fabs(x[2]) < 0.5 - bmarg)
+    {
+      //orthogonal to the drag direction
+      values[0] =  sin(M_PI / 180.0 * aoa);
+      values[2] = -cos(M_PI / 180.0 * aoa);
+      values[1] =  0.0;
+    }
+    else
+      for(int i = 0; i < d; i++)
+        values[i] = 0.0;
+  }
+  TimeDependent& td;
+};
+
 // Friction coefficient
 class Beta : public Function
 {
@@ -209,8 +241,13 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 
   TimeDependent td;
   Phi phi(mesh, td);
+  Psi psi(mesh, td);
   Beta beta(mesh);
   ForceFunction f(mesh);
+
+  Array <Function*> aero_f;
+  aero_f.push_back(&phi);
+  aero_f.push_back(&psi);
   
   Function zero(mesh, 0.0);
   Function one(mesh, 1.0);
@@ -247,7 +284,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
     w_limit -= (st.tv_sec - s_time.tv_sec);
   }
 
-  NSESolver psolver(mesh, node_normal, f, phi, beta, p_bc_mom, p_bcout, 
+  NSESolver psolver(mesh, node_normal, f, beta, aero_f, p_bc_mom, p_bcout, 
 		    T, nu, ubar, chkp, w_limit, td, "primal"); 
   psolver.solve();
 
@@ -256,7 +293,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
     w_limit -= (st.tv_sec - s_time.tv_sec);
   }
 
-  NSESolver dsolver(mesh, node_normal, f, phi, beta, d_bc_mom, d_bcout, 
+  NSESolver dsolver(mesh, node_normal, f, beta, aero_f, d_bc_mom, d_bcout, 
 		    dual_T, nu, ubar, chkp, w_limit, td, "dual");
   dsolver.solve();
     

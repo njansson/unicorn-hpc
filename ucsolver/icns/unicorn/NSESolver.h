@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-03-26
+// Last changed: 2010-06-13
 
 #ifndef __NSE_SOLVER_H
 #define __NSE_SOLVER_H
@@ -27,7 +27,8 @@ namespace dolfin {
       
       // Create the Navier-Stokes solver
       NSESolver(Mesh& mesh, NodeNormal& node_normal,
-		Function& f, Function& phi, Function& beta,
+		Function& f, Function& beta,
+		Array<Function*>& aero_f,
 		Array<BoundaryCondition*>& bc_mom,
 		BoundaryCondition& bc_con,
 		real T, real nu, real ubar,
@@ -138,8 +139,8 @@ namespace dolfin {
       Mesh& mesh;
       NodeNormal& node_normal;
       Function& f;
-      Function& phi;
       Function& beta;
+      Array<Function*>& aero_f;
       Array<BoundaryCondition*>& bc_mom;
       BoundaryCondition& bc_con;
 
@@ -155,7 +156,7 @@ namespace dolfin {
       ErrorEstimate* errest;
       ErrorEstimate* perrest;
 
-      uint *indices, *c_indices;
+      uint *indices, *c_indices;            
       
       static bool WALL_CLOCK_LIMIT;
 

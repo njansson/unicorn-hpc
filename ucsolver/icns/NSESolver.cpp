@@ -37,7 +37,8 @@ bool NSESolver::WALL_CLOCK_LIMIT = false;
 
 //-----------------------------------------------------------------------------
 NSESolver::NSESolver(Mesh& mesh, NodeNormal& node_normal,
-		     Function& f, Function& phi, Function& beta,
+		     Function& f, Function& beta,
+		     Array<Function*>& aero_f,
                      Array<BoundaryCondition*>& bc_mom, 
                      BoundaryCondition& bc_con,
                      real T, real nu, real ubar,
@@ -45,7 +46,7 @@ NSESolver::NSESolver(Mesh& mesh, NodeNormal& node_normal,
 		     TimeDependent& td,
                      std::string solver_type)
   : mesh(mesh), node_normal(node_normal),
-    f(f), phi(phi), beta(beta),
+    f(f), beta(beta), aero_f(aero_f),
     bc_mom(bc_mom), bc_con(bc_con),
     T(T), nu(nu), ubar(ubar),
     chkp(chkp), w_limit(w_limit), 
@@ -179,8 +180,8 @@ void NSESolver::solve()
   Form* Lmom = 0;
   Form* Lcon = 0;
   Form* Lres_m = 0;
-  Form* MD = 0;
   Form* LG = 0;
+  Form** MF = new Form*[aero_f.size()];
   
   if ( nsd == 3 )
   {
@@ -190,7 +191,10 @@ void NSESolver::solve()
       Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
       acon = new NSEContinuity3DBilinearForm(delta1);
       Lcon = new NSEContinuity3DLinearForm(uc, delta1);
-      MD = new Drag3DFunctional(phi, dtu, u, um, p, fnu, delta1, delta2, f);
+
+      for(int i = 0; i < aero_f.size(); i++)
+	MF[i] = new Drag3DFunctional(*aero_f[i], dtu, u, um, p, fnu, delta1, delta2, f);
+
     }
     else if(solver_type == "dual")
     {
@@ -324,9 +328,9 @@ void NSESolver::solve()
   Assembler assembler(mesh);
   
   // Initialize output files 
-  std::string d_fname = "drag_file.m";
+  std::string f_fname = "aero_f.dat";
 
-  std::vector<std::pair<Function*, std::string>> output;
+  std::vector<std::pair<Function*, std::string> > output;
   std::pair<Function*, std::string> u_output(&u, "Velocity");
   std::pair<Function*, std::string> p_output(&p, "Pressure");
   output.push_back(u_output);
@@ -339,13 +343,12 @@ void NSESolver::solve()
   File file_r("residual.pvd");
   File file_ei("ei.pvd");
 
-  std::ofstream dragFile;
+  std::ofstream forceFile;
 
   if(solver_type == "primal" && MPI::processNumber() == 0)
   {
-    dragFile.open(d_fname.c_str());
-    dragFile << "data = [\n";
-    dragFile.flush();
+    forceFile.open(f_fname.c_str());
+    forceFile.flush();
   }
 
   // Compute stabilization parameters
@@ -551,17 +554,26 @@ void NSESolver::solve()
     if(residual > rtol)
       warning("NSE fixed point iteration did not converge"); 
 
-    // Compute and output quantity of interest (drag)
+    // Compute and output quantity of interest (aero_f)
     if(solver_type == "primal")
     {
-      real drag = 0.0;
-      drag = assembler.assemble(*MD);
-      if( MPI::processNumber() == 0) {
-	cout << "drag: " << drag << endl; 
-	dragFile << t  << "\t" << drag << "\n";
-	dragFile.flush();
+
+      real force = 0.0;
+      if( MPI::processNumber() == 0) 
+	forceFile << t << "\t";
+            
+      for (int i = 0; i < aero_f.size(); i++)
+      {
+	force = assembler.assemble(*MF[i]);
+	if( MPI::processNumber() == 0) 
+	  forceFile << force  << "\t";
+      }	
+      if( MPI::processNumber() == 0)  {
+	forceFile << "\n"; 
+	forceFile.flush();     
       }
     }
+
 
     if ( (time_step == 1 || WALL_CLOCK_LIMIT) || (t > (T-T0)*(real(sample)/real(no_samples))) ){
       if(dolfin::MPI::processNumber() == 0)
@@ -634,19 +646,17 @@ void NSESolver::solve()
   file_solution << output;
   dolfin_set("output destination","silent");      
   
-
-  if(solver_type == "primal" && MPI::processNumber() == 0) {
-    dragFile<< "];";
-    dragFile.close();
-  }
+  if(solver_type == "primal" && MPI::processNumber() == 0) 
+    forceFile.close();
 
   delete amom;
   delete Lmom;
   delete acon;
   delete Lcon;
   
-  if(solver_type == "primal")
-    delete MD;
+  if(solver_type == "primal") {
+    delete[] MF;
+  }
   else if(solver_type == "dual") {
     delete Up;
     delete dtUp;
