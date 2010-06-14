@@ -192,7 +192,7 @@ void NSESolver::solve()
       acon = new NSEContinuity3DBilinearForm(delta1);
       Lcon = new NSEContinuity3DLinearForm(uc, delta1);
 
-      for(int i = 0; i < aero_f.size(); i++)
+      for(uint i = 0; i < aero_f.size(); i++)
 	MF[i] = new Drag3DFunctional(*aero_f[i], dtu, u, um, p, fnu, delta1, delta2, f);
 
     }
@@ -562,7 +562,7 @@ void NSESolver::solve()
       if( MPI::processNumber() == 0) 
 	forceFile << t << "\t";
             
-      for (int i = 0; i < aero_f.size(); i++)
+      for (uint i = 0; i < aero_f.size(); i++)
       {
 	force = assembler.assemble(*MF[i]);
 	if( MPI::processNumber() == 0) 
@@ -782,7 +782,7 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
     else 
       cid = (*cell).index();
     
-    if (((h/nu) > 1.0) || (nu < 1.0e-10) ){
+    if ( (nu < 1.0e-10) || ((h/nu) > 1.0) ){
       d1_block[ci] =  C1 * (0.5 / sqrt( 1.0/sqr(k) + sqr(normw/h)));
       d2_block[ci] = C2 * h;
     } else {
