@@ -561,7 +561,7 @@ void NSESolver::solve()
 
       real force = 0.0;
       if( MPI::processNumber() == 0) 
-	forceFile << t << "\t";
+	forceFile << std::setprecision(9) << std::setw(9) << std::setfill('0') << t << "\t";
             
       for (uint i = 0; i < aero_f.size(); i++)
       {
