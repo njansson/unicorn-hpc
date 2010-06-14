@@ -478,6 +478,7 @@ void NSESolver::solve()
       dolfin_set("output destination","silent");
 
       // Assemble continuity vector 
+      assembler.assemble(Acon, *acon, false);
       assembler.assemble(bcon, *Lcon, false);
       bc_con.apply(Acon, bcon, *acon);
 
@@ -702,7 +703,7 @@ void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
 void NSESolver::GetMinimumCellSize(Mesh& mesh, real& hmin)
 {
   // Get minimum cell diameter
-  hmin = 1.0e6;
+  hmin = 1.0e10;
   for (CellIterator cell(mesh); !cell.end(); ++cell)
   {
     if ((*cell).diameter() < hmin) hmin = (*cell).diameter();
