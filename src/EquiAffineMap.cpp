@@ -93,7 +93,7 @@ Point EquiAffineMap::mapinv(real X, real Y, real Z) const
 void EquiAffineMap::updateTriangle(Cell& cell)
 {
 
-  assert(cell.dim() == 2);
+  dolfin_assert(cell.dim() == 2);
   
   // Get coordinates
   p0 = Vertex(cell.mesh(), cell.entities(0)[0]).point();
@@ -133,7 +133,7 @@ void EquiAffineMap::updateTriangle(Cell& cell)
 //-----------------------------------------------------------------------------
 void EquiAffineMap::updateTetrahedron(Cell& cell)
 {
-  assert(cell.dim() == 3);
+  dolfin_assert(cell.dim() == 3);
   
    // Get coordinates
    p0 = Vertex(cell.mesh(), cell.entities(0)[0]).point();
