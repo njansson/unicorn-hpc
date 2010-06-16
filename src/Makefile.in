@@ -58,7 +58,8 @@ am_libunicorn_a_OBJECTS = ErrorEstimate.$(OBJEXT) init.$(OBJEXT) \
 	NewSlipBC.$(OBJEXT) NewDirichletBC.$(OBJEXT) \
 	SpaceTimeFunction.$(OBJEXT) Project.$(OBJEXT) \
 	TimeDependentPDE.$(OBJEXT) UniParameters.$(OBJEXT) \
-	EquiAffineMap.$(OBJEXT) MeshQuality.$(OBJEXT)
+	EquiAffineMap.$(OBJEXT) MeshQuality.$(OBJEXT) \
+	DataSetSampler.$(OBJEXT)
 libunicorn_a_OBJECTS = $(am_libunicorn_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -176,9 +177,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = unicorn
 AM_CPPFLAGS = -I@srcdir@/unicorn
-nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/NewDirichletBC.h unicorn/SpaceTimeFunction.h  unicorn/TimeDependentPDE.h unicorn/UniParameters.h unicorn/Project.h unicorn/EquiAffineMap.h unicorn/MeshQuality.h unicorn/util.h
+nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/NewDirichletBC.h unicorn/SpaceTimeFunction.h  unicorn/TimeDependentPDE.h unicorn/UniParameters.h unicorn/Project.h unicorn/EquiAffineMap.h unicorn/MeshQuality.h unicorn/util.h unicorn/DataSetSampler.h
 lib_LIBRARIES = libunicorn.a
-libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp  NewSlipBC.cpp NewDirichletBC.cpp SpaceTimeFunction.cpp  Project.cpp TimeDependentPDE.cpp UniParameters.cpp EquiAffineMap.cpp MeshQuality.cpp
+libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp  NewSlipBC.cpp NewDirichletBC.cpp SpaceTimeFunction.cpp  Project.cpp TimeDependentPDE.cpp UniParameters.cpp EquiAffineMap.cpp MeshQuality.cpp DataSetSampler.cpp
 all: all-recursive
 
 .SUFFIXES:
@@ -252,6 +253,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DataSetSampler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EquiAffineMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ErrorEstimate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MeshQuality.Po@am__quote@
