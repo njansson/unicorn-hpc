@@ -1,0 +1,73 @@
+# Copyright (c) 2005 Johan Jansson (johanjan@math.chalmers.se)
+# Licensed under the GNU GPL Version 2
+#
+# First added:  2005
+# Last changed: 2006-03-28
+#
+# The bilinear form for the incompressible Navier-Stokes equations
+# Compile this form with FFC: ffc Elasticity.form.
+
+import Numeric
+
+cell = "tetrahedron"
+
+K1 = VectorElement("Lagrange", cell, 1)
+# Dimension of domain
+d = K1.cell_dimension()
+K2 = FiniteElement("Lagrange", cell, 1)
+K3 = FiniteElement("Discontinuous Lagrange", cell, 0)
+K4 = VectorElement("Discontinuous Lagrange", cell, 0)
+K5 = VectorElement("Discontinuous Lagrange", cell, 0, d * d)
+
+K = K1
+
+v = TestFunction(K)
+U1 = TrialFunction(K)
+UP = Function(K)
+U0 = Function(K)
+Uc = Function(K)
+Um = Function(K4)
+
+P = Function(K2)
+nu = Function(K3)
+d1 = Function(K3)
+d2 = Function(K3)
+ff = Function(K)
+k = Function(K3)
+
+def ugradu(u, v):
+    return [dot(u, grad(v[i])) for i in range(d)]
+
+def epsilon(u):
+    return 0.5 * (grad(u) + transp(grad(u)))
+
+def S(u, P):
+    return mult(P, Identity(d)) - mult(nu, grad(u))
+
+def f(u, v):
+    return -dot(ugradu(Uc, Uc), v) + \
+        dot(S(Uc, P), grad(v)) + \
+	-mult(d1, dot(ugradu(Um, u), ugradu(Um, v))) + \
+	-mult(d2, dot(div(u), div(v))) + \
+        dot(ff, v)
+    
+def dfdu(u, k, v):
+    return -dot(ugradu(Um, u), v) + \
+        -dot(mult(nu, grad(u)), grad(v)) + \
+        -mult(d1, dot(ugradu(Um, u), ugradu(Um, v))) + \
+        -mult(d2, dot(div(u), div(v)))
+
+# cG(1)
+def F(u, u0, k, v):
+    uc = mult(0.5, u + u0)
+    return (-dot(u, v) + dot(u0, v) + mult(k, f(u, v)))
+
+def dFdu(u, u0, k, v):
+    uc = mult(0.5, u)
+    return (-dot(u, v) + mult(1.0 * k, dfdu(uc, k, v)))
+
+a = (dFdu(U1, U0, k, v)) * dx
+L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
+#L = -F(UP, U0, k, v) * dx
+#a = (dot(U1, v)) * dx
+#L = (F(UP, U0, k, v)) * dx
