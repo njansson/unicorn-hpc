@@ -59,7 +59,10 @@ am_libunicorn_a_OBJECTS = ErrorEstimate.$(OBJEXT) init.$(OBJEXT) \
 	SpaceTimeFunction.$(OBJEXT) Project.$(OBJEXT) \
 	TimeDependentPDE.$(OBJEXT) UniParameters.$(OBJEXT) \
 	EquiAffineMap.$(OBJEXT) MeshQuality.$(OBJEXT) \
-	DataSetSampler.$(OBJEXT)
+	DataSetSampler.$(OBJEXT) Elasticity2D.$(OBJEXT) \
+	ElasticityJac2D.$(OBJEXT) ElasticityStress2D.$(OBJEXT) \
+	Elasticity3D.$(OBJEXT) ElasticityJac3D.$(OBJEXT) \
+	ElasticityStress3D.$(OBJEXT)
 libunicorn_a_OBJECTS = $(am_libunicorn_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -177,9 +180,20 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = unicorn
 AM_CPPFLAGS = -I@srcdir@/unicorn
-nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/NewDirichletBC.h unicorn/SpaceTimeFunction.h  unicorn/TimeDependentPDE.h unicorn/UniParameters.h unicorn/Project.h unicorn/EquiAffineMap.h unicorn/MeshQuality.h unicorn/util.h unicorn/DataSetSampler.h
+nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h\
+	  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/NewDirichletBC.h \
+	unicorn/SpaceTimeFunction.h  unicorn/TimeDependentPDE.h unicorn/UniParameters.h \
+	unicorn/Project.h unicorn/EquiAffineMap.h unicorn/MeshQuality.h \
+	unicorn/util.h unicorn/DataSetSampler.h
+
 lib_LIBRARIES = libunicorn.a
-libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp  NewSlipBC.cpp NewDirichletBC.cpp SpaceTimeFunction.cpp  Project.cpp TimeDependentPDE.cpp UniParameters.cpp EquiAffineMap.cpp MeshQuality.cpp DataSetSampler.cpp
+libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp\
+	  NewSlipBC.cpp NewDirichletBC.cpp SpaceTimeFunction.cpp  Project.cpp \
+	TimeDependentPDE.cpp UniParameters.cpp EquiAffineMap.cpp \
+	MeshQuality.cpp DataSetSampler.cpp \
+	Elasticity2D.cpp  ElasticityJac2D.cpp  ElasticityStress2D.cpp \
+	Elasticity3D.cpp  ElasticityJac3D.cpp  ElasticityStress3D.cpp
+
 all: all-recursive
 
 .SUFFIXES:
@@ -254,6 +268,12 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DataSetSampler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Elasticity2D.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Elasticity3D.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ElasticityJac2D.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ElasticityJac3D.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ElasticityStress2D.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ElasticityStress3D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EquiAffineMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ErrorEstimate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MeshQuality.Po@am__quote@

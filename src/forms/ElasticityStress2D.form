@@ -1,0 +1,57 @@
+ # Copyright (c) 2005 Johan Jansson (johanjan@math.chalmers.se)
+# Licensed under the GNU GPL Version 2
+#
+# First added:  2005
+# Last changed: 2006-03-28
+#
+# The bilinear form for classical linear elasticity (Navier)
+# Compile this form with FFC: ffc Elasticity.form.
+
+cell = "triangle"
+
+K1 = VectorElement("Lagrange", cell, 1)
+
+# Dimension of domain
+d = K1.cell_dimension()
+
+K2 = VectorElement("Lagrange", cell, 1)
+K3 = VectorElement("Discontinuous Lagrange", cell, 0, d * d)
+K4 = FiniteElement("Lagrange", cell, 1)
+K5 = FiniteElement("Discontinuous Lagrange", cell, 0)
+
+K = K3
+
+v_2 = TestFunction(K)
+dotU_2 = TrialFunction(K)
+U_2 = Function(K)
+U_1 = Function(K2)
+
+mu = Function(K5)
+lmbda = Function(K5)
+beta = Function(K5)
+icv = Function(K5)
+rho = Function(K5)
+qual = Function(K5)
+f = Function(K2)
+
+def tomatrix(q):
+    return [ [q[d * i + j] for i in range(d)] for j in range(d) ]
+
+def epsilon(u):
+    return 0.5 * (grad(u) + transp(grad(u)))
+
+def E(e, mu, lmbda):
+    Ee = mult(mu, e) + mult(lmbda, mult(trace(e), Identity(d)))
+    return Ee
+
+Fmatrix = tomatrix(U_2)
+v_2m = tomatrix(v_2)
+
+eps = epsilon(U_1)
+Eeps = E(eps, mu, lmbda)
+
+
+a = (dot(dotU_2, v_2)) * dx
+L = mult(icv, (-dot(mult(Fmatrix, grad(U_1)), v_2m) - \
+     dot(mult(transp(grad(U_1)), Fmatrix), v_2m))) * dx
+#L = (dot(Eeps, v_2m)) * dx
