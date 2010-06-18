@@ -2,7 +2,7 @@
 // Licensed under the GNU LGPL Version 2.1.
 //
 // First added:  2010-06-16
-// Last changed: 2009-06-16
+// Last changed: 2010-06-18
 
 #include "unicorn/DataSetSampler.h"
 
@@ -10,27 +10,20 @@ using namespace dolfin;
 using namespace unicorn;
 
 //-----------------------------------------------------------------------------
-void DataSetSampler::cartesian_sampling(Function& f, 
+void DataSetSampler::cartesian_sampling(Function& f, real *value, uint N,
 					real xmin, real xmax,
 					real ymin, real ymax,
-					real zmin, real zmax,
-					real dx, real dy, real dz)
+					real zmin, real zmax)
 {
   
-
   real x[3];
-  uint N = 100;
-
   real origin[3];
   real space = (xmax - xmin) / N;
   origin[0] = xmin;
   origin[1] = ymin;
   origin[2] = zmin;
 
-  real *value = new real[N*N*N];
-  int ii = 0;
-
-
+  real *vp = &value[0];
   for (uint k = 0; k < N; k++)  
   {       	
     x[2] = k*space + zmin;
@@ -40,12 +33,12 @@ void DataSetSampler::cartesian_sampling(Function& f,
       for (uint i = 0; i < N; i++)  
       {
 	x[0] = i*space + xmin;
-	f.eval(&value[ii++], &x[0]);
+	f.eval((vp++), &x[0]);
       }
     }
   }
   
-  
+#ifdef UNICORN_DEBUG
   FILE *out;
   out = fopen("test.vtk","w");
   fprintf(out,"# vtk DataFile Version 3.0\n");
@@ -63,7 +56,6 @@ void DataSetSampler::cartesian_sampling(Function& f,
     fprintf(out,"%e\n",value[i]);
   }
   fclose(out);
-
-  delete[] value;
+#endif
 }
 //-----------------------------------------------------------------------------
