@@ -62,7 +62,7 @@ am_libunicorn_a_OBJECTS = ErrorEstimate.$(OBJEXT) init.$(OBJEXT) \
 	DataSetSampler.$(OBJEXT) Elasticity2D.$(OBJEXT) \
 	ElasticityJac2D.$(OBJEXT) ElasticityStress2D.$(OBJEXT) \
 	Elasticity3D.$(OBJEXT) ElasticityJac3D.$(OBJEXT) \
-	ElasticityStress3D.$(OBJEXT)
+	ElasticityStress3D.$(OBJEXT) ElasticSmoother.$(OBJEXT)
 libunicorn_a_OBJECTS = $(am_libunicorn_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -184,7 +184,7 @@ nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNo
 	  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/NewDirichletBC.h \
 	unicorn/SpaceTimeFunction.h  unicorn/TimeDependentPDE.h unicorn/UniParameters.h \
 	unicorn/Project.h unicorn/EquiAffineMap.h unicorn/MeshQuality.h \
-	unicorn/util.h unicorn/DataSetSampler.h
+	unicorn/util.h unicorn/DataSetSampler.h unicorn/ElasticSmoother.h
 
 lib_LIBRARIES = libunicorn.a
 libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp\
@@ -192,7 +192,8 @@ libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  Sli
 	TimeDependentPDE.cpp UniParameters.cpp EquiAffineMap.cpp \
 	MeshQuality.cpp DataSetSampler.cpp \
 	Elasticity2D.cpp  ElasticityJac2D.cpp  ElasticityStress2D.cpp \
-	Elasticity3D.cpp  ElasticityJac3D.cpp  ElasticityStress3D.cpp
+	Elasticity3D.cpp  ElasticityJac3D.cpp  ElasticityStress3D.cpp \
+	ElasticSmoother.cpp
 
 all: all-recursive
 
@@ -268,6 +269,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DataSetSampler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ElasticSmoother.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Elasticity2D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Elasticity3D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ElasticityJac2D.Po@am__quote@
