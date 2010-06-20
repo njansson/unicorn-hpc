@@ -13,11 +13,11 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <dolfin.h>
-#include "unicorn/UniParameters.h"
-#include "unicorn/util.h"
+#include <unicorn/UniParameters.h>
+#include <unicorn/util.h>
 
 using namespace dolfin;
-using namespace unicorn;
+using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 void unicorn::unicorn_solve(Mesh& mesh, Checkpoint& chkp, 

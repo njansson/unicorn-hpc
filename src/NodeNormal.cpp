@@ -8,13 +8,14 @@
                                                                                          
 #include <dolfin.h>
 #include <dolfin/main/MPI.h>
-#include "unicorn/NodeNormal.h"
+#include <unicorn/NodeNormal.h>
 
 #include <map>
 
 #define B(row,col,nrow) ((row) + ((nrow)*(col)))
 
 using namespace dolfin;
+using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 NodeNormal::NodeNormal(NodeNormal& node_normal) : mesh(node_normal.mesh),

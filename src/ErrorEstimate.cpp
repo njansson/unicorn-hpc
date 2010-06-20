@@ -1,17 +1,16 @@
-#include "unicorn/ErrorEstimate.h"
-//#include <unicorn/MeshAdaptivity.h>
-//#include <unicorn/MeshQuality.h>
+#include <unicorn/ErrorEstimate.h>
 #include <dolfin/fem/UFC.h>
 #include <dolfin/mesh/RivaraRefinement.h>
 #include <algorithm>
 #include <map>
 
+
 #ifdef HAS_MPI
 #include <mpi.h>
 #endif
 
-using namespace dolfin::unicorn;
 using namespace dolfin;
+using namespace unicorn;
 
 //-----------------------------------------------------------------------------
 ErrorEstimate::ErrorEstimate(Mesh& mesh, Form* Lres, Form* Lgradphi) :

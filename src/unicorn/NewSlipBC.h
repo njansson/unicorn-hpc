@@ -9,12 +9,13 @@
 #ifndef __NEWSLIPBC_H
 #define __NEWSLIPBC_H
 
+#include <set>
+#include <vector>
 #include <dolfin.h>
 #include <unicorn/NodeNormal.h>
 
 namespace dolfin
 {
-
   class DofMap;
   class Function;
   class Mesh;
@@ -22,105 +23,108 @@ namespace dolfin
   class Form;
   class GenericMatrix;
   class GenericVector;
-  class NormalNode;
-  
-  class NewSlipBC : public BoundaryCondition
-  {
-  public:
-    
-    /// Create boundary condition for sub domain
-    NewSlipBC(Mesh& mesh, SubDomain& sub_domain, NodeNormal& Node_normal);
-    
-    /// Create boundary condition for sub domain specified by index
-    NewSlipBC(MeshFunction<uint>& sub_domains, uint sub_domain);
-    
-    /// Create sub system boundary condition for sub domain
-    NewSlipBC(Mesh& mesh, SubDomain& sub_domain, const SubSystem& sub_system);
-    
-    /// Create sub system boundary condition for sub domain specified by index
-    NewSlipBC(MeshFunction<uint>& sub_domains, uint sub_domain, const SubSystem& sub_system);
-
-    /// Destructor
-    ~NewSlipBC();
-    
-    /// Apply boundary condition to linear system
-    void apply(GenericMatrix& A, GenericVector& b, const Form& form);
-    
-    void apply(GenericMatrix& A, GenericVector& b, const GenericVector& x, 
-	       const DofMap& dof_map, const ufc::form& form); 
-    
-    void apply(GenericMatrix& A, GenericVector& b, const GenericVector& x, 
-	       const Form& form);
-    
-    void applyNewSlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh, 
-			uint node, Array<uint>& nodes);
-    
-    // Do: A(row,col) = value   using setblock not setvalue
-    void Aset(Matrix& A, int row, int col, real value);
-
-    // Do: b(row) = value   using setblock not setvalue
-    void bset(Vector& b, int row, real value);
-
-    std::vector< std::vector<int> > permutations;
-
-  private:
-
-    // Initialize sub domain markers    
-    void init(SubDomain& sub_domain);
-
-
-    void apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map, 
-	       const ufc::form& form);
-    
-    void apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map, 
-	       const Form& form);
-
-
-
-    // Do: A(row,col) = value   using setblock not setvalue
-    inline void Aset(Matrix& A, uint row, uint col, real value) { A.set(&value, 1, &row, 1, &col);};
-
-    // Do: b(row) = value   using setblock not setvalue
-    inline void bset(Vector& b, uint row, real value) { b.set(&value, 1, &row); };
-
-    // The mesh
-    Mesh& mesh;
-
-    // Sub domain markers (if any)
-    MeshFunction<uint>* sub_domains;
-
-    // The sub domain
-    uint sub_domain;
-
-    // True if sub domain markers are created locally
-    bool sub_domains_local;
-
-    // Sub system
-    SubSystem sub_system;
-
-    // User defined sub domain
-    SubDomain* user_sub_domain;
-
-    // Node normal and tangents
-    NodeNormal node_normal;
-
-    int nzm;
-
-    Matrix* As;
-
-
-    int N_local;
-    int N_offset;
-    std::set<uint> off_proc_rows;
-
-    real *row_block;
-    real *zero_block;
-    uint *a1_indices_array;
-
-    BoundaryMesh* boundary;
-    MeshFunction<uint> *cell_map, *vertex_map;
-
-  };
+  namespace unicorn
+  {    
+    class NewSlipBC : public BoundaryCondition
+    {
+    public:
+      
+      /// Create boundary condition for sub domain
+      NewSlipBC(Mesh& mesh, SubDomain& sub_domain, NodeNormal& Node_normal);
+      
+      /// Create boundary condition for sub domain specified by index
+      NewSlipBC(MeshFunction<uint>& sub_domains, uint sub_domain);
+      
+      /// Create sub system boundary condition for sub domain
+      NewSlipBC(Mesh& mesh, SubDomain& sub_domain, const SubSystem& sub_system);
+      
+      /// Create sub system boundary condition for sub domain specified by index
+      NewSlipBC(MeshFunction<uint>& sub_domains, uint sub_domain, const SubSystem& sub_system);
+      
+      /// Destructor
+      ~NewSlipBC();
+      
+      /// Apply boundary condition to linear system
+      void apply(GenericMatrix& A, GenericVector& b, const Form& form);
+      
+      void apply(GenericMatrix& A, GenericVector& b, const GenericVector& x, 
+		 const DofMap& dof_map, const ufc::form& form); 
+      
+      void apply(GenericMatrix& A, GenericVector& b, const GenericVector& x, 
+		 const Form& form);
+      
+      void applyNewSlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh, 
+			  uint node, Array<uint>& nodes);
+      
+      // Do: A(row,col) = value   using setblock not setvalue
+      void Aset(Matrix& A, int row, int col, real value);
+      
+      // Do: b(row) = value   using setblock not setvalue
+      void bset(Vector& b, int row, real value);
+      
+      std::vector< std::vector<int> > permutations;
+      
+    private:
+      
+      // Initialize sub domain markers    
+      void init(SubDomain& sub_domain);
+      
+      
+      void apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map, 
+		 const ufc::form& form);
+      
+      void apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map, 
+		 const Form& form);
+      
+      
+      
+      // Do: A(row,col) = value   using setblock not setvalue
+      inline void Aset(Matrix& A, uint row, uint col, real value)
+      { A.set(&value, 1, &row, 1, &col);};
+      
+      // Do: b(row) = value   using setblock not setvalue
+      inline void bset(Vector& b, uint row, real value) 
+      { b.set(&value, 1, &row); };
+      
+      // The mesh
+      Mesh& mesh;
+      
+      // Sub domain markers (if any)
+      MeshFunction<uint>* sub_domains;
+      
+      // The sub domain
+      uint sub_domain;
+      
+      // True if sub domain markers are created locally
+      bool sub_domains_local;
+      
+      // Sub system
+      SubSystem sub_system;
+      
+      // User defined sub domain
+      SubDomain* user_sub_domain;
+      
+      // Node normal and tangents
+      NodeNormal node_normal;
+      
+      int nzm;
+      
+      Matrix* As;
+      
+      
+      int N_local;
+      int N_offset;
+      std::set<uint> off_proc_rows;
+      
+      real *row_block;
+      real *zero_block;
+      uint *a1_indices_array;
+      
+      BoundaryMesh* boundary;
+      MeshFunction<uint> *cell_map, *vertex_map;
+      
+    };
+  }
 }
 
 #endif

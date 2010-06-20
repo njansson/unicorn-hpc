@@ -17,7 +17,7 @@
 #include "unicorn/init.h"
 
 using namespace dolfin;
-using namespace unicorn;
+using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,

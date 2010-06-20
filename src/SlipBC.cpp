@@ -13,13 +13,14 @@
 #include <dolfin/fem/UFC.h>
 #include <dolfin/main/MPI.h>
 
-#include "unicorn/SlipBC.h"
-#include "unicorn/NodeNormal.h"
+#include <unicorn/SlipBC.h>
+#include <unicorn/NodeNormal.h>
 #include <map>
 
 #define max(a,b) (a > b ? a : b) ;
 
 using namespace dolfin;
+using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 SlipBC::SlipBC(Mesh& mesh, SubDomain& sub_domain, NodeNormal& Node_normal)
