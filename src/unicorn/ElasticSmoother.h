@@ -108,7 +108,6 @@ namespace dolfin { namespace unicorn
 	minqual(1.0e12), mqual(mesh)
       {
 	real p = 2.0;
-	//real p = 0.0;
 
 	// Compute h
 	q.init(mesh.topology().dim());
@@ -128,7 +127,6 @@ namespace dolfin { namespace unicorn
 	  //real qual = 0.25 * (h * h) / cc.volume();
 	  real qq = mqual.cellQuality(cc);
 	  //qual = 1.0 / pow(qual, 2.0);
-	  //qual = 1.0;
 	  real qual = 1.0;
 
 	  qual = 1.0 / pow(qq, p);
@@ -142,9 +140,6 @@ namespace dolfin { namespace unicorn
 
 	  //real totqual = qual + hqual;
 	  real totqual = qual;
-
-/* 	  cout << "mp: " << cc.midpoint() << endl; */
-	  // 	cout << "qual: " << qual << endl;
 
 	  maxqual = std::max(maxqual, qual);
 	  minqual = std::min(minqual, qual);
@@ -172,8 +167,6 @@ namespace dolfin { namespace unicorn
 	real scale = 1.0;
 	val = qual / scale;
  	//val = 1.0;
-
-	/*       cout << "qual: " << val << endl; */
 
 	values[0] = val;
       }
@@ -212,6 +205,10 @@ namespace dolfin { namespace unicorn
       real B[3*3];
       //      uBlasDenseMatrix B;
       //      B.mat() = ublas::prod(ublas::trans(Finv.mat()), Finv.mat());
+      for (uint ii = 0; ii < 3; ii++) 
+	for(uint jj = 0; jj < 3; jj++)
+	  for (uint r =0; r < 3; r++)
+	    B[RM(ii,jj,3)] += (Finv[RM(r,ii,3)] * Finv[RM(r,jj,3)]);
 
       int d = cell.dim();
 
@@ -257,6 +254,12 @@ namespace dolfin { namespace unicorn
 	real B[3*3];
 //        uBlasDenseMatrix B;
 //	B.mat() = ublas::prod(ublas::trans(Finv.mat()), Finv.mat());
+	for (uint ii = 0; ii < 3; ii++) 
+	  for(uint jj = 0; jj < 3; jj++)
+	    for (uint r =0; r < 3; r++)
+	      B[RM(ii,jj,3)] += (Finv[RM(r,ii,3)] * Finv[RM(r,jj,3)]);
+
+
 
 	for(int i = 0; i < N; i++)
 	{
