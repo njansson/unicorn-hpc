@@ -6,9 +6,11 @@
 // First added:  2006
 // Last changed: 2006-05-04
 
-#include <unicorn/TimeDependentPDE.h>
-#include <unicorn/Project.h>
+
 #include <dolfin.h>
+
+#include "unicorn/Project.h"
+#include "unicorn/TimeDependentPDE.h"
 
 using namespace dolfin;
 using namespace dolfin::unicorn;

@@ -11,8 +11,8 @@
 #include <dolfin/la/Vector.h>
 #include <dolfin/function/Function.h>
 #include <dolfin/io/File.h>
-#include "unicorn/SpaceTimeFunction.h"
 #include <dolfin/main/MPI.h>
+#include "unicorn/SpaceTimeFunction.h"
 
 using namespace dolfin;
 using namespace dolfin::unicorn;

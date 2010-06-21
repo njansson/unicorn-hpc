@@ -7,7 +7,7 @@
 #include "unicorn/DataSetSampler.h"
 
 using namespace dolfin;
-using namespace unicorn;
+using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 void DataSetSampler::cartesian_sampling(Function& f, real *value, uint N,

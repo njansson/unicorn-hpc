@@ -12,7 +12,7 @@
 #include <boost/tokenizer.hpp>
 
 
-#include <unicorn/UniParameters.h>
+#include "unicorn/UniParameters.h"
 
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;   
 using namespace dolfin;

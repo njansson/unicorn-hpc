@@ -11,7 +11,7 @@
 #include <dolfin/mesh/Cell.h>
 #include <dolfin/mesh/Edge.h>
 #include <dolfin/mesh/Face.h>
-#include <unicorn/EquiAffineMap.h>
+#include "unicorn/EquiAffineMap.h"
 
 using namespace dolfin;
 using namespace dolfin::unicorn;

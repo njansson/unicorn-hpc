@@ -13,8 +13,8 @@
 #include <dolfin/fem/UFC.h>
 #include <dolfin/main/MPI.h>
 
-#include <unicorn/SlipBC.h>
-#include <unicorn/NodeNormal.h>
+#include "unicorn/SlipBC.h"
+#include "unicorn/NodeNormal.h"
 #include <map>
 
 #define max(a,b) (a > b ? a : b) ;

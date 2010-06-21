@@ -1,14 +1,12 @@
-#include <unicorn/MeshQuality.h>
-#include <unicorn/EquiAffineMap.h>
 #include <dolfin/mesh/Cell.h>
 #include <dolfin/mesh/Edge.h>
 #include <dolfin/mesh/Vertex.h>
+#include "unicorn/EquiAffineMap.h"
+#include "unicorn/MeshQuality.h"
 
 
-
-using namespace dolfin::unicorn;
 using namespace dolfin;
-
+using namespace dolfin::unicorn;
 
 MeshQuality::MeshQuality(Mesh& mesh) : mesh(mesh), orientation(mesh)
 {

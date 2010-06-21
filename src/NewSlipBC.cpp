@@ -13,8 +13,8 @@
 #include <dolfin/fem/UFC.h>
 #include <dolfin/main/MPI.h>
 
-#include <unicorn/NodeNormal.h>
-#include <unicorn/NewSlipBC.h>
+#include "unicorn/NodeNormal.h"
+#include "unicorn/NewSlipBC.h"
 
 #include <map>
 

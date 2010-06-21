@@ -1,9 +1,10 @@
-#include <unicorn/ErrorEstimate.h>
+
 #include <dolfin/fem/UFC.h>
 #include <dolfin/mesh/RivaraRefinement.h>
 #include <algorithm>
 #include <map>
 
+#include "unicorn/ErrorEstimate.h"
 
 #ifdef HAS_MPI
 #include <mpi.h>

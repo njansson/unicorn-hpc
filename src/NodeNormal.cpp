@@ -8,7 +8,7 @@
                                                                                          
 #include <dolfin.h>
 #include <dolfin/main/MPI.h>
-#include <unicorn/NodeNormal.h>
+#include "unicorn/NodeNormal.h"
 
 #include <map>
 
