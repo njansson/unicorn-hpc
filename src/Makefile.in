@@ -53,16 +53,16 @@ AR = ar
 ARFLAGS = cru
 libunicorn_a_AR = $(AR) $(ARFLAGS)
 libunicorn_a_LIBADD =
-am_libunicorn_a_OBJECTS = ErrorEstimate.$(OBJEXT) init.$(OBJEXT) \
-	util.$(OBJEXT) NodeNormal.$(OBJEXT) SlipBC.$(OBJEXT) \
-	NewSlipBC.$(OBJEXT) NewDirichletBC.$(OBJEXT) \
-	SpaceTimeFunction.$(OBJEXT) Project.$(OBJEXT) \
-	TimeDependentPDE.$(OBJEXT) UniParameters.$(OBJEXT) \
-	EquiAffineMap.$(OBJEXT) MeshQuality.$(OBJEXT) \
-	DataSetSampler.$(OBJEXT) Elasticity2D.$(OBJEXT) \
-	ElasticityJac2D.$(OBJEXT) ElasticityStress2D.$(OBJEXT) \
-	Elasticity3D.$(OBJEXT) ElasticityJac3D.$(OBJEXT) \
-	ElasticityStress3D.$(OBJEXT) ElasticSmoother.$(OBJEXT)
+am_libunicorn_a_OBJECTS = UniParameters.$(OBJEXT) NodeNormal.$(OBJEXT) \
+	SpaceTimeFunction.$(OBJEXT) ErrorEstimate.$(OBJEXT) \
+	SlipBC.$(OBJEXT) init.$(OBJEXT) util.$(OBJEXT) \
+	NewSlipBC.$(OBJEXT) NewDirichletBC.$(OBJEXT) Project.$(OBJEXT) \
+	TimeDependentPDE.$(OBJEXT) EquiAffineMap.$(OBJEXT) \
+	MeshQuality.$(OBJEXT) DataSetSampler.$(OBJEXT) \
+	Elasticity2D.$(OBJEXT) ElasticityJac2D.$(OBJEXT) \
+	ElasticityStress2D.$(OBJEXT) Elasticity3D.$(OBJEXT) \
+	ElasticityJac3D.$(OBJEXT) ElasticityStress3D.$(OBJEXT) \
+	ElasticSmoother.$(OBJEXT)
 libunicorn_a_OBJECTS = $(am_libunicorn_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -187,9 +187,10 @@ nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNo
 	unicorn/util.h unicorn/DataSetSampler.h unicorn/ElasticSmoother.h
 
 lib_LIBRARIES = libunicorn.a
-libunicorn_a_SOURCES = ErrorEstimate.cpp  init.cpp  util.cpp NodeNormal.cpp  SlipBC.cpp\
-	  NewSlipBC.cpp NewDirichletBC.cpp SpaceTimeFunction.cpp  Project.cpp \
-	TimeDependentPDE.cpp UniParameters.cpp EquiAffineMap.cpp \
+libunicorn_a_SOURCES = UniParameters.cpp NodeNormal.cpp SpaceTimeFunction.cpp\
+	ErrorEstimate.cpp SlipBC.cpp init.cpp util.cpp \
+	  NewSlipBC.cpp NewDirichletBC.cpp Project.cpp \
+	TimeDependentPDE.cpp EquiAffineMap.cpp \
 	MeshQuality.cpp DataSetSampler.cpp \
 	Elasticity2D.cpp  ElasticityJac2D.cpp  ElasticityStress2D.cpp \
 	Elasticity3D.cpp  ElasticityJac3D.cpp  ElasticityStress3D.cpp \
