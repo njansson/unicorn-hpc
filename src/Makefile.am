@@ -11,6 +11,7 @@ libunicorn_a_SOURCES = UniParameters.cpp NodeNormal.cpp SpaceTimeFunction.cpp\
 	  NewSlipBC.cpp NewDirichletBC.cpp Project.cpp \
 	TimeDependentPDE.cpp EquiAffineMap.cpp \
 	MeshQuality.cpp DataSetSampler.cpp \
+	Projection2D.cpp  Projection3D.cpp \
 	Elasticity2D.cpp  ElasticityJac2D.cpp  ElasticityStress2D.cpp \
 	Elasticity3D.cpp  ElasticityJac3D.cpp  ElasticityStress3D.cpp \
 	ElasticSmoother.cpp
