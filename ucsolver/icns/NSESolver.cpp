@@ -6,7 +6,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-03-26
+// Last changed: 2010-07-05
 
 #include <cstring>
 #include <sstream>
@@ -281,7 +281,7 @@ void NSESolver::solve()
     func.push_back(&upm);
 
     // Compute the volume inverse of an element
-    ComputeVolInv(mesh, vol_invx, *Lres_m);   
+    ComputeVolInv(mesh, vol_invx);   
 
   }
   else
@@ -852,40 +852,24 @@ void NSESolver::ComputeMean(Mesh& mesh, Function& vmean, Function& v,
 
 }
 //-----------------------------------------------------------------------------               
-void NSESolver::ComputeVolInv(Mesh& mesh, Vector& vol_inv, Form& form)
+void NSESolver::ComputeVolInv(Mesh& mesh, Vector& vol_inv)
 {
-
-  UFC ufc(form.form(), mesh, form.dofMaps()); 
 
   real* varr = new real[mesh.numCells()];
   uint* rows = new uint[mesh.numCells()];
 
-  std::set<uint> indices;
-  std::map<uint, uint> mapping;
-
   // Compute cell size h                                                                         
-  if(MPI::numProcesses() > 1)
-    vol_inv.init(mesh.distdata().global_numCells());
-  else
-    vol_inv.init(mesh.numCells());
+  vol_inv.init(mesh.numCells());
 
   uint ii = 0;
   for (CellIterator cell(mesh); !cell.end(); ++cell)
   {
     varr[cell->index()] = 1.0 / cell->volume();
-    ufc.update(*cell, mesh.distdata());
-    (form.dofMaps())[4].tabulate_dofs(&rows[ii], 
-				      ufc.cell, cell->index());
-    indices.insert(rows[ii]);
-    mapping[cell->index()] = rows[ii++];
+    rows[ii++] = mesh.distdata().get_cell_global(cell->index());
   }
-  vol_inv.init_ghosted(indices.size(), indices, mapping);
 
   vol_inv.set(varr, mesh.numCells(), rows);
   vol_inv.apply();
-
-
-  indices.clear();
 
   delete[] rows;
   delete[] varr;

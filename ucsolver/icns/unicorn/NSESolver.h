@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-06-13
+// Last changed: 2010-07-05
 
 #ifndef __NSE_SOLVER_H
 #define __NSE_SOLVER_H
@@ -61,7 +61,7 @@ namespace dolfin {
 		       Form& form);
       
       // Compute the volume inverse
-      void ComputeVolInv(Mesh& mesh, Vector& vol_inv, Form& form);
+      void ComputeVolInv(Mesh& mesh, Vector& vol_inv);
 
       // Compute the time derivative of w
       void ComputeTimeDerivative(Mesh& mesh, Function& w,
