@@ -1,4 +1,3 @@
-
 #include <dolfin/fem/UFC.h>
 #include <dolfin/mesh/RivaraRefinement.h>
 #include <algorithm>
@@ -16,7 +15,7 @@ using namespace unicorn;
 //-----------------------------------------------------------------------------
 ErrorEstimate::ErrorEstimate(Mesh& mesh, Form* Lres, Form* Lgradphi) :
   mesh(mesh), Lres_1(0), Lres_2(Lres), Lres_3(0), Lgradphi(Lgradphi),
-  e_indx(mesh.distdata().global_numCells()), assembler(mesh),
+  e_indx(mesh.numCells()), assembler(mesh),
   Rf(mesh), eif(mesh)
 {
   init(mesh, Lres_1, Lres_2, Lres_3, Lgradphi, Rf, eif);
@@ -45,6 +44,22 @@ ErrorEstimate::ErrorEstimate(Mesh& mesh, Form* Lres_1, Form* Lres_2,
   Rf(mesh), eif(mesh)
 {
   init(mesh, Lres_1, Lres_2, Lres_3, Lgradphi, Rf, eif);
+
+  if(MPI::numProcesses() > 1) {
+    std::set<uint> eindi;
+    std::map<uint, uint> mapping;
+    for(CellIterator c(mesh); !c.end(); ++c)
+      eindi.insert(mesh.distdata().get_cell_global(c->index()));
+    
+    e_indx.init_ghosted(eindi.size(), eindi, mapping);
+    eindi.clear();
+
+  }
+
+  if(!ParameterSystem::parameters.defined("adapt_algorithm"))
+    dolfin_add("adapt_algorithm", "simple");
+  if(!ParameterSystem::parameters.defined("adapt_type"))
+    dolfin_add("adapt_type", "cell");
 }
 //-----------------------------------------------------------------------------
 ErrorEstimate::~ErrorEstimate()
@@ -133,16 +148,22 @@ void ErrorEstimate::ComputeErrorIndicator(real t, real k, real T, real w)
     assembler.assemble(gradphix, *Lgradphi, false);
   
   UFC ufc(Lgradphi->form(), mesh, Lgradphi->dofMaps());
-  UFC ufc_2(Lres_2->form(), mesh, Lres_2->dofMaps());
 
+  
+  UFC *ufc_1 = 0;
+  UFC *ufc_2 = 0;
   real* gradphiarr = new real[d * d];
   real* res_1arr = 0;
   real* res_2arr = 0;
   real* res_3arr = 0;
-  if(Lres_1 != 0)
-    res_1arr = new real[d * mesh.numCells()];
-  if(Lres_2 != 0)
+  if(Lres_1 != 0) { 
+    res_1arr = new real[1]; 
+    ufc_1 = new UFC(Lres_1->form(), mesh, Lres_1->dofMaps());
+  }
+  if(Lres_2 != 0) {
     res_2arr =  new real[d];  
+    ufc_2 = new UFC(Lres_2->form(), mesh, Lres_2->dofMaps());
+  }
   if(Lres_3 != 0)
     res_3arr = new real[d * mesh.numCells()];
 
@@ -158,7 +179,7 @@ void ErrorEstimate::ComputeErrorIndicator(real t, real k, real T, real w)
 
 
   uint *gphii = new uint[d*d];
-  uint *resii = new uint[d + 1];
+  uint *resii = new uint[d];
 
   uint ii = 0;
   // Compute error indicator using end-point quadrature in time
@@ -202,17 +223,25 @@ void ErrorEstimate::ComputeErrorIndicator(real t, real k, real T, real w)
     
     real normR = 0.0;
 
-    ufc_2.update(*c, mesh.distdata());
-
-    (Lres_2->dofMaps())[0].tabulate_dofs(resii, ufc_2.cell, c->index());
-    res_2x.get(res_2arr, d, resii);
 
     if(Lres_1 != 0)
-      normR += res_1arr[id] * res_1arr[id] * cell.volume();
+    {
+      ufc_1->update(*c, mesh.distdata());
+      (Lres_1->dofMaps())[0].tabulate_dofs(resii, ufc_1->cell, c->index());
+      res_1x.get(res_1arr, 1, resii);
+
+      normR += res_1arr[0] * res_1arr[0] * cell.volume();
+    }
     
-    if(Lres_2 != 0)
+    if(Lres_2 != 0) 
+    {
+      ufc_2->update(*c, mesh.distdata());
+      (Lres_2->dofMaps())[0].tabulate_dofs(resii, ufc_2->cell, c->index());
+      res_2x.get(res_2arr, d, resii);
+      
       for (int i = 0; i < d; i++)
 	normR += res_2arr[i] * res_2arr[i] * cell.volume();
+    }
     
     if(Lres_3 != 0)
       normR += res_3arr[id] * res_3arr[id] * cell.volume();
@@ -238,6 +267,8 @@ void ErrorEstimate::ComputeErrorIndicator(real t, real k, real T, real w)
   if( res_1arr) delete[] res_1arr;
   if( res_2arr) delete[] res_2arr;
   if( res_3arr) delete[] res_3arr;
+  if( ufc_1)  delete ufc_1;
+  if( ufc_2)  delete ufc_2;
 
 }
 //-----------------------------------------------------------------------------
