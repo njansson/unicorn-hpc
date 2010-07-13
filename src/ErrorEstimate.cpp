@@ -19,22 +19,6 @@ ErrorEstimate::ErrorEstimate(Mesh& mesh, Form* Lres, Form* Lgradphi) :
   Rf(mesh), eif(mesh)
 {
   init(mesh, Lres_1, Lres_2, Lres_3, Lgradphi, Rf, eif);
-
-  if(MPI::numProcesses() > 1) {
-    std::set<uint> eindi;
-    std::map<uint, uint> mapping;
-    for(CellIterator c(mesh); !c.end(); ++c)
-      eindi.insert(mesh.distdata().get_cell_global(c->index()));
-    
-    e_indx.init_ghosted(eindi.size(), eindi, mapping);
-    eindi.clear();
-
-  }
-
-  if(!ParameterSystem::parameters.defined("adapt_algorithm"))
-    dolfin_add("adapt_algorithm", "simple");
-  if(!ParameterSystem::parameters.defined("adapt_type"))
-    dolfin_add("adapt_type", "cell");
 }
 //-----------------------------------------------------------------------------
 ErrorEstimate::ErrorEstimate(Mesh& mesh, Form* Lres_1, Form* Lres_2, 
@@ -44,22 +28,6 @@ ErrorEstimate::ErrorEstimate(Mesh& mesh, Form* Lres_1, Form* Lres_2,
   Rf(mesh), eif(mesh)
 {
   init(mesh, Lres_1, Lres_2, Lres_3, Lgradphi, Rf, eif);
-
-  if(MPI::numProcesses() > 1) {
-    std::set<uint> eindi;
-    std::map<uint, uint> mapping;
-    for(CellIterator c(mesh); !c.end(); ++c)
-      eindi.insert(mesh.distdata().get_cell_global(c->index()));
-    
-    e_indx.init_ghosted(eindi.size(), eindi, mapping);
-    eindi.clear();
-
-  }
-
-  if(!ParameterSystem::parameters.defined("adapt_algorithm"))
-    dolfin_add("adapt_algorithm", "simple");
-  if(!ParameterSystem::parameters.defined("adapt_type"))
-    dolfin_add("adapt_type", "cell");
 }
 //-----------------------------------------------------------------------------
 ErrorEstimate::~ErrorEstimate()
@@ -69,9 +37,7 @@ ErrorEstimate::~ErrorEstimate()
 //-----------------------------------------------------------------------------
 void ErrorEstimate::init(Mesh& mesh, Form* Lres_1, Form* Lres_2, Form* Lres_3, 
 			 Form* Lgradphi, MeshFunction<real>& Rf, MeshFunction<real>& eif) 
-{
-
-  
+{  
   if(Lres_1 != 0)
     res.init(mesh, res_1x, *Lres_1, 0);
   if(Lres_2 != 0)
@@ -93,6 +59,23 @@ void ErrorEstimate::init(Mesh& mesh, Form* Lres_1, Form* Lres_2, Form* Lres_3,
 
   Rf = 0.0;
   eif = 0.0;
+
+  if(MPI::numProcesses() > 1) {
+    std::set<uint> eindi;
+    std::map<uint, uint> mapping;
+    for(CellIterator c(mesh); !c.end(); ++c)
+      eindi.insert(mesh.distdata().get_cell_global(c->index()));
+    
+    e_indx.init_ghosted(eindi.size(), eindi, mapping);
+    eindi.clear();
+
+  }
+
+  if(!ParameterSystem::parameters.defined("adapt_algorithm"))
+    dolfin_add("adapt_algorithm", "simple");
+  if(!ParameterSystem::parameters.defined("adapt_type"))
+    dolfin_add("adapt_type", "cell");
+
 }
 //-----------------------------------------------------------------------------
 void ErrorEstimate::ComputeError(real& error)
