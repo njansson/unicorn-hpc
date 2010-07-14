@@ -22,7 +22,7 @@ TimeDependentPDE::TimeDependentPDE(Form& a, Form& L, Mesh& mesh,
   : _mesh(&mesh), _bcs(&bcs),
     t(0), T(T),
     k(dolfin_get("ODE initial time step")),
-    solutionfile(dolfin_get("solution file name")),
+    solutionfile(dolfin_get("solution file name"), t),
     x(0), dotx(0),
     fevals(0),
     itercounter(0),
@@ -115,19 +115,20 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
     }
 
     preparestep();
-    message("TPDE preparestep timer: %g", local_timer.elapsed());
+    if(dolfin::MPI::processNumber() == 0)
+      message("TPDE preparestep timer: %g", local_timer.elapsed());
 
     local_timer.restart();
-    x0 = x;
+    *x0 = *x;
 
     korig = k;
     step();
-    message("TPDE step timer: %g", local_timer.elapsed());
+    if(dolfin::MPI::processNumber() == 0)
+      message("TPDE step timer: %g", local_timer.elapsed());
 
 
     local_timer.restart();
     save(U, t);
-    message("TPDE step timer: %g", local_timer.elapsed());
 
     local_timer.restart();
 
@@ -136,11 +137,11 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
       break;
 
     t += k;
-    cout << "TPDE: Stepping k: " << k << " t: " << t << endl;
-    cout << "TPDE update timer: " << local_timer.elapsed() << endl;
-
-    cout << "TPDE total step timer: " << total_timer.elapsed() << endl;
-
+    if(dolfin::MPI::processNumber() == 0)
+    {
+      std::cout << "TPDE: Stepping k: " << k << " t: " << t << std::endl;
+      std::cout << "TPDE total step timer: " << total_timer.elapsed() << std::endl;
+    }
   }
 
   return 0;
@@ -148,16 +149,16 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::u0(Vector& x0)
 {
-  cout << "TimeDependentPDE::u0" << endl;
-
   x0.zero();
 }
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::step()
 {
-  cout << "TimeDependentPDE::step" << endl;
+  std::cout << "TimeDependentPDE::step" << std::endl;
 
   const real tol = dolfin_get("ODE discrete tolerance");
+
+  dolfin_set("output destination", "terminal");
 
   incr = 0;
   real incr0 = 0;
@@ -168,42 +169,45 @@ void TimeDependentPDE::step()
     incr0 = incr;
     res0 = res;
     res = 0;
-    cout << "new iter" << endl;
     local2_timer.restart();
     prepareiteration();
-    cout << "TPDE prepareiteration timer: " << local2_timer.elapsed() << endl;
+    if(dolfin::MPI::processNumber() == 0)
+      std::cout << "TPDE prepareiteration timer: " << local2_timer.elapsed() << std::endl;
+    if(dolfin::MPI::processNumber() == 0)
+      std::cout << "maxit: " << maxit << std::endl;
     incr = iter();
     itercounter++;
     postiteration();
 
-    cout << "increment: " << incr << " " << it << endl;
-    cout << "res: " << res << " " << it << endl;
-    cout << "res0: " << res0 << " " << it << endl;
-    //cout << "increment0: " << incr0 << " " << it << endl;
-    //if(incr < tol)
-    if(res < tol)
+    if(dolfin::MPI::processNumber() == 0)
+      std::cout << "increment: " << incr << " " << it << std::endl;
+    if(dolfin::MPI::processNumber() == 0)
+      std::cout << "res: " << res << std::endl;
+    if(incr < tol)
     {
-      cout << "increment: iteration converged" << endl;
+      if(dolfin::MPI::processNumber() == 0)
+	std::cout << "increment: iteration converged" << std::endl;
       break;
     }
-//     else if((it > 3 && incr > 2.0 * incr0) ||
-// 	    (it > 10 && incr > incr0))
-    else if((it > 3 && res > 2.0 * res0) ||
-	    (it > 10 && res > res0))
+    else if((it > 3 && incr > 2.0 * incr0) ||
+	    (it > 10 && incr > incr0))
     {
-      message("TPDE: fixed-point iteration diverging");
+      if(dolfin::MPI::processNumber() == 0)
+	message("TPDE: fixed-point iteration diverging");
       k = 0.5 * k;
       reassemble = true;
-      x = x0;
+      *x = *x0;
       it = 0;
     }
     else if(it == maxit - 1)
     {
-      message("TPDE: fixed-point iteration didn't converge");
+      if(dolfin::MPI::processNumber() == 0)
+	message("TPDE: fixed-point iteration didn't converge");
     }
     else
     {
-      cout << "continue iter" << endl;
+      if(dolfin::MPI::processNumber() == 0)
+	std::cout << "continue iter" << std::endl;
     }
     reset_tensor = false;
   }
@@ -211,15 +215,18 @@ void TimeDependentPDE::step()
 //-----------------------------------------------------------------------------
 real TimeDependentPDE::iter()
 {
-  cout << "TimeDependentPDE::iter" << endl;
-  cout << "iterk: " << k << endl;
+  if(dolfin::MPI::processNumber() == 0)
+  {
+    std::cout << "TimeDependentPDE::iter" << std::endl;
+    std::cout << "iterk: " << k << std::endl;
+  }
 
   iter_timer.restart();
 
   local_timer.restart();
   //if(t == 0.0)
 
-  //  reassemble = true;
+  reassemble = true;
 
   if(reassemble)
     dolfin_set("PDE reassemble matrix", true);
@@ -227,31 +234,22 @@ real TimeDependentPDE::iter()
     dolfin_set("PDE reassemble matrix", false);
 
 
-  if(reassemble || reset_tensor)
-  //if(reassemble || reset_tensor || itercounter % 10 == 0)
-  //if(reassemble || reset_tensor)
-  {
+  if(dolfin::MPI::processNumber() == 0)
     message("TPDE: reassembling Jacobian matrix");
-    dolfin_set("output destination", "silent");
-    assembler->assemble(J, a(), reset_tensor);
-    dolfin_set("output destination", "terminal");
-
-    if(JNoBC != 0)
-      delete JNoBC;
-    JNoBC = J.copy();
-
-    ksolver->solve(J, *x, *dotx);
-    //    solveILU_5init(J, x, dotx, ksp);
-  }
-  cout << "TPDE assemble J timer: " << local_timer.elapsed() << endl;
+  dolfin_set("output destination", "silent");
+  assembler->assemble(J, a(), reset_tensor);
+  dolfin_set("output destination", "terminal");
+  if(dolfin::MPI::processNumber() == 0)
+    std::cout << "TPDE assemble J timer: " << local_timer.elapsed() << std::endl;
 
   local_timer.restart();
   fu(*x, *dotx, t);
-  cout << "TPDE fu timer: " << local_timer.elapsed() << endl;
+  if(dolfin::MPI::processNumber() == 0)
+    std::cout << "TPDE fu timer: " << local_timer.elapsed() << std::endl;
 
   // Add J * UP to Newton residual
-  JNoBC->mult(*x, *xtmp);
-  *dotx += *xtmp;
+//   JNoBC->mult(*x, *xtmp);
+//   *dotx += *xtmp;
 
 
   local_timer.restart();
@@ -259,20 +257,13 @@ real TimeDependentPDE::iter()
   for (uint i = 0; i < bc().size(); i++)
     bc()[i]->apply(J, *dotx, a());
   //dolfin_set("output destination", "terminal");
-  cout << "TPDE BC timer: " << local_timer.elapsed() << endl;
+  if(dolfin::MPI::processNumber() == 0)
+    std::cout << "TPDE BC timer: " << local_timer.elapsed() << std::endl;
 
   if(reset_tensor)
   {
     reset_tensor = false;
   }
-  if(reassemble)
-  {
-    reassemble = false;
-  }
-
-
-
-  //dotx->vec() *= -1.0;
 
   *dx = *x;
 
@@ -280,37 +271,22 @@ real TimeDependentPDE::iter()
   *residual -= *dotx;
 
   local_timer.restart();
-//   J.mat().lump(JD.vec());
-//   x->vec() = dotx->vec();
-//   x->vec().div(JD.vec());
-  
-  
-  //solveILU(J, x, dotx, ksp);
   ksolver->solve(J, *x, *dotx);
   //lusolver->solve(J, *dx, *dotx);
-  cout << "TPDE linear solve timer: " << local_timer.elapsed() << endl;
+
+  if(dolfin::MPI::processNumber() == 0)
+    std::cout << "TPDE linear solve timer: " << local_timer.elapsed() << std::endl;
 
   *dx -= *x;
   
-//   cout << "dx: "<< endl;
-//   dx->disp();
-
-//   cout << "x: "<< endl;
-//   x->disp();
-
-  //x->vec() += dx->vec();
-
   real relincr = dx->norm(linf) / x->norm(linf);
   real resnorm = residual->norm(linf);
 
   real oldres = res;
   res = std::max(oldres, resnorm);
 
-  cout << "resnorm: " << resnorm << endl;
-  cout << "dx norm: " << dx->norm(linf) << endl;
-  cout << "x norm: " << x->norm(linf) << endl;
-
-  cout << "TPDE total iter timer: " << iter_timer.elapsed() << endl;
+  if(dolfin::MPI::processNumber() == 0)
+    std::cout << "TPDE total iter timer: " << iter_timer.elapsed() << std::endl;
 
   return relincr;
 }
@@ -376,9 +352,9 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 
   //  const real ktol = dolfin_get("ODE discrete Krylov tolerance factor");
   //  const real tol = dolfin_get("ODE discrete tolerance");
-  message("Using BiCGStab Krylov solver for matrix Jacobian");
+  //message("Using BiCGStab Krylov solver for matrix Jacobian");
   //  ksolver = new KrylovSolver(bicgstab, ilu);
-  ksolver = new KrylovSolver(bicgstab, amg);
+  ksolver = new KrylovSolver(gmres, jacobi);
   //  ksolver = new KrylovSolver(gmres, amg);
   //ksolver = new KrylovSolver(gmres, sor);
   //ksolver = new KrylovSolver(gmres, amg);
@@ -387,8 +363,8 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 //   ksolver->set("Krylov absolute tolerance", ktol*tol);
   //ksolver->set("Krylov relative tolerance", 1.0e-16);
   //ksolver->set("Krylov absolute tolerance", 1.0e-16);
-  ksolver->set("Krylov relative tolerance", 1.0e-4);
-  ksolver->set("Krylov absolute tolerance", 1.0e-2);
+//   ksolver->set("Krylov relative tolerance", 1.0e-4);
+//   ksolver->set("Krylov absolute tolerance", 1.0e-2);
 //   set("Krylov divergence limit", 10.0);
 //   set("Krylov maximum iterations", 300);
 
@@ -398,7 +374,7 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::free()
 {
-  cout << "TPDE::free()" << endl;
+  //std::cout << "TPDE::free()" << std::endl;
 
   delete x;
   delete x0;
@@ -417,7 +393,7 @@ void TimeDependentPDE::free()
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::save(Function& U, real t)
 {
-  cout << "Saving" << endl;
+  //std::cout << "Saving" << std::endl;
   
   if(t == 0.0)
   {

@@ -38,6 +38,10 @@
 #include "unicorn/NSEDualContinuity3D.h"
 #include "unicorn/NSEDualGradient3D.h"
 
+#include <unicorn/NSEMomentum2D.h>
+#include "unicorn/NSEContinuity2D.h"
+#include "unicorn/Drag2D.h"
+
 #include <ufc.h>
 #include <dolfin/fem/UFC.h>
 #include <dolfin/fem/Form.h>
@@ -58,10 +62,11 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     T(T), nu(nu), ubar(ubar),
     solver_type(solver_type), errest(0), perrest(0),
     pfile("pressure.pvd"), td(td),
-    pressure_solver(gmres, amg),
+    pressure_solver(bicgstab, jacobi),
     ksp_pressure(0),
     startup(true), indices(0), c_indices(0)
 {
+  dolfin_set("output destination", "terminal");
   // Declare parameters
 //   add("velocity file name", "velocity.pvd");
 //   add("pressure file name", "pressure.pvd");
@@ -122,13 +127,23 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   }
   else 
   {
-    error("Parallel Navier-Stokes solver only implemented for 3 space dimensions.");
+    if(solver_type == "primal")
+    {
+      aM = new NSEMomentum2DBilinearForm(Um, *fnu, delta1, delta2, *fk);
+      LM = new NSEMomentum2DLinearForm(U, U0, Uc, Um, P,
+				       *fnu, delta1, delta2, f, *fk);	 
+      aC = new NSEContinuity2DBilinearForm;
+      LC = new NSEContinuity2DLinearForm(U, delta1inv);
+    }
+    else if(solver_type == "dual")
+    {
+      error("Not implemented yet");
+    }
   }
 
   Uc.init(mesh, Ucx, *aM, 0);
   Um.init(mesh, Umx, *LM, 4);
 
-  U0.init(mesh, U0x, *aM, 0);
   P.init(mesh, Px, *aC, 0);
   P0.init(mesh, P0x, *aC, 0);
   delta1.init(mesh, delta1x, *LM, 7);
@@ -148,25 +163,36 @@ NSESolver::~NSESolver()
 //-----------------------------------------------------------------------------
 void NSESolver::save(Function& U, real t)
 {
+  /*
   int nsamples = dolfin_get("PDE number of samples");
 
-  sampleperiod = T / (real)nsamples;
+   sampleperiod = T / (real)nsamples;
 
-  //TimeDependentPDE::save(U, t);
-  cout << "Saving" << endl;
+//   //TimeDependentPDE::save(U, t);
+   //cout << "Saving" << endl;
   
-  if(t == 0.0)
-  {
-    solutionfile << U;
-    pfile << P;
-  }
-  
-  while(lastsample + sampleperiod < t)
-  {
-    lastsample = std::min(t, lastsample + sampleperiod);
-    solutionfile << U;
-    pfile << P;
-  }
+   std::vector<std::pair<Function*, std::string> > output;
+   std::pair<Function*, std::string> U_output(&U, "Velocity");
+//    std::pair<Function*, std::string> P_output(&P, "Pressure");
+   output.push_back(U_output);
+//    output.push_back(P_output);
+
+   if(true || t > 0.1)
+   {
+     if(t == 0.0)
+     {
+       solutionfile << output;
+       pfile << P;
+     }
+     
+     while(lastsample + sampleperiod < t)
+     {
+       lastsample = std::min(t, lastsample + sampleperiod);
+       solutionfile << output;
+       pfile << P;
+     }
+   }
+  */
 }
 //-----------------------------------------------------------------------------
 void NSESolver::preparestep()
@@ -178,50 +204,40 @@ void NSESolver::preparestep()
 //-----------------------------------------------------------------------------
 void NSESolver::prepareiteration()
 {
+  cout << "prepareiteration" << endl;
+
 //   solutionfile << U;
 //   pfile << P;
 
   // Compute cell mean
-  ComputeMean(mesh(), Uc, Um, U, U0, *aM, *LM);
   ComputeStabilization(mesh(), U, nu, k,
 		       delta1x, delta2x, delta1invx, *LM);
-
+  ComputeMean(mesh(), Uc, Um, U, U0, *aM, *LM);
 
   computeP();
 
-  cout << "Um: " << Um.vector().norm(linf) << endl;;
-  cout << "Uc: " << Uc.vector().norm(linf) << endl;;
-  cout << "U: " << U.vector().norm(linf) << endl;;
+  reassemble = true;
 
-//   cout << "delta1: " << endl;
-//   delta1x.disp();
-//   cout << "delta2: " << endl;
-//   delta2x.disp();
-
-  if(startup)
-    reassemble = true;
+//   cout << "Um: " << Um.vector().norm(linf) << endl;
+//   cout << "Uc: " << Uc.vector().norm(linf) << endl;
+//   cout << "U: " << U.vector().norm(linf) << endl;
+//   U.vector().disp();
+//   cout << "P: " << P.vector().norm(linf) << endl;
+//   P.vector().disp();
+//   cout << "delta1: " << delta1.vector().norm(linf) << endl;
+//   cout << "delta2: " << delta2.vector().norm(linf) << endl;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::postiteration()
 {
-//   tic();
-//  pressure_solver.solve(PM, Px, Pb);
-//   //solveLU(PM.mat(), Px.vec(), Pb.vec(), ksp_pressure);
-//   cout << "exp pressure linear solve timer: " << toc() << endl;
-
-//   real oldincr = incr;
-//   incr = std::max(oldincr, Presnorm);
 }
 //-----------------------------------------------------------------------------
 bool NSESolver::update(real t, bool end)
 {
- 
   //startup = false;
   if(startup)
   {
-      //if(t > 0.0)
-    //if(t > 1.0e-4)
-    if(t > 5 * k)
+    if(false && t > 5 * k)
     {
       // Take more efficient time-step after startup
       k = 0.5*hmin/ubar;
@@ -235,7 +251,7 @@ bool NSESolver::update(real t, bool end)
       cout << "stop reassembling" << endl;
     }
   }
-  //return true; // assert(it's going to be ok);
+  return true;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::solve_old()
@@ -244,82 +260,27 @@ void NSESolver::solve_old()
 //-----------------------------------------------------------------------------
 void NSESolver::computeP()
 {
-  tic();
-  //if(t == 0.0)
-//   if(reset_tensor)
-//   {
-//     assembler->assemble(PM, *aC, reset_tensor);
-//     assembler->assemble(PMdummy, *aC, reset_tensor);
-//     assembler->assemble(Pb, *LC, reset_tensor);
-//     bc_con.apply(PM, Pb, *aC);
-//     //PM.mat().lump(PMD.vec());
-//     //solveLU_init(PM.mat(), Px.vec(), Pb.vec(), ksp_pressure);
-//   }
-  tic();
   assembler->assemble(Pb, *LC, reset_tensor);
-  cout << "pressure vector timer: " << toc() << endl;
-
-  tic();
-  if(reset_tensor)
-  {
-    assembler->assemble(PM, *aC, reset_tensor);
-    //    pressure_solver.solve(PM, Px, Pb);
-    //    solveAMG_init(PM.down_cast<PETScMatrix>(), Px.down_cast<PETScVector>(),
-    //		  Pb.down_cast<PETScVector>(), ksp_pressure);
-    //solveLU_init(PM.mat(), Px.vec(), Pb.vec(), ksp_pressure);
-  }
-  cout << "pressure matrix timer: " << toc() << endl;
-
-  cout << "Dirichlet pressure BC" << endl;
-  //for (uint i = 0; i < bc_con.size(); i++)
-  tic();
+  assembler->assemble(PM, *aC, reset_tensor);
   bc_con.apply(PM, Pb, *aC); 
-  cout << "pressure BC timer: " << toc() << endl;
-
-  //Px.vec() = Pb.vec();
-  //Px.vec().div(PMD.vec());
 
   PM.mult(Px, Presidual);
   Presidual -= Pb;
 
   Presnorm = Presidual.norm(linf);
-  cout << "Presnorm: " << Presnorm << endl;
-
-//   real oldres = res;
-//   res = std::max(oldres, Presnorm);
+  if(dolfin::MPI::processNumber() == 0)
+    cout << "Presnorm: " << Presnorm << endl;
 
   tic();
+  //LUSolver pressure_lusolver;
+  //pressure_lusolver.solve(PM, Px, Pb);
   pressure_solver.solve(PM, Px, Pb);
-  cout << "exp pressure linear solve timer: " << toc() << endl;
-
-//   real oldincr = incr;
-//   incr = std::max(oldincr, Presnorm);
-
-
-  // Experiment
-
-//   tic();
-//   KrylovSolver solver(gmres, amg);
-//   solver.solve(PM, Px, Pb);
-//   //solveLU(PM.mat(), Px.vec(), Pb.vec(), ksp_pressure);
-//   cout << "exp pressure linear solve timer: " << toc() << endl;
-
-
-  //exit(0);
-
-
-
-//   tic();
-//   KrylovSolver solver(gmres, amg);
-//   solver.solve(PM, Px, Pb);
-//   cout << "pressure linear solve timer: " << toc() << endl;
-
-  //Px.zero();
+  if(dolfin::MPI::processNumber() == 0)
+    cout << "pressure linear solve timer: " << toc() << endl;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
 {
-  //real* harr = hvector.down_cast<PETScVector>().array();
   real *h = new real[mesh.numCells()];
   uint *rows = new uint[mesh.numCells()];
 
@@ -367,33 +328,35 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real C1 = 1.0;   
+  real C1 = 1.0;
   real C2 = 2.0;   
   
   UFC ufc(form.form(), mesh, form.dofMaps());
   real normw; 
   
+  uint nsd = mesh.topology().dim(); 
+
   Cell c(mesh, 0);
   uint local_dim = c.numEntities(0);
   real *d1_block = new real[mesh.numCells()];
   real *d2_block = new real[mesh.numCells()];
   real *dinv_block = new real[mesh.numCells()];
   uint *rows2 = new uint[mesh.numCells()];
-  real *w_block = new real[3 * local_dim * mesh.numCells()];
+  real *w_block = new real[nsd * local_dim * mesh.numCells()];
   
   if(!indices) {
-    indices = new uint[3 * local_dim * mesh.numCells()];
+    indices = new uint[nsd * local_dim * mesh.numCells()];
     
     uint *ip = &indices[0];    
     for (CellIterator cell(mesh); !cell.end(); ++cell)
     {      
       ufc.update(*cell, mesh.distdata());            
       (form.dofMaps())[0].tabulate_dofs(ip, ufc.cell, cell->index());            
-      ip += 3 * local_dim;      
+      ip += nsd * local_dim;      
     }
   }
 
-  w.vector().get(w_block, 3*local_dim * mesh.numCells(), indices);
+  w.vector().get(w_block, nsd*local_dim * mesh.numCells(), indices);
 
   real *wp = &w_block[0];
   uint ci = 0;
@@ -420,11 +383,11 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
     if (((h/nu) > 1.0) || (nu < 1.0e-10) ){
       d1_block[ci] =  C1 * (0.5 / sqrt( 1.0/sqr(k) + sqr(normw/h)));
       d2_block[ci] = C2 * h;
-      dinv_block[ci] = 1.0 / d1_block[ci];
+      dinv_block[ci] = 1.0 / (4.0*d1_block[ci]);
     } else {
       d1_block[ci] = C1 * sqr(h);
       d2_block[ci] = C2 * sqr(h);
-      dinv_block[ci] = 1.0 / d1_block[ci];
+      dinv_block[ci] = 1.0 / (4.0*d1_block[ci]);
     }	
     rows2[ci++] = cid;      
   }
@@ -446,30 +409,18 @@ void NSESolver::ComputeMean(Mesh& mesh, Function& vc,
 			    Function& vm, Function& v, Function& v0, 
 			    Form& form, Form& form2)
 {
+  vc.vector() = v.vector();
+  vc.vector() += v0.vector();
+  vc.vector() *= 0.5;
 
   Cell cell_tmp(mesh, 0);
   uint nsd = mesh.topology().dim(); 
   uint local_dim = cell_tmp.numEntities(0);
   UFC ufc(form.form(), mesh, form.dofMaps()); 
-  UFC ufc2(form2.form(), mesh, form2.dofMaps()); 
-  real *v_block = new real[nsd * local_dim * mesh.numCells()];
-  real *v0_block = new real[nsd * local_dim * mesh.numCells()];
-  real *vmean_block = new real[nsd*mesh.numCells()];
-   
- if(!indices) {
-   indices = new uint[3 * local_dim * mesh.numCells()];
-    
-   uint *ip = &indices[0];    
-   for (CellIterator cell(mesh); !cell.end(); ++cell)
-     {      
-       ufc2.update(*cell, mesh.distdata());            
-       (form2.dofMaps())[0].tabulate_dofs(ip, ufc.cell, cell->index());            
-       ip += 3 * local_dim;      
-     }
- }
-
- 
- if(!c_indices) {
+  real *vc_block = new real[nsd * local_dim * mesh.numCells()];
+  real *vm_block = new real[nsd*mesh.numCells()];
+  
+  if(!c_indices) {
     c_indices = new uint[nsd * mesh.numCells()];
 
     uint *cip = &c_indices[0];
@@ -481,29 +432,28 @@ void NSESolver::ComputeMean(Mesh& mesh, Function& vc,
     }
   }
 
-  dolfin_assert(indices);
-  v.vector().get(v_block, nsd * local_dim * mesh.numCells(), indices);
-  v0.vector().get(v0_block, nsd * local_dim * mesh.numCells(), indices);
+  vc.vector().get(vc_block, nsd * local_dim * mesh.numCells(), indices);
 
   uint mi = 0;
   real cellmean = 0.0;  
   uint ri = 0;
   for (CellIterator c(mesh); !c.end(); ++c)
   {
+
     for (uint i = 0; i < nsd; i++) {
       cellmean = 0.0;
-      for (VertexIterator n(*c); !n.end(); ++n, ri++)
-	cellmean += 0.5 * (v_block[ri] + v0_block[ri]);
+      for (VertexIterator n(*c); !n.end(); ++n)
+	cellmean += vc_block[ri++];
       cellmean /= c->numEntities(0);
-      vmean_block[mi++] = cellmean;
+      vm_block[mi++] = cellmean;
     }    
   }
-  vm.vector().set(vmean_block,nsd * mesh.numCells(), c_indices);
+  vm.vector().set(vm_block,nsd * mesh.numCells(), c_indices);
   vm.vector().apply();
   
-  delete[] v_block;
-  delete[] v0_block;
-  delete[] vmean_block;
+  delete[] vc_block;
+  delete[] vm_block;
+
 }
 //-----------------------------------------------------------------------------
 void NSESolver::SetInitialVelocity(Vector& xvel)

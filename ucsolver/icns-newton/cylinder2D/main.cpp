@@ -36,24 +36,16 @@ using namespace dolfin::unicorn;
 real bmarg = 1.0e-3 + DOLFIN_EPS;
 
 real xmin = 0.0;
-real xmax = 2.1;
+real xmax = 2.2;
+//real xmax = 1.0;
 real ymin = 0.0;
-real ymax = 1.4;
+real ymax = 0.41;
+//real ymax = 1.0;
 real zmin = 0.0;
 real zmax = 0.4;
-real xcenter = 0.5;
-real ycenter = 0.7;
+real xcenter = 0.2;
+real ycenter = 0.2;
 real radius = 0.05;
-
-// Sub domain for outflow
-class OutflowBoundary : public SubDomain
-{
-public:
-  bool inside(const real* p, bool on_boundary) const
-  {
-    return on_boundary && (p[0] > (xmax - bmarg));
-  }
-};
 
 // Sub domain for inflow
 class InflowTopBottomBoundary3D : public SubDomain
@@ -61,7 +53,20 @@ class InflowTopBottomBoundary3D : public SubDomain
 public:
   bool inside(const real* p, bool on_boundary) const
   {
-    return on_boundary && p[0] < xmax + bmarg ;
+    return on_boundary && (p[0] < xmax - bmarg ||
+                           p[1] < ymin + bmarg || p[1] > ymax - bmarg);
+  }
+};
+
+// Sub domain for outflow
+class OutflowBoundary : public SubDomain
+{
+public:
+  bool inside(const real* p, bool on_boundary) const
+  {
+    InflowTopBottomBoundary3D ib;
+
+    return on_boundary && !ib.inside(p, on_boundary);
   }
 };
 
@@ -72,7 +77,7 @@ public:
   bool inside(const real* p, bool on_boundary) const
   {
 
-    return on_boundary && p[0] < (xmax - bmarg) && p[0] > (xmin + bmarg);
+    return on_boundary && false && p[0] < (xmax - bmarg) && p[0] > (xmin + bmarg);
   }
 };
 
@@ -112,17 +117,29 @@ public:
   BC_Momentum_3D(Mesh& mesh) : Function(mesh) {}
   void eval(real* values, const real* x) const
   {
-    if(x[0] < xmin + bmarg) {
-      values[0] = 1.0;
-      values[1] = 0.0;
-      values[2] = 0.0;
+    for(int i = 0; i < 2; i++)
+    {
+      if (i==0)
+      {
+	if ( x[0] < (0.0 + bmarg) &&
+	     x[1] < (ymax - bmarg) &&
+	     x[1] > (ymin + bmarg))
+	  {
+	    real Um = 1.5;
+
+
+	    values[i] = 4.0*Um*x[1]*(ymax - x[1]) / (ymax*ymax);
+	  }
+	else
+	{
+	  values[i] = 0.0;
+	}
+      } 
+      else if (i==1)
+      {
+	values[i] = 0.0;
+      } 
     }
-    else {
-      values[0] = 0.0;
-      values[1] = 0.0;
-      values[2] = 0.0;
-    }
-      
   }
 };
 
@@ -204,7 +221,6 @@ public:
 
 void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 {
-  
   real T = dolfin_get("T");
   real dual_T = dolfin_get("dual_T");
   real nu = dolfin_get("nu");
@@ -215,7 +231,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
   Dual_BC_Momentum_3D dual_bcf_mom(mesh);
   BC_Continuity bcf_con(mesh);
   ForceFunction f(mesh);
-  Function zero(mesh, 3, 0.0);
+  Function zero(mesh, 2, 0.0);
   OutflowBoundary oboundary;
   SlipBoundary slipboundary;
   SideWallBoundary swboundary;
@@ -226,7 +242,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
   Array<Function*> aero_f;
   aero_f.push_back(&phi);
 
-  NodeNormal node_normal(mesh);
+  //NodeNormal node_normal(mesh);
   DirichletBC p_bcin(bcf_mom, mesh, iboundary);
   DirichletBC p_bcout(bcf_con, mesh, oboundary);
   //NewSlipBC slip_bc(mesh, slipboundary, node_normal);
@@ -240,11 +256,14 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 
   Function U, U0;
 
+//   dolfin_set("Krylov relative tolerance", 1.0e-12);
+//   dolfin_set("Krylov absolute tolerance", 1.0e-20);
+
   NSESolver psolver(mesh, U, U0, f, phi, beta, p_bc_mom, p_bcout, T, nu,
                     ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
   dolfin_set("ODE discrete tolerance", 1.0e-2);
-  dolfin_set("PDE number of samples", 100);
+  dolfin_set("PDE number of samples", 100);  
 
   psolver.solve(U, U0);
   

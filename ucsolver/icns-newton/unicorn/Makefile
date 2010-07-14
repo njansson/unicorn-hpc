@@ -4,7 +4,7 @@ CXX     = `pkg-config --variable=compiler dolfin`
 
 FORM_SRC = NSEContinuity3D.cpp NSEDualContinuity3D.cpp NSEDualGradient3D.cpp \
 	NSEDualMomentum3D.cpp NSEMomentum3D.cpp NSEResContinuity3D.cpp NSEResMomentum3D.cpp \
-	Drag3D.cpp
+	Drag3D.cpp NSEMomentum2D.cpp NSEContinuity2D.cpp
 
 FORM_OBJ = ${FORM_SRC:.cpp=.o}
 
