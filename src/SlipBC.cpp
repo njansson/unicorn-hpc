@@ -137,8 +137,17 @@ void SlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
   if(As == 0) {
         
     // Create data structure for local assembly data    
-    As = new Matrix();
-    (*(As->instance())).down_cast<PETScMatrix>().dup(A);
+
+    const std::string la_backend = dolfin_get("linear algebra backend");
+    if(la_backend == "JANPACK") {
+      As = new Matrix(A.size(0), A.size(1));    
+      *(As->instance()) =  A;
+      //      (*(As->instance())).down_cast<JANPACKMat>().dup(A);
+    }
+    else {
+      As = new Matrix();    
+      (*(As->instance())).down_cast<PETScMatrix>().dup(A);
+    }
     
     if(MPI::numProcesses() > 1) {
       std::map<uint, uint> mapping;
