@@ -104,57 +104,14 @@ namespace dolfin { namespace unicorn
     class Quality : public Function
     {
     public:
-    Quality(Mesh& mesh, MeshFunction<real>& h0) :
-      Function(mesh), q(mesh), hq(mesh), maxqual(0.0),
-	minqual(1.0e12), mqual(mesh)
+    Quality(Mesh& mesh, MeshFunction<real>& h0) : mqual(mesh), Function(mesh)
       {
-	real p = 2.0;
-
-	// Compute h
-	q.init(mesh.topology().dim());
-	hq.init(mesh.topology().dim());
-      
-	//MeshQuality mqual(mesh);
-	//mqual = new MeshQuality(mesh);
-
-	for (CellIterator c(mesh); !c.end(); ++c)
-	{
-	  Cell& cc = *c;
-
-	  // 	EquiAffineMap map;
-	  // 	map.update(cc);
-	  real h = cc.diameter();
-	  real hh0 = h0.get(cc);
-	  //real qual = 0.25 * (h * h) / cc.volume();
-	  real qq = mqual.cellQuality(cc);
-	  //qual = 1.0 / pow(qual, 2.0);
-	  real qual = 1.0;
-
-	  qual = 1.0 / pow(qq, p);
-
-	  real hqual = 1.0;
-	  
-	  hqual = 1.0 + pow(fabs(h - hh0), p);
-	  //qual = 1.0;
-	  //  	if(qq < 0.4)
-	  //  	  qual = 100.0;
-
-	  //real totqual = qual + hqual;
-	  real totqual = qual;
-
-	  maxqual = std::max(maxqual, qual);
-	  minqual = std::min(minqual, qual);
-
-	  q.set(c->index(), totqual);
-	}
       }
     
       void eval(real* values, const real* x) const
       {
 	//FIXME: should we have to cast?
 	Cell& c = const_cast<Cell&>(cell());
-
-	//int d = cell().dim();
 
 	//real p = 2.0;
 	real p = 1.0;
@@ -163,20 +120,12 @@ namespace dolfin { namespace unicorn
 
 	real qq = mqual.cellQuality(c);
 	real qual = 1.0 / pow(qq, p);
-	//real qual = q.get(cell().index());
-	//real scale = 1.0 * maxqual / minqual;
 	real scale = 1.0;
 	val = qual / scale;
- 	//val = 1.0;
 
 	values[0] = val;
-	//values[0] = 1.0;
       }
 
-      MeshFunction<real> q;
-      MeshFunction<real> hq;
-      real maxqual;
-      real minqual;
       MeshQuality mqual;
     };
 
@@ -186,12 +135,6 @@ namespace dolfin { namespace unicorn
       map.update(cell);
       
       real h = h0.get(cell.index());
-      //real scale = pow(cell.volume(), 1.0 / cell.dim());
-      //real vscale = cell.volume() / pow(cell.diameter(), cell.dim());
-      //real scale = h * vscale;
-      //real scale = cell.volume() / pow(cell.diameter(), cell.dim());
-      //real scale = h;
-      //real scale = pow(cell.volume(), 1.0 / cell.dim()) / cell.diameter() * h;
       real scale = h / sqrt(cell.dim());
 
       uBlasDenseMatrix Finv(3, 3);
@@ -354,8 +297,6 @@ namespace dolfin { namespace unicorn
       void computeX()
       {
 	X.vector() = U.vector();
-	//	X.vector().copy(U.vector(), 0, 0, X.vector().size());
-
 
 	X.vector() *= k;
 	X.vector() += X0x;
@@ -423,54 +364,20 @@ namespace dolfin { namespace unicorn
 	
 	X0.vector() = X.vector();
 	B0.vector() = B.vector();
-	// X0.vector().copy(X.vector(), 0, 0,
-	//			       X0.vector().size());
-	//	B0.vector().copy(B.vector(), 0, 0,
-	//			       B0.vector().size());
 	X0.vector().apply();
 	B0.vector().apply();
       }
       
       void preparestep()
       {
-// 	int d = mesh().topology().dim();
-// 	int N = mesh().numVertices();
-// 	int M = mesh().numCells();
-
-// 	real* Barr = B.vector().vec().array();
-
-// 	for (CellIterator c(mesh()); !c.end(); ++c)
-// 	{
-// 	  for(int i = 0; i < d * d; i++)
-// 	  {
-// 	    real val = initial_B(*c, h0, i);
-	    
-// 	    Barr[i * M + c->index()] = val;
-// 	  }
-// 	}
-
 	shift();
       }
       
       void prepareiteration()
       {
-	// FIXME: BC doesn't seem to always be satisfied, why not?
-// 	set("output destination", "silent");
-// 	for (uint i = 0; i < bc().size(); i++)
-// 	  bc()[i]->apply(M, U.vector(), a());
-// 	set("output destination", "terminal");
-// 	cout << "Uafter: " << endl;
-// 	U.vector().vec().disp();
-
-//  	cout << "X0 0: " << endl;
-//  	X0.vector().disp();
-
 	computeX();
 	computeB();
 	deform_x(X);
-
-//  	cout << "X0 1: " << endl;
-//  	X0.vector().disp();
 
 	qual->meshQuality();
 
@@ -480,39 +387,15 @@ namespace dolfin { namespace unicorn
       }
       
       void fu(const Vector& x, Vector& dotx, real T)
-	//void fu(const uBlasVector& x, uBlasVector& dotx, real T)
       {
-// 	cout << "X: " << endl;
-// 	X.vector().vec().disp();
-// 	cout << "U: " << endl;
-// 	U.vector().vec().disp();
-// 	cout << "B: " << endl;
-// 	B.vector().vec().disp();
-	
 	dolfin_set("output destination", "silent");
 	assembler->assemble(dotx, L(), reset_tensor);
-	//     for (uint i = 0; i < bc_mom.size(); i++)
-	//       bc_mom[i]->apply(M, dotx, a());
 	dolfin_set("output destination", "terminal");
-// 	set("output destination", "silent");
-// 	assembler.assemble(dotx, L());
-// 	for (uint i = 0; i < bc().size(); i++)
-// 	  bc()[i]->apply(M, dotx, a());
-// 	set("output destination", "terminal");
-	
-	//cout << "dtU: " << dotx.norm(linf) << endl;
-	
-//  	cout << "dtU: " << endl;
-//  	dotx.disp();
       }
       
       void save(Function& U, real t)
       {
 	cout << "Saving at t: " << t << endl;
-	//     Function U_0 = U[0];
-
-	//     cout << "U: " << endl;
-	//     U.vector().disp();
 
 	if(t == 0.0)
 	{
@@ -548,7 +431,6 @@ namespace dolfin { namespace unicorn
       }
 
       void u0(GenericVector& x)
-	//void u0(uBlasVector& x)
       {
 	int d = mesh().topology().dim();
 	int N = mesh().numVertices();
@@ -621,30 +503,6 @@ namespace dolfin { namespace unicorn
 	  delete[] idx;
 	  delete[] id;
 	}
-// 	real* Xarr = new real[X.vector().local_size()];
-// 	uint *Xrows = new uint[X.vector().local_size()];
-// 	uint Xcounter = 0;
-
-// 	for (VertexIterator n(mesh()); !n.end(); ++n)
-// 	{
-// 	  Vertex vertex = *n;
-
-// 	  for(int i = 0; i < d; i++)
-// 	  {
-// 	    //Xarr[i * N + n->index()] = n->x()[i];
-// 	    Xarr[Xcounter] = n->x()[i];
-// 	    Xrows[Xcounter] = i * N + mesh().distdata().get_global(vertex);
-// 	    std::cout << "Xrows[]: " << Xrows[Xcounter] << std::endl;
-// 	    Xcounter++;
-// 	  }
-// 	}
-	
-// 	std::cout << "ElasticityPDE::u0 1" << std::endl;
-// 	std::cout << "size: " << X.vector().local_size() << std::endl;
-// 	X.vector().set(Xarr, X.vector().local_size(), Xrows);
-// 	X.vector().apply();
-// 	delete[] Xarr;
-// 	std::cout << "ElasticityPDE::u0 2" << std::endl;
 
 	U.vector().zero();
 
@@ -656,16 +514,9 @@ namespace dolfin { namespace unicorn
 	B.vector().apply();
       }
 
-      //bool update(const uBlasVector& u, real t, bool end)
       bool update(real t, bool end)
       {
  	std::cout << "ElasticSmoother::update:" << std::endl;
-// 	cout << "U:" << endl;
-// 	U.vector().disp();
-// 	cout << "B:" << endl;
-// 	B.vector().disp();
-
-	//deform(mesh(), k, U);
 
 	qual->meshQuality();
 	//qual.disp();
@@ -701,12 +552,6 @@ namespace dolfin { namespace unicorn
 	cout << "hhmin: " << hhmin << endl;
 
         k = 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + hhmin);
-	//k = 0.01;
-	//	k = 1.0e-3;
-        //k = 1.0e-1;
-	//k = 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + hhmin);
-	//k = 1.0 * 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + 1.0e-7);
-
 
 	cout << "t: " << t << endl;
 	cout << "T: " << T << endl;
@@ -715,8 +560,6 @@ namespace dolfin { namespace unicorn
 	num_steps++;
 	korig = k;
 
-	//if(num_steps > min_steps &&
-	//   (xinc < sstate_tol || num_steps > max_steps))
 	if((num_steps > min_steps &&
 	    (num_steps > max_steps)))
 	{
