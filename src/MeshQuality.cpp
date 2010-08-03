@@ -106,6 +106,15 @@ void MeshQuality::meshQuality()
   
   mu_avg = mu_sum / mesh.numCells();
   h_avg = h_sum / mesh.numCells();
+
+  mu_min = reduce_min_scalar(mu_min);
+  mu_max = reduce_max_scalar(mu_max);
+  mu_avg = reduce_avg_scalar(mu_avg);
+
+  h_min = reduce_min_scalar(h_min);
+  h_max = reduce_max_scalar(h_max);
+  h_avg = reduce_avg_scalar(h_avg);
+
 }
 //-----------------------------------------------------------------------------
 real MeshQuality::myDiameter(Cell& cell)
@@ -127,17 +136,47 @@ real MeshQuality::myDiameterAvg(Cell& cell)
   return pow(cell.volume(), 1.0 / cell.dim());
 }
 //-----------------------------------------------------------------------------
+real MeshQuality::reduce_min_scalar(real val)
+{
+  real val_tmp = val;
+  MPI_Allreduce(&val_tmp, &val, 1, MPI_DOUBLE, 
+		MPI_MIN, dolfin::MPI::DOLFIN_COMM);
+
+  return val;
+}
+//-----------------------------------------------------------------------------
+real MeshQuality::reduce_max_scalar(real val)
+{
+  real val_tmp = val;
+  MPI_Allreduce(&val_tmp, &val, 1, MPI_DOUBLE, 
+		MPI_MAX, dolfin::MPI::DOLFIN_COMM);
+
+  return val;
+}
+//-----------------------------------------------------------------------------
+real MeshQuality::reduce_avg_scalar(real val)
+{
+  real val_tmp = val;
+  MPI_Allreduce(&val_tmp, &val, 1, MPI_DOUBLE, 
+		MPI_SUM, dolfin::MPI::DOLFIN_COMM);
+
+  return val / dolfin::MPI::numProcesses();
+}
+//-----------------------------------------------------------------------------
 void MeshQuality::disp()
 {
-  cout << "Mesh quality:" << endl;
-  cout << "mu_min: " << mu_min << endl;
-  cout << "mu_max: " << mu_max << endl;
-  cout << "mu_avg: " << mu_avg << endl;
-  cout << "h_min: " << h_min << endl;
-  cout << "h_max: " << h_max << endl;
-  cout << "h_avg: " << h_avg << endl;
-  cout << "bbox_min: " << bbox_min << endl;
-  cout << "bbox_max: " << bbox_max << endl;
+  if(true || dolfin::MPI::processNumber() == 0)
+  {
+    cout << "Mesh quality rank " << dolfin::MPI::processNumber() << ":" << endl;
+    cout << "mu_min: " << mu_min << endl;
+    cout << "mu_max: " << mu_max << endl;
+    cout << "mu_avg: " << mu_avg << endl;
+    cout << "h_min: " << h_min << endl;
+    cout << "h_max: " << h_max << endl;
+    cout << "h_avg: " << h_avg << endl;
+    cout << "bbox_min: " << bbox_min << endl;
+    cout << "bbox_max: " << bbox_max << endl;
+  }
 }
 //-----------------------------------------------------------------------------
 

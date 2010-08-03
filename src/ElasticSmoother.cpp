@@ -15,7 +15,8 @@ using namespace dolfin;
 ElasticSmoother::ElasticSmoother(Mesh& mesh) : mesh(mesh)
 {
   if(!ParameterSystem::parameters.defined("Smoother max time steps"))
-    dolfin_add("Smoother max time steps", 10);
+    dolfin_add("Smoother max time steps", 100);
+  dolfin_set("Krylov maximum iterations", 100000);
 }
 //-----------------------------------------------------------------------------
 void ElasticSmoother::maph0(Mesh& mesh, Mesh& sub,
@@ -40,24 +41,25 @@ void ElasticSmoother::maph0(Mesh& mesh, Mesh& sub,
 //-----------------------------------------------------------------------------
 void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 			     MeshFunction<bool>& masked_cells,
-			     MeshFunction<real>& h0,
-			     Function& W, real k)
+			     MeshFunction<real>& h0)
 {
   cout << "elastic smooth" << endl;
   int d = mesh.topology().dim();
 
-  Mesh sub, subns;
+  //Mesh sub, subns;
+  Mesh& sub = mesh;
 
   MeshFunction<int> vertex_map;
   MeshFunction<int> cell_map;
 
-  MeshFunction<real> subh0;
-  submesh(mesh, sub, smoothed_cells, vertex_map, cell_map);
+  MeshFunction<real>& subh0 = h0;
+//   MeshFunction<real> subh0;
+//   submesh(mesh, sub, smoothed_cells, vertex_map, cell_map);
 
-  cout << "submesh created" << endl;
-  //sub = mesh;
+//   cout << "submesh created" << endl;
+//   //sub = mesh;
 
-  maph0(mesh, sub, cell_map, h0, subh0);
+//   maph0(mesh, sub, cell_map, h0, subh0);
 
   //  File subh0file("subh0.xml");
   //  subh0file << subh0;
@@ -66,7 +68,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   
   q.meshQuality();
 
-  real E = 1.0e4; // Young's modulus
+  real E = 1.0; // Young's modulus
   real nu = 0.0; // Poisson's ratio
 
   real lmbdaval = E * nu / ((1 + nu) * (1 - 2 * nu));
@@ -75,16 +77,8 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   //real betaval = E; // Damping (sqrt(E))
   real betaval = 1.0 * E; // Damping (sqrt(E))
 
-  //real kk = 1.0 / 2.0 * h_min;
-  //real kk = 1.0e-1;
-  //  real kk = 1.0 / 2.0 * h_min / sqrt(E);
   real geom_scale = q.bbox_min.distance(q.bbox_max);
-  //real kk = 0.1 * q.h_min * q.mu_min;
-  //real kk = 0.2 * q.h_min * q.mu_min;
-  //real kk = 0.2 * h_min;
-  //real kk = 0.01 * 1.0 / 8.0 * q.mu_min;
-  //real kk = 0.1;
-  real kk = 0.01 * q.h_min * q.mu_min;
+  real kk = 1.0 / 20.0 * q.h_min * q.mu_min;
 
   cout << "k0: " << kk << endl;
 
@@ -108,11 +102,9 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 
   //real T = 1.0e100;
   //  real T = kk;
-  real T = 20.0;
+  real T = 20000.0;
 
-  //real ode_tol = 1.0e-2;
-  //real ode_tol = 1.0e-1;
-  real ode_tol = 1.0e-3;
+  real ode_tol = 1.0e-2;
 
   dolfin_set("ODE method", "dg");
   dolfin_set("ODE order", 0);
@@ -126,7 +118,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 
   dolfin_set("ODE tolerance", ode_tol);
   dolfin_set("ODE discrete tolerance", ode_tol);
-  dolfin_set("ODE maximum iterations", 1);
+  //dolfin_set("ODE maximum iterations", 1);
   //set("ODE fixed-point damping", 1.0e-01);
   
   dolfin_set("ODE monitor convergence", true);
@@ -154,7 +146,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   Form* LP = 0;
 
   Array <BoundaryCondition*> bc;
-  bc.push_back(&bc0);
+  //bc.push_back(&bc0);
 
   
   if(d == 2)
@@ -178,50 +170,6 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   //Compute solution
   pde.solve(U, U0);
 
-  MeshGeometry& geometry = mesh.geometry();
-
-
-  //  real* Warr = W.vector().vec().array();
-  real* Warr = new real[W.vector().local_size()];
-
-  int N = mesh.numVertices();
-
-  for (VertexIterator n(mesh); !n.end(); ++n)
-  {
-    Vertex& vertex = *n;
-
-    if(vertex_map(vertex) != -1)
-    {
-      Vertex subv(sub, vertex_map(vertex));
-
-      for(int i = 0; i < d; i++)
-      {
-	real lx = subv.point()[i];
-	real lx0 = geometry.x(vertex.index(), i);
-	real lw = (lx - lx0) / k;
-	
-	Warr[i * N + vertex.index()] = lw;
-	
-	
-	//       for(int i = 0; i < d; i++)
-	// 	geometry.x(vertex.index(), i) = subv.point()[i];
-	
-      }
-    }
-  }
-
-
-  W.vector().set(Warr);
-  W.vector().apply();
-  delete[] Warr;
-  
-  delete a;
-  delete L ;
-  //delete aJac ;
-  delete aS ;
-  delete LS ;
-  //delete aP ;
-  //delete LP ;
 }
 //-----------------------------------------------------------------------------
 bool ElasticSmoother::onBoundary(Cell& cell)
@@ -262,7 +210,6 @@ void ElasticSmoother::worstElement(Mesh& mesh, int& index,
     }
     //mu_min = std::min(mu_min, qual);
   }
-  cout << "index: " << index << endl;
 }
 //-----------------------------------------------------------------------------
 void ElasticSmoother::elementNhood(Mesh& mesh, Cell& element,
@@ -289,6 +236,8 @@ void ElasticSmoother::submesh(Mesh& mesh, Mesh& sub,
 			      MeshFunction<int>& old2new_cell)
 {
   
+  dolfin_debug("Entering create submesh");
+
   old2new_vertex.init(mesh, 0);
   old2new_cell.init(mesh, mesh.topology().dim());
 
@@ -414,6 +363,7 @@ void ElasticSmoother::submesh(Mesh& mesh, Mesh& sub,
   sub.distdata().invalid_numbering();
   sub.renumber();
 
+  dolfin_debug("submesh created"); 
   //  File submesh("submesh.pvd");
   //  submesh << sub;
   
@@ -429,19 +379,10 @@ void ElasticSmoother::ElasticityPDE::deform(Mesh& mesh, real k, Function& W)
 
   cout << "k: " << k << endl;
 
-//   cout << "X: " << endl;
-//   X.vector().vec().disp();
-//   cout << "U: " << endl;
-//   U.vector().vec().disp();
-
   MeshGeometry& geometry = mesh.geometry();
   
   int N = mesh.numVertices();
   
-  //u.interpolate(vxvalues);
-  
-  //  real* Warr = W.vector().vec().array();
-
   real* Warr = new real[W.vector().local_size()];
   W.vector().get(Warr);
 
@@ -452,17 +393,57 @@ void ElasticSmoother::ElasticityPDE::deform(Mesh& mesh, real k, Function& W)
     
     for(unsigned int i = 0; i < mesh.topology().dim(); i++)
     {
-//       cout << "before p(" << i << ", " << vertex.index() << ": " <<
-//    	geometry.x(vertex.index(), i) << endl;
       geometry.x(vertex.index(), i) += k * (Warr[i * N + vertex.index()]);
-      //geometry.x(vertex.index(), i) = vxvalues[i * N + vertex.index()];
-//       cout << "p(" << i << ", " << vertex.index() << ": " <<
-//    	geometry.x(vertex.index(), i) << endl;
     }
   }
 
-  //  W.vector().set(Warr);
-  //  W.vector().apply();
   delete[] Warr;
+}
+//-----------------------------------------------------------------------------
+void ElasticSmoother::ElasticityPDE::deform_x(Function& X)
+{
+  MeshGeometry& geometry = mesh().geometry();
+  
+  int d = mesh().topology().dim();
+  int N = mesh().numVertices();
+  if(MPI::numProcesses() > 1)
+    N = mesh().distdata().global_numVertices();
+  
+  UFC ufc(a().form(), mesh(), a().dofMaps());
+  Cell c(mesh(), 0);
+  uint local_dim = c.numEntities(0);
+  uint *idx  = new uint[d * local_dim];
+  uint *id  = new uint[d * local_dim];
+  real *X_block = new real[d * local_dim];  
+  
+  // Update the mesh
+  for (CellIterator cell(mesh()); !cell.end(); ++cell)
+  {
+    ufc.update(*cell, mesh().distdata());
+    (a().dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
+
+    X.vector().get(X_block, d * local_dim, idx);
+
+    uint j = 0;
+    for(VertexIterator v(*cell); !v.end(); ++v)
+    {
+      Vertex& vertex = *v;
+
+      if (true || !mesh().distdata().is_ghost(v->index(), 0)) 
+      {
+	for(unsigned int i = 0; i < d; i++)
+	{
+	  geometry.x(vertex.index(), i) = X_block[i * local_dim + j];
+	}
+      }
+      j++;
+    }
+  }
+
+  delete[] X_block;
+  delete[] idx;
+  delete[] id;
+
+  MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
 }
 //-----------------------------------------------------------------------------
