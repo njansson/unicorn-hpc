@@ -337,7 +337,8 @@ namespace dolfin { namespace unicorn
 	
 	B.vector() *= k;
 	B.vector()+= B0.vector();
-	message("computeB took %g seconds",toc());
+	if(dolfin::MPI::processNumber() == 0)
+	  message("computeB took %g seconds",toc());
 
 //  	cout << "B: " << endl;
 //  	B.vector().disp();
@@ -395,7 +396,8 @@ namespace dolfin { namespace unicorn
       
       void save(Function& U, real t)
       {
-	cout << "Saving at t: " << t << endl;
+	if(dolfin::MPI::processNumber() == 0)
+	  cout << "Saving at t: " << t << endl;
 
 	if(t == 0.0)
 	{
@@ -406,7 +408,8 @@ namespace dolfin { namespace unicorn
 	  //while(lastsample + sampleperiod < t)
 	//if(lastsample + sampleperiod < t)
 	{
-	  cout << "saved: " << endl;
+	  if(dolfin::MPI::processNumber() == 0)
+	    cout << "saved: " << endl;
 	  lastsample = std::min(t, lastsample + sampleperiod);
 	  solutionfile << U;
 
@@ -426,7 +429,8 @@ namespace dolfin { namespace unicorn
 	  }
       
       
-	  qual->disp();
+	  if(dolfin::MPI::processNumber() == 0)
+	    qual->disp();
 	}
       }
 
@@ -516,7 +520,8 @@ namespace dolfin { namespace unicorn
 
       bool update(real t, bool end)
       {
- 	std::cout << "ElasticSmoother::update:" << std::endl;
+	if(dolfin::MPI::processNumber() == 0)
+	  std::cout << "ElasticSmoother::update:" << std::endl;
 
 	qual->meshQuality();
 	//qual.disp();
@@ -532,10 +537,8 @@ namespace dolfin { namespace unicorn
 	real sstate_tol = 1.0e-9;
 
 	real norm = dotx->norm(linf);
-	cout << "dotx norm: " << norm << endl;
 
 	real xnorm = U.vector().norm(linf);
-	std::cout << "x norm: " << xnorm << std::endl;
 
 	real hhmin = 1.0e9;
 
@@ -549,13 +552,19 @@ namespace dolfin { namespace unicorn
 	hhmin = MeshQuality::reduce_min_scalar(hhmin);
 
 
-	cout << "hhmin: " << hhmin << endl;
-
         k = 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + hhmin);
 
-	cout << "t: " << t << endl;
-	cout << "T: " << T << endl;
-	cout << "num_steps: " << num_steps << endl;
+	if(dolfin::MPI::processNumber() == 0)
+	{
+	  cout << "dotx norm: " << norm << endl;
+	  cout << "x norm: " << xnorm << endl;
+	  cout << "hhmin: " << hhmin << endl;
+	  
+	  cout << "t: " << t << endl;
+	  cout << "T: " << T << endl;
+	  cout << "num_steps: " << num_steps << endl;
+	}
+
 	
 	num_steps++;
 	korig = k;
