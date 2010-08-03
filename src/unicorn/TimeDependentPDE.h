@@ -40,10 +40,13 @@ namespace dolfin { namespace unicorn
     virtual uint solve(Function& U, Function& U0);
 
     /// Compute initial value
-    virtual void u0(Vector& u);
+    virtual void u0(GenericVector& u);
 
     /// Update PDE
     virtual bool update(real t, bool end);
+
+    /// Revert one time step (e.g. if diverging)
+    virtual void revert();
 
     /// ODE timestep
     virtual real timestep(real t, real k0) const;

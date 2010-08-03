@@ -1,8 +1,6 @@
 // Copyright (C) 2006 Johan Jansson.
 // Licensed under the GNU GPL Version 2.
 //
-// Modified by Anders Logg 2006.
-//
 // First added:  2006
 // Last changed: 2006-05-04
 
@@ -85,7 +83,7 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
 
   message("Solving time dependent PDE.");
 
-  //  u0(U.vector());
+  u0(U.vector());
   U.vector().zero();
 
   save(U, t);
@@ -147,18 +145,18 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
   return 0;
 }
 //-----------------------------------------------------------------------------
-void TimeDependentPDE::u0(Vector& x0)
+void TimeDependentPDE::u0(GenericVector& x0)
 {
   x0.zero();
 }
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::step()
 {
-  std::cout << "TimeDependentPDE::step" << std::endl;
-
   const real tol = dolfin_get("ODE discrete tolerance");
 
   dolfin_set("output destination", "terminal");
+  if(dolfin::MPI::processNumber() == 0)
+    cout << "TimeDependentPDE::step" << endl;
 
   incr = 0;
   real incr0 = 0;
@@ -190,13 +188,15 @@ void TimeDependentPDE::step()
       break;
     }
     else if((it > 3 && incr > 2.0 * incr0) ||
-	    (it > 10 && incr > incr0))
+	    (it > 5 && incr > incr0) ||
+	    (it > 5))
     {
       if(dolfin::MPI::processNumber() == 0)
 	message("TPDE: fixed-point iteration diverging");
       k = 0.5 * k;
       reassemble = true;
       *x = *x0;
+      revert();
       it = 0;
     }
     else if(it == maxit - 1)
@@ -253,10 +253,9 @@ real TimeDependentPDE::iter()
 
 
   local_timer.restart();
-  //dolfin_set("output destination", "silent");
+  dolfin_set("output destination", "silent");
   for (uint i = 0; i < bc().size(); i++)
     bc()[i]->apply(J, *dotx, a());
-  //dolfin_set("output destination", "terminal");
   if(dolfin::MPI::processNumber() == 0)
     std::cout << "TPDE BC timer: " << local_timer.elapsed() << std::endl;
 
@@ -271,8 +270,19 @@ real TimeDependentPDE::iter()
   *residual -= *dotx;
 
   local_timer.restart();
+  dolfin_set("output destination", "silent");
+  if(dolfin::MPI::processNumber() == 0)
+      dolfin_set("output destination", "terminal");
   ksolver->solve(J, *x, *dotx);
+  dolfin_set("output destination", "silent");
   //lusolver->solve(J, *dx, *dotx);
+
+//   std::cout << "J:" << std::endl;
+//   J.disp();
+//   std::cout << "x:" << std::endl;
+//   x->disp();
+//   std::cout << "dotx:" << std::endl;
+//   dotx->disp();
 
   if(dolfin::MPI::processNumber() == 0)
     std::cout << "TPDE linear solve timer: " << local_timer.elapsed() << std::endl;
@@ -288,12 +298,17 @@ real TimeDependentPDE::iter()
   if(dolfin::MPI::processNumber() == 0)
     std::cout << "TPDE total iter timer: " << iter_timer.elapsed() << std::endl;
 
-  return relincr;
+  //return relincr;
+  return dx->norm(linf);
 }
 //-----------------------------------------------------------------------------
 bool TimeDependentPDE::update(real t, bool end)
 {
   return true;
+}
+//-----------------------------------------------------------------------------
+void TimeDependentPDE::revert()
+{
 }
 //-----------------------------------------------------------------------------
 real TimeDependentPDE::timestep(real t, real k0) const
@@ -350,23 +365,7 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 
   assembler = new Assembler(mesh());
 
-  //  const real ktol = dolfin_get("ODE discrete Krylov tolerance factor");
-  //  const real tol = dolfin_get("ODE discrete tolerance");
-  //message("Using BiCGStab Krylov solver for matrix Jacobian");
-  //  ksolver = new KrylovSolver(bicgstab, ilu);
-  ksolver = new KrylovSolver(gmres, jacobi);
-  //  ksolver = new KrylovSolver(gmres, amg);
-  //ksolver = new KrylovSolver(gmres, sor);
-  //ksolver = new KrylovSolver(gmres, amg);
-  //ksolver->set("Krylov report", monitor);
-//   ksolver->set("Krylov relative tolerance", ktol);
-//   ksolver->set("Krylov absolute tolerance", ktol*tol);
-  //ksolver->set("Krylov relative tolerance", 1.0e-16);
-  //ksolver->set("Krylov absolute tolerance", 1.0e-16);
-//   ksolver->set("Krylov relative tolerance", 1.0e-4);
-//   ksolver->set("Krylov absolute tolerance", 1.0e-2);
-//   set("Krylov divergence limit", 10.0);
-//   set("Krylov maximum iterations", 300);
+  ksolver = new KrylovSolver(bicgstab, jacobi);
 
 //  lusolver = new LUSolver;
 

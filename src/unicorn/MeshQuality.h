@@ -23,7 +23,9 @@ namespace dolfin { namespace unicorn
     // Compute cell diameter
     static real myDiameter(Cell& cell);
     static real myDiameterAvg(Cell& cell);
-
+    static real reduce_min_scalar(real val);
+    static real reduce_max_scalar(real val);
+    static real reduce_avg_scalar(real val);
 
     Mesh& mesh;
     MeshFunction<int> orientation;
