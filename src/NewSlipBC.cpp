@@ -16,6 +16,7 @@
 #include "unicorn/NodeNormal.h"
 #include "unicorn/NewSlipBC.h"
 
+#include <cstring>
 #include <map>
 
 

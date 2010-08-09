@@ -15,6 +15,8 @@
 
 #include "unicorn/SlipBC.h"
 #include "unicorn/NodeNormal.h"
+
+#include <cstring>
 #include <map>
 
 #define max(a,b) (a > b ? a : b) ;
