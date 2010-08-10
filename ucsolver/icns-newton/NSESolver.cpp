@@ -163,7 +163,6 @@ NSESolver::~NSESolver()
 //-----------------------------------------------------------------------------
 void NSESolver::save(Function& U, real t)
 {
-  /*
   int nsamples = dolfin_get("PDE number of samples");
 
    sampleperiod = T / (real)nsamples;
@@ -192,7 +191,6 @@ void NSESolver::save(Function& U, real t)
        pfile << P;
      }
    }
-  */
 }
 //-----------------------------------------------------------------------------
 void NSESolver::preparestep()

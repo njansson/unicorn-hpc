@@ -298,8 +298,8 @@ real TimeDependentPDE::iter()
   if(dolfin::MPI::processNumber() == 0)
     std::cout << "TPDE total iter timer: " << iter_timer.elapsed() << std::endl;
 
-  //return relincr;
-  return dx->norm(linf);
+  return relincr;
+  //return dx->norm(linf);
 }
 //-----------------------------------------------------------------------------
 bool TimeDependentPDE::update(real t, bool end)
