@@ -1,3 +1,4 @@
+#include <dolfin.h>
 #include <dolfin/mesh/Cell.h>
 #include <dolfin/mesh/Edge.h>
 #include <dolfin/mesh/Vertex.h>
@@ -55,15 +56,89 @@ real MeshQuality::cellQuality(Cell& cell) const
   return mu;
 }
 
+#define isqrt3   5.77350269189625797959429519858e-01        /*  1.0/sqrt(3.0)*/
+#define isqrt6   4.08248290463863052509822647505e-01        /*  1.0/sqrt(6.0)*/
+
+
+inline bool m_fcn_3e(double &obj, const Point x[4])
+{
+  double matr[9], f;
+  double g;
+
+//   double a = 3.0;
+//   double b = -1;
+//   double c = 2.0 / 3.0;
+  double a = 1.0/3.0;
+  double b = 1;
+  double c = -2.0 / 3.0;
+
+  /* Calculate M = A*inv(W). */
+  f       = x[1][0] + x[0][0];
+  matr[0] = x[1][0] - x[0][0];
+  matr[1] = (2.0*x[2][0] - f)*isqrt3;
+  matr[2] = (3.0*x[3][0] - x[2][0] - f)*isqrt6;
+
+  f       = x[1][1] + x[0][1];
+  matr[3] = x[1][1] - x[0][1];
+  matr[4] = (2.0*x[2][1] - f)*isqrt3;
+  matr[5] = (3.0*x[3][1] - x[2][1] - f)*isqrt6;
+
+  f       = x[1][2] + x[0][2];
+  matr[6] = x[1][2] - x[0][2];
+  matr[7] = (2.0*x[2][2] - f)*isqrt3;
+  matr[8] = (3.0*x[3][2] - x[2][2] - f)*isqrt6;
+
+  /* Calculate det(M). */
+  g = matr[0]*(matr[4]*matr[8] - matr[5]*matr[7]) +
+    matr[1]*(matr[5]*matr[6] - matr[3]*matr[8]) +
+    matr[2]*(matr[3]*matr[7] - matr[4]*matr[6]);
+
+  g = fabs(g);
+
+  /* Calculate norm(M). */
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
+      matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
+    matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
+
+  /* Calculate objective function. */
+  obj = a * pow(f, b) * pow(g, c);
+  return true;
+}
+
+
+real MeshQuality::meanRatio(Cell& cell) const
+{
+  real mu = 0.0;
+
+  Point x[4];
+  
+  int i = 0;
+  for (VertexIterator vi(cell); !vi.end(); ++vi)
+  {
+    const Vertex& v = *vi;
+    
+    Point p = v.point();
+    x[i] = p;
+    i++;
+  }
+
+  m_fcn_3e(mu, x);
+
+  return mu;
+}
+
 void MeshQuality::meshQuality()
 {
   mu_max = 0.0;
   mu_min = 1.0;
+  mu2_max = 0.0;
+  mu2_min = 1.0e10;
 
   h_max = 0.0;
   h_min = 1.0e12;
 
   real mu_sum = 0.0;
+  real mu2_sum = 0.0;
   real h_sum = 0.0;
 
   for (CellIterator c(mesh); !c.end(); ++c)
@@ -71,13 +146,17 @@ void MeshQuality::meshQuality()
     Cell& cell = *c;
     
     real mu = cellQuality(cell);
+    real mu2 = meanRatio(cell);
     real h = myDiameter(cell);
     
     mu_sum += mu;
+    mu2_sum += mu2;
     h_sum += h;
 
     mu_max = std::max(mu_max, mu);
     mu_min = std::min(mu_min, mu);
+    mu2_max = std::max(mu2_max, mu2);
+    mu2_min = std::min(mu2_min, mu2);
     
     h_max = std::max(h_max, h);
     h_min = std::min(h_min, h);
@@ -105,11 +184,16 @@ void MeshQuality::meshQuality()
   }
   
   mu_avg = mu_sum / mesh.numCells();
+  mu2_avg = mu2_sum / mesh.numCells();
   h_avg = h_sum / mesh.numCells();
 
   mu_min = reduce_min_scalar(mu_min);
   mu_max = reduce_max_scalar(mu_max);
   mu_avg = reduce_avg_scalar(mu_avg);
+
+  mu2_min = reduce_min_scalar(mu2_min);
+  mu2_max = reduce_max_scalar(mu2_max);
+  mu2_avg = reduce_avg_scalar(mu2_avg);
 
   h_min = reduce_min_scalar(h_min);
   h_max = reduce_max_scalar(h_max);
@@ -165,17 +249,22 @@ real MeshQuality::reduce_avg_scalar(real val)
 //-----------------------------------------------------------------------------
 void MeshQuality::disp()
 {
-  if(true || dolfin::MPI::processNumber() == 0)
+  if(dolfin::MPI::processNumber() == 0)
   {
+    dolfin_set("output destination", "terminal");
     cout << "Mesh quality rank " << dolfin::MPI::processNumber() << ":" << endl;
     cout << "mu_min: " << mu_min << endl;
     cout << "mu_max: " << mu_max << endl;
     cout << "mu_avg: " << mu_avg << endl;
+    cout << "mu2_min: " << mu2_min << endl;
+    cout << "mu2_max: " << mu2_max << endl;
+    cout << "mu2_avg: " << mu2_avg << endl;
     cout << "h_min: " << h_min << endl;
     cout << "h_max: " << h_max << endl;
     cout << "h_avg: " << h_avg << endl;
     cout << "bbox_min: " << bbox_min << endl;
     cout << "bbox_max: " << bbox_max << endl;
+    dolfin_set("output destination", "silent");
   }
 }
 //-----------------------------------------------------------------------------

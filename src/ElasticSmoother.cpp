@@ -77,7 +77,17 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   //real betaval = E; // Damping (sqrt(E))
   real betaval = 1.0 * E; // Damping (sqrt(E))
 
+  //real kk = 1.0 / 2.0 * h_min;
+  //real kk = 1.0e-1;
+  //  real kk = 1.0 / 2.0 * h_min / sqrt(E);
   real geom_scale = q.bbox_min.distance(q.bbox_max);
+  //real kk = 0.1 * q.h_min * q.mu_min;
+  //real kk = 0.2 * q.h_min * q.mu_min;
+  //real kk = 0.2 * h_min;
+  //real kk = 0.01 * 1.0 / 8.0 * q.mu_min;
+  //real kk = 0.1;
+  //real kk = 0.01 * q.h_min * q.mu_min;
+  //real kk = 0.01;
   real kk = 1.0 / 20.0 * q.h_min * q.mu_min;
 
   cout << "k0: " << kk << endl;
@@ -104,6 +114,8 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   //  real T = kk;
   real T = 20000.0;
 
+  //real ode_tol = 1.0e-2;
+  //real ode_tol = 1.0e-1;
   real ode_tol = 1.0e-2;
 
   dolfin_set("ODE method", "dg");
@@ -146,7 +158,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   Form* LP = 0;
 
   Array <BoundaryCondition*> bc;
-  //bc.push_back(&bc0);
+  bc.push_back(&bc0);
 
   
   if(d == 2)
@@ -170,6 +182,57 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   //Compute solution
   pde.solve(U, U0);
 
+  File smoothed_mesh("smoothed.xml");
+  smoothed_mesh << sub;
+
+  /*
+
+  MeshGeometry& geometry = mesh.geometry();
+
+
+  //  real* Warr = W.vector().vec().array();
+  //real* Warr = new real[W.vector().local_size()];
+
+  int N = mesh.numVertices();
+
+  for (VertexIterator n(mesh); !n.end(); ++n)
+  {
+    Vertex& vertex = *n;
+
+    if(vertex_map(vertex) != -1)
+    {
+      Vertex subv(sub, vertex_map(vertex));
+
+      for(int i = 0; i < d; i++)
+      {
+// 	real lx = subv.point()[i];
+// 	real lx0 = geometry.x(vertex.index(), i);
+// 	real lw = (lx - lx0) / k;
+	
+	//Warr[i * N + vertex.index()] = lw;
+	
+	
+	for(int i = 0; i < d; i++)
+	  geometry.x(vertex.index(), i) = subv.point()[i];
+	
+      }
+    }
+  }
+
+
+//   W.vector().set(Warr);
+//   W.vector().apply();
+//   delete[] Warr;
+  
+  delete a;
+  delete L ;
+  //delete aJac ;
+  delete aS ;
+  delete LS ;
+  //delete aP ;
+  //delete LP ;
+
+  */
 }
 //-----------------------------------------------------------------------------
 bool ElasticSmoother::onBoundary(Cell& cell)

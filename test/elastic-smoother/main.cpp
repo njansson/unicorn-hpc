@@ -10,6 +10,22 @@
 using namespace dolfin;
 using namespace dolfin::unicorn;
 
+void transform(Mesh& mesh)
+{
+  for (VertexIterator n(mesh); !n.end(); ++n)
+  {
+    Vertex& vertex = *n;
+    Point p = vertex.point();
+      
+    MeshGeometry& geometry = mesh.geometry();
+      
+    geometry.x(vertex.index(), 0) *= 0.01;
+    geometry.x(vertex.index(), 1) *= 0.01;
+    geometry.x(vertex.index(), 2) *= 0.01;
+  }
+}
+
+
 int main(int argc, char* argv[])
 {
   dolfin_init(argc, argv);
@@ -17,16 +33,21 @@ int main(int argc, char* argv[])
   //UnitSquare mesh(20, 2);
   //UnitCube mesh(20, 2, 2);
   
-  //transform(mesh);
-
   //Mesh mesh("testcell3D.xml");
-  Mesh mesh("cubemesh.xml");
+  //Mesh mesh("cubemesh.xml");
   //Mesh mesh("test.xml");
   //UnitCube mesh(3, 3, 3);
+  //Mesh mesh("heart_coarse.xml");
+  //Mesh mesh("heart_fine.xml");
+  //Mesh mesh("heart_new03.xml");
+  //Mesh mesh("tire.xml");
+  Mesh mesh("wedge.xml");
+
+  //transform(mesh);
 
   mesh.renumber();
 
-  for(int i = 0; i < 6; i++)
+  for(int i = 0; i < 0; i++)
   {
     
     MeshFunction<bool> cell_refinement_marker(mesh);

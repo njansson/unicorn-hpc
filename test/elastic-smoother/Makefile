@@ -26,7 +26,11 @@ forms:	$(FORM_SRC)
 solver: $(SOLVER_SRC)
 	$(MAKE) -C ../
 
-$(TARGET): main.cpp
+
+wedge.xml:
+	wget http://www.csc.kth.se/~jjan/private/wedge.xml
+
+$(TARGET): main.cpp wedge.xml
 	$(CXX) $(CFLAGS) -g main.cpp $(LIBS) -o $@
 
 .cpp.o:

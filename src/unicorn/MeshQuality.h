@@ -17,6 +17,7 @@ namespace dolfin { namespace unicorn
 
     bool isInverted(uint& first);
     real cellQuality(Cell& cell) const;
+    real meanRatio(Cell& cell) const;
     void meshQuality();
     void disp();
 
@@ -33,6 +34,9 @@ namespace dolfin { namespace unicorn
     real mu_min;
     real mu_max;
     real mu_avg;
+    real mu2_min;
+    real mu2_max;
+    real mu2_avg;
     real h_min;
     real h_max;
     real h_avg;

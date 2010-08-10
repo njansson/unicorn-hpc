@@ -1,0 +1,29 @@
+Unit test/benchmark for elastic mesh smoothing
+
+1. Description:
+
+Uses Unicorn ElasticSmoother to optimize the quality of a reference
+test case (Wedge): http://www.imr.sandia.gov/papers/imr12/brewer03.pdf
+
+2. Instructions:
+
+$ make
+$ mpirun -np ncpus ./cylinder > log
+$ grep mu2_ log
+
+mu2 is the Inverse Mean Ratio (denoted only as "mean ratio" in the
+Brewer paper).
+
+3. Expected results:
+
+(1 is optimal quality, inf is a singular cell)
+
+Start values:
+mu2_min: 1
+mu2_max: 4.19
+mu2_avg: 1.17
+
+End values:
+mu2_min: 1
+mu2_max: 1.61
+mu2_avg: 1.13
