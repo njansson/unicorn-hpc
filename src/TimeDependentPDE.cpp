@@ -187,9 +187,7 @@ void TimeDependentPDE::step()
 	std::cout << "increment: iteration converged" << std::endl;
       break;
     }
-    else if((it > 3 && incr > 2.0 * incr0) ||
-	    (it > 5 && incr > incr0) ||
-	    (it > 5))
+    else if(it > maxit)
     {
       if(dolfin::MPI::processNumber() == 0)
 	message("TPDE: fixed-point iteration diverging");

@@ -263,6 +263,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
                     ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
   dolfin_set("ODE discrete tolerance", 1.0e-2);
+  dolfin_set("ODE maximum iterations", 30);
   dolfin_set("PDE number of samples", 100);  
 
   psolver.solve(U, U0);
