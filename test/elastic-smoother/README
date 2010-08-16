@@ -8,7 +8,7 @@ test case (Wedge): http://www.imr.sandia.gov/papers/imr12/brewer03.pdf
 2. Instructions:
 
 $ make
-$ mpirun -np ncpus ./cylinder > log
+$ mpirun -np ncpus ./elastic_test > log
 $ grep mu2_ log
 
 mu2 is the Inverse Mean Ratio (denoted only as "mean ratio" in the

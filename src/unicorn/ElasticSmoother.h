@@ -194,21 +194,24 @@ namespace dolfin { namespace unicorn
       //real scale = pow(cell.volume(), 1.0 / cell.dim()) / cell.diameter() * h;
       real scale = h / sqrt(cell.dim());
 
-      uBlasDenseMatrix Finv(3, 3);
+      real Finv[3*3];
       for (uint ii = 0; ii < 3; ii++)
 	for (uint jj = 0; jj < 3; jj++)
-	{
- 	  Finv.mat()(ii, jj) = map.C[RM(ii,jj,3)] * scale;
-	}
-      uBlasDenseMatrix B(3, 3);
-      B.mat() = ublas::prod(ublas::trans(Finv.mat()), Finv.mat());
+	  Finv[RM(ii,jj,3)] = map.C[RM(ii,jj,3)] * scale;
+      
+      real B[3*3];
+      for (uint ii = 0; ii < 3; ii++) 
+	for(uint jj = 0; jj < 3; jj++)
+	  for (uint r =0; r < 3; r++)
+	    B[RM(ii,jj,3)] += (Finv[RM(r,ii,3)] * Finv[RM(r,jj,3)]);
+
 
       int d = cell.dim();
 
       int ii = i % d;
       int jj = i / d;
 
-      return B.mat()(ii, jj);
+      return B[RM(ii, jj,3)];
     }
 
     class InitialValue : public Function
@@ -245,6 +248,7 @@ namespace dolfin { namespace unicorn
       
 
 	real B[3*3];
+	memset(&B[0], 0, 3*3*sizeof(real));
 //        uBlasDenseMatrix B;
 //	B.mat() = ublas::prod(ublas::trans(Finv.mat()), Finv.mat());
 	for (uint ii = 0; ii < 3; ii++) 
