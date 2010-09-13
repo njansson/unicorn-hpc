@@ -6,7 +6,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-07-05
+// Last changed: 2010-09-13
 
 #include <cstring>
 #include <sstream>
@@ -29,6 +29,7 @@
 #include "unicorn/NSEDualContinuity3D.h"
 #include "unicorn/NSEDualGradient3D.h"
 #include "unicorn/SpaceTimeFunction.h"
+#include "unicorn/AdaptiveRefinement.h"
 
 using namespace dolfin;
 using namespace unicorn;
@@ -541,7 +542,7 @@ void NSESolver::solve()
       dolfin_set("output destination","terminal");      
     message("Fix-point took %g seconds",MPI::stopTimer(iter_time));
     dolfin_set("output destination","silent");      
-
+    
     if(solver_type == "dual")
     {
       real w = 1.0;
@@ -550,7 +551,6 @@ void NSESolver::solve()
 
       errest->ComputeErrorIndicator(t, k, T, w);
     }
-
 
     if(residual > rtol)
       warning("NSE fixed point iteration did not converge"); 
@@ -671,7 +671,9 @@ void NSESolver::solve()
   if(solver_type == "dual")
   {
     real percentage = dolfin_get("adapt_percentage");
-    errest->AdaptiveRefinement(percentage);
+    MeshFunction<bool> cell_marker;
+    errest->ComputeRefinementMarkers(percentage, cell_marker);
+    AdaptiveRefinement::refine(mesh, cell_marker);
   }
   
 }

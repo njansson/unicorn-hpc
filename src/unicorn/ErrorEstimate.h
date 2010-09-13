@@ -33,7 +33,8 @@ namespace dolfin {
       void ComputeLargestIndicators(std::vector<int>& cells, real percentage);
 
       // Refine based on indicators
-      void AdaptiveRefinement(real percentage);
+      void ComputeRefinementMarkers(real percentage, 
+				     MeshFunction<bool>& cell_refinement_marker);
       
       // Comparison operator for index/value pairs
       struct less_pair : public std::binary_function<std::pair<int, real>,

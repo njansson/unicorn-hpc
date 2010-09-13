@@ -440,7 +440,8 @@ void ErrorEstimate::ComputeLargestIndicators_cell(std::vector<int>& cells,
   delete[] work;
 }
 //-----------------------------------------------------------------------------
-void ErrorEstimate::AdaptiveRefinement(real percentage)
+void ErrorEstimate::ComputeRefinementMarkers(real percentage, 
+					     MeshFunction<bool>& cell_refinement_marker)
 {
 
   real error = 0.0;
@@ -449,56 +450,21 @@ void ErrorEstimate::AdaptiveRefinement(real percentage)
   if(MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
   message("err: %g", error);
-  message("Adaptive refinement");
-  message("cells before: %d", mesh.distdata().global_numCells());
-  message("vertices before: %d", mesh.distdata().global_numVertices());
   dolfin_set("output destination","silent");  
   
   std::vector<int> cells;
   ComputeLargestIndicators(cells, percentage);
-  
-  MeshFunction<bool> cell_refinement_marker(mesh);
-  cell_refinement_marker.init(mesh.topology().dim());
+    
+  cell_refinement_marker.init(mesh, mesh.topology().dim());
+  cell_refinement_marker = false;
     
   int M = cells.size();
-    
-  for (CellIterator c(mesh); !c.end(); ++c)
-  {
-    cell_refinement_marker.set(c->index(), false);
-  }
-    
+       
   for(int i = 0; i < M; i++)
   {
     cell_refinement_marker.set(cells[i], true);
   }
 
-  MeshFunction<real> cell_refinement_marker_r(mesh);
-  cell_refinement_marker_r.init(mesh.topology().dim());
-  for (CellIterator c(mesh); !c.end(); ++c)
-  {
-    cell_refinement_marker_r.set(c->index(), cell_refinement_marker(*c));
-  }
-
-  File refinefile("marked.pvd");
-  refinefile << cell_refinement_marker_r;
-
-  if(MPI::processNumber() == 0)
-    dolfin_set("output destination","terminal");
-
-  const std::string refine_type = dolfin_get("adapt_algorithm");
-  if(refine_type == "rivara")
-    RivaraRefinement::refine(mesh, cell_refinement_marker);
-  else if(refine_type == "simple")
-    mesh.refine(cell_refinement_marker, true);
-  else
-    dolfin::error("Unknown refinement algorithm");
-  dolfin_set("output destination","silent");
-
-  if(MPI::processNumber() == 0)
-    dolfin_set("output destination","terminal");
-  message("cells after: %d", mesh.distdata().global_numCells());
-  message("vertices after: %d", mesh.distdata().global_numVertices());
-  dolfin_set("output destination","silent"); 
 }
 //-----------------------------------------------------------------------------
 void ErrorEstimate::merge(real *a,real *b,real *res,int an,int bn)

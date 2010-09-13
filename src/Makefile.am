@@ -1,13 +1,13 @@
 SUBDIRS = unicorn
 AM_CPPFLAGS = -I@srcdir@/unicorn
-nobase_include_HEADERS = unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h\
+nobase_include_HEADERS = unicorn/AdaptiveRefinement.h unicorn/ErrorEstimate.h  unicorn/init.h  unicorn/NodeNormal.h\
 	  unicorn/SlipBC.h unicorn/NewSlipBC.h unicorn/NewDirichletBC.h \
 	unicorn/SpaceTimeFunction.h  unicorn/TimeDependentPDE.h unicorn/UniParameters.h \
 	unicorn/Project.h unicorn/EquiAffineMap.h unicorn/MeshQuality.h \
 	unicorn/util.h unicorn/DataSetSampler.h unicorn/ElasticSmoother.h\
 	unicorn/Projection2D.h  unicorn/Projection3D.h
 lib_LIBRARIES = libunicorn.a
-libunicorn_a_SOURCES = UniParameters.cpp NodeNormal.cpp SpaceTimeFunction.cpp\
+libunicorn_a_SOURCES = AdaptiveRefinement.cpp UniParameters.cpp NodeNormal.cpp SpaceTimeFunction.cpp\
 	ErrorEstimate.cpp SlipBC.cpp init.cpp util.cpp \
 	  NewSlipBC.cpp NewDirichletBC.cpp Project.cpp \
 	TimeDependentPDE.cpp EquiAffineMap.cpp \
