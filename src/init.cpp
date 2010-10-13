@@ -4,6 +4,7 @@
 // First added:  2010-03-23
 // Last changed: 2010-03-23
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -27,7 +28,7 @@ void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,
   if(dolfin::MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
   dolfin_init(argc, argv);
-  message("Initializing Unicorn version %s.", UNICORN_VERSION);
+  message("Initializing Unicorn version %s.", PACKAGE_VERSION);
 
   if( argc < 5 ) 
     {
