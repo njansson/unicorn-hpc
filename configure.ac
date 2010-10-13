@@ -20,5 +20,7 @@ AC_CHECK_FUNCS([gettimeofday memset mkdir],,
 			     AC_MSG_ERROR([Vital functions are missing]))
 AC_FUNC_ERROR_AT_LINE
 
+AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile src/Makefile unicorn.pc])
 AC_OUTPUT
+
