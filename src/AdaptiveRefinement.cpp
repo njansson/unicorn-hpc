@@ -4,6 +4,7 @@
 // First added:  2010-09-13
 // Last changed: 2010-10-11
 
+#include <algorithm>
 #include <limits>
 #include <fstream>
 #include <dolfin/io/BinaryFile.h>
