@@ -7,8 +7,6 @@
 #ifndef __UNICORN_INIT_H
 #define __UNICORN_INIT_H
 
-#define UNICORN_VERSION PACKAGE_VERSION
-
 #include <dolfin.h>
 
 namespace dolfin
