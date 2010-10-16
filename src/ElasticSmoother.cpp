@@ -80,7 +80,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   //real kk = 1.0 / 2.0 * h_min;
   //real kk = 1.0e-1;
   //  real kk = 1.0 / 2.0 * h_min / sqrt(E);
-  real geom_scale = q.bbox_min.distance(q.bbox_max);
+  //real geom_scale = q.bbox_min.distance(q.bbox_max);
   //real kk = 0.1 * q.h_min * q.mu_min;
   //real kk = 0.2 * q.h_min * q.mu_min;
   //real kk = 0.2 * h_min;
@@ -151,11 +151,8 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 
   Form* a = 0;
   Form* L = 0;
-  Form* aJac = 0;
   Form* aS = 0;
   Form* LS = 0;
-  Form* aP = 0;
-  Form* LP = 0;
 
   Array <BoundaryCondition*> bc;
   bc.push_back(&bc0);
@@ -467,8 +464,8 @@ void ElasticSmoother::ElasticityPDE::deform_x(Function& X)
 {
   MeshGeometry& geometry = mesh().geometry();
   
-  int d = mesh().topology().dim();
-  int N = mesh().numVertices();
+  uint d = mesh().topology().dim();
+  uint N = mesh().numVertices();
   if(MPI::numProcesses() > 1)
     N = mesh().distdata().global_numVertices();
   
