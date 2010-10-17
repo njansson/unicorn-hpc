@@ -21,8 +21,10 @@ void AdaptiveRefinement::refine(Mesh& mesh, MeshFunction<bool>& cell_marker)
   if(MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
   message("Adaptive refinement");
-  message("cells before: %d", mesh.distdata().global_numCells());
-  message("vertices before: %d", mesh.distdata().global_numVertices());
+  message("cells before: %d", 
+	  (dolfin::MPI::numProcesses() > 1 ? mesh.distdata().global_numCells() : mesh.numCells()));
+  message("vertices before: %d", 
+	  (dolfin::MPI::numProcesses() > 1 ? mesh.distdata().global_numVertices() : mesh.numVertices()));
   dolfin_set("output destination","silent");  
   
   MeshFunction<real> cell_refinement_marker_r(mesh);
@@ -49,8 +51,10 @@ void AdaptiveRefinement::refine(Mesh& mesh, MeshFunction<bool>& cell_marker)
 
   if(MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
-  message("cells after: %d", mesh.distdata().global_numCells());
-  message("vertices after: %d", mesh.distdata().global_numVertices());
+  message("cells after: %d", 
+	  (dolfin::MPI::numProcesses() > 1 ? mesh.distdata().global_numCells() : mesh.numCells()));
+  message("vertices after: %d", 
+	  (dolfin::MPI::numProcesses() > 1 ? mesh.distdata().global_numVertices() : mesh.numVertices()));
   dolfin_set("output destination","silent"); 
 }
 //-----------------------------------------------------------------------------

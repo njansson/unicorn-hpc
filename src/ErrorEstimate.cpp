@@ -340,8 +340,9 @@ void ErrorEstimate::ComputeLargestIndicators_cell(std::vector<int>& cells,
 {
   int N = mesh.numCells();
   int M = std::min((int)(N), 
-		   (int)((real)mesh.distdata().global_numCells() * percentage * 0.01));
-  
+		   (int)((real) 
+			 (dolfin::MPI::numProcesses() > 1 ? 
+			  mesh.distdata().global_numCells() : mesh.numCells()) * percentage * 0.01));
   
   if(MPI::processNumber() == 1)
     dolfin_set("output destination","terminal");
@@ -419,7 +420,8 @@ void ErrorEstimate::ComputeLargestIndicators_cell(std::vector<int>& cells,
 
   //  std::sort(global_eind.begin(), global_eind.end());
   cells.clear();
-  int MM = (int)((real) mesh.distdata().global_numCells() * percentage * 0.01);
+  int MM = (int)((real) (dolfin::MPI::numProcesses() > 1 ? 
+			 mesh.distdata().global_numCells() : mesh.numCells()) * percentage * 0.01);
   int i = 0;
   for(int j = 0; j < MM; j++) {
     if( local_eind[M - 1 - i] >= global_eind[M_tot - 1 - j] ) {
