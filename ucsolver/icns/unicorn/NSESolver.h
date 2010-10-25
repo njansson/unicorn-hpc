@@ -5,7 +5,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-07-05
+// Last changed: 2010-10-25
 
 #ifndef __NSE_SOLVER_H
 #define __NSE_SOLVER_H
@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include <dolfin.h>
+#include "unicorn/AdaptiveRefinement.h"
 #include <unicorn/ErrorEstimate.h>
 #include <unicorn/NodeNormal.h>
 
@@ -38,11 +39,13 @@ namespace dolfin {
       
       ~NSESolver();
       
-      // Cleanup
-      void clear();
-
       // Solve Navier-Stokes equations
       void solve();
+
+    private:
+
+      // Cleanup
+      void clear();
       
       // Compute cell diameter
       static void ComputeCellSize(Mesh& mesh, Vector& hvector);
@@ -74,9 +77,6 @@ namespace dolfin {
 				    Vector& normal,
 				    Form& form,
 				    NodeNormal& node_normal);
-      
-    protected:
-
 
       // Signal handler
       static void sighandler(int sig_code) 

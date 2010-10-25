@@ -57,6 +57,10 @@ NSESolver::NSESolver(Mesh& mesh, NodeNormal& node_normal,
 {
   if(!ParameterSystem::parameters.defined("adapt_percentage"))
     dolfin_add("adapt_percentage", 5.0);
+  if(!ParameterSystem::parameters.defined("adapt_project"))
+    dolfin_add("adapt_project", false);
+  if(!ParameterSystem::parameters.defined("adapt_projected"))
+    dolfin_add("adapt_projected", false);
   if(!ParameterSystem::parameters.defined("n_samples"))
     dolfin_add("n_samples", 20);
   if(!ParameterSystem::parameters.defined("krylov_method"))
@@ -130,7 +134,7 @@ void NSESolver::solve()
     dolfin_set("output destination","silent");
   }
 
-  
+
   // Get the number of space dimensions of the problem 
   int nsd = mesh.topology().dim();
 
@@ -326,6 +330,24 @@ void NSESolver::solve()
     chkp.load(vec);
   }
   
+  if(solver_type == "primal" && dolfin_get("adapt_projected"))  
+  {
+    std::stringstream p_filename;
+    p_filename << "../scratch/projected_0" << "_" << MPI::processNumber() << ".bin" << std::ends;
+    File p_file(p_filename.str());
+    p_file >> p.vector();
+    p.vector().apply();
+    
+
+    dolfin_set("adapt_projected", false);
+
+    File pp("projected.pvd");
+    pp << p;
+
+  }
+
+
+
   Assembler assembler(mesh);
   
   // Initialize output files 
@@ -340,6 +362,15 @@ void NSESolver::solve()
   std::ostringstream output_filename;
   output_filename << solver_type << "_solution.pvd";
   
+  std::stringstream p_ufilename;
+  p_ufilename << "project_u" << "_" << MPI::processNumber() << ".bin" << std::ends;
+
+  std::stringstream p_pfilename;
+  p_pfilename << "project_p" << "_" << MPI::processNumber() << ".bin" << std::ends;
+
+  File p_ufile(p_ufilename.str());
+  File p_pfile(p_pfilename.str());
+
   File file_solution(output_filename.str(), t);
   File file_r("residual.pvd");
   File file_ei("ei.pvd");
@@ -634,6 +665,12 @@ void NSESolver::solve()
   }
 
 
+  if(solver_type == "primal" && dolfin_get("adapt_project")) 
+  {
+    p_ufile << u.vector();
+    p_pfile << p.vector();        
+  }
+
   if(solver_type == "dual")
   {
     file_r << errest->Rf;
@@ -654,6 +691,7 @@ void NSESolver::solve()
   delete Lmom;
   delete acon;
   delete Lcon;
+
   
   if(solver_type == "primal") {
     delete[] MF;
@@ -673,8 +711,48 @@ void NSESolver::solve()
     real percentage = dolfin_get("adapt_percentage");
     MeshFunction<bool> cell_marker;
     errest->ComputeRefinementMarkers(percentage, cell_marker);
-    AdaptiveRefinement::refine(mesh, cell_marker);
+    
+    if(dolfin_get("adapt_project"))
+    {
+
+      dolfin_set("Load balancer redistribute", false);      
+
+      Form *primal_amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
+      Form *primal_Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
+
+      Function p_primal, u_primal;
+      Vector xp_primal, xu_primal;
+      p_primal.init(mesh, xp_primal, *primal_Lmom, 4);
+      u_primal.init(mesh, xu_primal, *primal_amom, 1);
+      p_pfile >> p_primal.vector();
+      p_primal.sync_ghosts();
+      p_ufile >> u_primal.vector();
+      u_primal.sync_ghosts();
+
+      std::vector<AdaptiveRefinement::project_func>  pf;
+
+      AdaptiveRefinement::form_tuple p_form(primal_Lmom, 4);
+      AdaptiveRefinement::project_func p_project(&p_primal, p_form);
+
+      AdaptiveRefinement::form_tuple u_form(primal_amom, 1);
+      AdaptiveRefinement::project_func u_project(&u_primal, u_form);
+
+      //pf.push_back(p_project);    
+      pf.push_back(u_project);    
+
+      
+      AdaptiveRefinement::refine_and_project(mesh, pf, cell_marker);
+      dolfin_set("adapt_projected", true);
+
+      delete primal_Lmom;
+      delete primal_amom;
+    }
+    else
+      AdaptiveRefinement::refine(mesh, cell_marker);
   }
+
+
+
   
 }
 //-----------------------------------------------------------------------------

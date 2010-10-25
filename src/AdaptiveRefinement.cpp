@@ -7,8 +7,11 @@
 #include <algorithm>
 #include <limits>
 #include <fstream>
-#include <dolfin/io/BinaryFile.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include <dolfin.h>
+#include <dolfin/io/BinaryFile.h>
+#include <dolfin/fem/UFC.h>
 #include "unicorn/AdaptiveRefinement.h"
 
 using namespace dolfin;
@@ -67,7 +70,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
 
   if(MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
-  message("Adaptive refinement");
+  message("Adaptive refinement (with projection)");
   message("cells before: %d", mesh.distdata().global_numCells());
   message("vertices before: %d", mesh.distdata().global_numVertices());
   
@@ -90,24 +93,24 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
   {
     if(it->first->type() != Function::discrete)
       error("Projection only implemented for discrete functions");   
-    //    (*it)->redistribute(*partitions);    
-    AdaptiveRefinement::redistribute_func(mesh, it->first, 
-					  &values, &rows, m, *partitions);
-    if(values == 0)
-      error("pre Kaos");
-    File test("pre_func.pvd");
-    test << *(it->first);
+
+    AdaptiveRefinement::redistribute_func(mesh, it->first, &values, &rows, m,
+					  *(it->second.first), it->second.second,
+					  *partitions);
   }
 
   MeshFunction<bool> new_cell_marker;
   mesh.distribute(*partitions, cell_marker, new_cell_marker);
-  //  mesh.renumber();
 
   Mesh new_mesh;
   new_mesh = mesh;
   RivaraRefinement::refine(new_mesh, cell_marker, 0.0,0.0,0.0, false);
   new_mesh.renumber();
 
+  if(mkdir("../scratch", S_IRWXU) < 0)
+    perror("mkdir failed");
+
+  int p_count = 0;
   for (std::vector<project_func>::iterator it = pf.begin(); 
        it != pf.end(); ++it)
   {
@@ -115,24 +118,20 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
       error("Projection only implemented for discrete functions");   
     Function tmp;
     Vector xtmp;
-    message("offset %d \n\n\n\n\n\n\n", it->second.second);
     tmp.init(mesh, xtmp, *(it->second.first), it->second.second);
-    message("local size %d\n\n\n", xtmp.local_size());
-    //    tmp.vector().set(values);
     tmp.vector().set(values, m , rows);
     tmp.vector().apply();
     tmp.sync_ghosts();
 
-    if(values == 0)
-      error("Kaos");
-    File test("post_func.pvd");
-    test << tmp;
-    //test << *(it->first);
+    File post_file("post_func.pvd");
+    post_file << tmp;
 
+    uint local_dim = (*(it->second.first)).dofMaps()[it->second.second].local_dimension();
+    continue;
     Vector xtmp_new;
     xtmp_new.init(new_mesh.numVertices() - new_mesh.distdata().num_ghost(0));
 
-    real test_value;    
+    real *test_value = new real[local_dim];
     real x[3];
     real *vv = new real[new_mesh.numVertices()];
     uint *indices = new uint[new_mesh.numVertices()];
@@ -143,27 +142,30 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
       x[0] = v->x()[0];
       x[1] = v->x()[1];
       x[2] = v->x()[2];
-      tmp.eval(&test_value, &x[0]);
-      if (!std::isinf(test_value)) {
-	message("%g %g %g: %g",x[0], x[1], x[2] , test_value);
-	vv[i] = test_value;
+      tmp.eval(test_value, &x[0]);
+      if (!std::isinf(test_value[0])) {
+	vv[i] = test_value[0];
 	indices[i++] = new_mesh.distdata().get_global(v->index(), 0);
       }
-
     }
     xtmp_new.set(vv, i, indices);
     xtmp_new.apply();
 
-    BinaryFile bin_test("test.bin");
-    bin_test << xtmp_new;
+
+    std::stringstream p_filename;
+    p_filename << "../scratch/projected_" << p_count++ << "_" << MPI::processNumber() << ".bin" << std::ends;
+    File p_file(p_filename.str());
+    p_file << xtmp_new;
+
   }
 
-  
+  mesh = new_mesh;  
 
 }
 //-----------------------------------------------------------------------------
 void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f, 
 					   real **vp, uint **rp, uint& m,
+					   Form& form, uint offset,
 					   MeshFunction<uint>& distribution)
 {
 
@@ -186,30 +188,53 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   std::vector<std::pair<uint, real> > recv_data;
   local_size = 0;
 
+  UFC ufc(form.form(), mesh, form.dofMaps());
+  uint local_dim = (form.dofMaps())[offset].local_dimension();
+  uint *indices = new uint[local_dim];
+  uint nsdim = mesh.topology().dim();
+
   for (CellIterator c(mesh); !c.end(); ++c) 
   {
 
     target_proc = distribution.get(*c);
     
+    ufc.update(*c, mesh.distdata());
+    (form.dofMaps())[offset].tabulate_dofs(indices, ufc.cell, c->index());
 
-    for (VertexIterator v(mesh); !v.end(); ++v)
+    for (VertexIterator v(*c); !v.end(); ++v)
     {
 
+      uint *cvi = c->entities(0);
+      uint ci = 0;
+      for(ci = 0; ci < c->numEntities(0); ci++)
+	if(cvi[ci] == v->index())
+	  break;
 
       if (target_proc == pe_rank && 
 	  !mesh.distdata().is_ghost(v->index(), 0) &&
 	  !marked.get(*v))
       {
-	std::pair<uint, real> p(mesh.distdata().get_global(v->index(),0),values[v->index()]);
-	recv_data.push_back(p);
+	
+	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
+	{
+	  std::pair<uint, real> p(indices[i], values[indices[i]]);
+	  recv_data.push_back(p);
+	}
+	
 	marked.set(*v, true);
 	continue;
+	
       }
 
       if (!mesh.distdata().is_ghost(v->index(), 0) && !marked.get(*v))
       {
-	send_buffer[target_proc].push_back(values[v->index()]);
-	send_buffer_indices[target_proc].push_back(mesh.distdata().get_global(v->index(), 0));
+
+	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
+	{
+	  send_buffer[target_proc].push_back(values[indices[i]]);
+	  send_buffer_indices[target_proc].push_back(indices[i]);
+	}
+
 	marked.set(*v, true);
       }
     }
@@ -263,10 +288,6 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   delete[] send_buffer;
   delete[] send_buffer_indices;
 
-
-  less_pair comp;
-  std::sort(recv_data.begin(), recv_data.end(), comp);
-
   local_size = recv_data.size();
   if(local_size == 0)
     error("Kaos redistribute");
@@ -276,7 +297,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   uint *rows = new uint[local_size];
 
   message("pre local_size %d", local_size);
-  for (uint i = 0; i < local_size; i++)  {
+  for (uint i = 0; i < local_size; i++) {
     rows[i] = recv_data[i].first;
     values[i] = recv_data[i].second;    
   }
@@ -284,16 +305,6 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   *vp = values;
   *rp = rows;
   m = local_size;
-
   
-  /*
-  std::ofstream out("p.data", std::ofstream::binary);
-  out.write((char *)&local_size, sizeof(uint));
-  out.write((char *)values, local_size * sizeof(real));
-  
-  out.close();
-  */
-
-
 }
 //-----------------------------------------------------------------------------

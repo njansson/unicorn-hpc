@@ -23,7 +23,7 @@ namespace dolfin
       
     private:
       
-      enum Type { _INT_, _REAL_, _STR_};
+      enum Type { _INT_, _REAL_, _STR_, _BOOL_};
       
       template<typename T>
       static bool parse_numeric(T* i, std::string s)

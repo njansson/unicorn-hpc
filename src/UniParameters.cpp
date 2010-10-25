@@ -33,6 +33,7 @@ void UniParameters::parse_parameters(std::string fname)
   parameters["adapt_tol"] = _REAL_;
   parameters["adapt_percentage"] = _REAL_;
   parameters["adapt_algorithm"] = _STR_;
+  parameters["adapt_project"] = _BOOL_;
   parameters["adapt_type"] = _STR_;
   parameters["T"] = _REAL_;
   parameters["Ubar"] = _REAL_;
@@ -87,6 +88,19 @@ void UniParameters::parse_parameters(std::string fname)
 	else if( it->second  == _STR_ )
 	{
 	  dolfin_add(*beg, str_value);
+	}
+	else if( it->second == _BOOL_ )
+	{
+	  int value;
+	  if (parse_numeric(&value, str_value))
+	  {
+	    if (value)
+	      dolfin_add(*beg, true);
+	    else
+	      dolfin_add(*beg, false);
+	  }
+	  else
+	    error("Failed to parse numeric type");
 	}
       }
     }        

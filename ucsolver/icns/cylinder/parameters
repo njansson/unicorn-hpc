@@ -8,6 +8,7 @@ The initial data for Unicorn solver:
 0.001     adapt_tol - adaptive tolerance
 10        adapt_percentage - adaptive percentage 
 rivara	  adapt_algorithm - adaptive refinement type
+1	  adapt_project - adaptive projection
 
 0.5       T - final time, primal solver
 0.25	  dual_T - final time, dual solver

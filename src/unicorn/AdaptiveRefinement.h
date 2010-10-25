@@ -24,13 +24,14 @@ namespace dolfin
       
       static void refine(Mesh& mesh, MeshFunction<bool>& cell_marker);
 
-      static void refine_and_project(Mesh& mesh, std::vector<project_func> pf,				 
+      static void refine_and_project(Mesh& mesh, std::vector<project_func> pf,
 				     MeshFunction<bool>& cell_marker);
 
     private:
 
       static void redistribute_func(Mesh& mesh, Function *f, 
 				    real **vp, uint **rp, uint& m,
+				    Form& form, uint offset,
 				    MeshFunction<uint>& distribution);
 
 
