@@ -238,7 +238,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 	marked.set(*v, true);
       }
     }
-    local_size = std::max(local_size, send_buffer[target_proc].size());
+    local_size = std::max(local_size, (uint) send_buffer[target_proc].size());
   }
   
   delete[] values;

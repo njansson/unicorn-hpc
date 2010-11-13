@@ -2,6 +2,7 @@
 #define __ELASTIC_SMOOTHER_H
 
 #include <dolfin.h>
+#include <cstring>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <unicorn/EquiAffineMap.h>
 #include <unicorn/MeshQuality.h>
