@@ -20,6 +20,24 @@ AC_CHECK_FUNCS([gettimeofday memset mkdir],,
 			     AC_MSG_ERROR([Vital functions are missing]))
 AC_FUNC_ERROR_AT_LINE
 
+
+# Try to find a suitable BLAS
+AC_CHECK_HEADERS([cblas.h gsl_cblas.h sunperf.h scsl_blas.h],,)
+have_blas=no
+AC_SEARCH_LIBS([sgemm], [sunperf scs_mp scs blas],have_blas=yes, have_blas=no)
+if test $have_blas = no; then
+   AC_SEARCH_LIBS([cblas_sgemm], [sunperf scs_mp scs blas gslcblas],have_blas=yes, have_blas=no)
+   if test $have_blas = no; then
+      AC_CHECK_LIB(cblas, cblas_sgemm, [have_blas=yes, LIBS="-lcblas -latlas -lm $LIBS"],[have_blas=no],[-latlas -lm])
+   fi
+fi
+
+if test $have_blas = no; then
+   AC_MSG_ERROR([suitable BLAS not found])
+fi
+
+
+
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile src/Makefile unicorn.pc])
 AC_OUTPUT

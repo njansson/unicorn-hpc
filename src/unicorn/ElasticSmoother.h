@@ -10,6 +10,10 @@
 #include <unicorn/Project.h>
 #include <dolfin/fem/UFC.h>
 
+extern "C" {
+#include <cblas.h>
+}
+
 #define RM(row,col,nrow) ((row) + ((nrow)*(col)))
 
 namespace dolfin { namespace unicorn
@@ -201,10 +205,7 @@ namespace dolfin { namespace unicorn
 	  Finv[RM(ii,jj,3)] = map.C[RM(ii,jj,3)] * scale;
       
       real B[3*3];
-      for (uint ii = 0; ii < 3; ii++) 
-	for(uint jj = 0; jj < 3; jj++)
-	  for (uint r =0; r < 3; r++)
-	    B[RM(ii,jj,3)] += (Finv[RM(r,ii,3)] * Finv[RM(r,jj,3)]);
+      cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 
 
       int d = cell.dim();
@@ -241,8 +242,6 @@ namespace dolfin { namespace unicorn
 	//real scale = 1.0;
 
 	real Finv[3*3];
-	//	uBlasDenseMatrix Finv(map.C);
-	//	Finv *= scale;
 	for (uint ii = 0; ii < 3; ii++)
 	  for (uint jj = 0; jj < 3; jj++)
 	    Finv[RM(ii,jj,3)] = map.C[RM(ii,jj,3)] * scale;
@@ -250,14 +249,8 @@ namespace dolfin { namespace unicorn
 
 	real B[3*3];
 	memset(&B[0], 0, 3*3*sizeof(real));
-//        uBlasDenseMatrix B;
-//	B.mat() = ublas::prod(ublas::trans(Finv.mat()), Finv.mat());
-	for (uint ii = 0; ii < 3; ii++) 
-	  for(uint jj = 0; jj < 3; jj++)
-	    for (uint r =0; r < 3; r++)
-	      B[RM(ii,jj,3)] += (Finv[RM(r,ii,3)] * Finv[RM(r,jj,3)]);
-
-
+	cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
+		    3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 
 	for(int i = 0; i < N; i++)
 	{
