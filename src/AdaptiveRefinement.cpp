@@ -13,7 +13,6 @@
 #include <dolfin/io/BinaryFile.h>
 #include <dolfin/fem/UFC.h>
 #include "unicorn/AdaptiveRefinement.h"
-#include "unicorn/AdaptiveRefinementProjectVector.h"
 
 using namespace dolfin;
 using namespace dolfin::unicorn;
@@ -69,7 +68,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
 
   dolfin_set("Load balancer redistribute", false);
 
-  //  if(MPI::processNumber() == 0)
+  if(MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
   message("Adaptive refinement (with projection)");
   message("cells before: %d", mesh.distdata().global_numCells());
@@ -106,10 +105,10 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
   Mesh new_mesh;
   new_mesh = mesh;
   RivaraRefinement::refine(new_mesh, cell_marker, 0.0,0.0,0.0, false);
-  
-  if (MPI::processNumber() == 0)
-    if(mkdir("../scratch", S_IRWXU) < 0)
-      perror("mkdir failed");  
+  new_mesh.renumber();
+
+  if(mkdir("../scratch", S_IRWXU) < 0)
+    perror("mkdir failed");
 
   int p_count = 0;
   for (std::vector<project_func>::iterator it = pf.begin(); 
@@ -117,60 +116,18 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
   {
     if(it->first->type() != Function::discrete)
       error("Projection only implemented for discrete functions");   
-
-
-    Function tmp_x, tmp_y, tmp_z;
-    Vector xtmp,ytmp,ztmp;
-    Form *primal_x = new AdaptiveRefinementProjectVectorLinearForm(tmp_x);
-    Form *primal_y = new AdaptiveRefinementProjectVectorLinearForm(tmp_y);
-    Form *primal_z = new AdaptiveRefinementProjectVectorLinearForm(tmp_z);
-
-
-    uint scalar_size = m / 3;
-    real *tmp = new real[scalar_size];
-    uint *tmp_i = new uint[scalar_size];
-
-    for (uint k = 0; k < 3; k++)
-    {
-      uint j = 0;
-      for (uint i = k; i < m; i += 3)
-      {
-	tmp[j] = values[i];
-	tmp_i[j++] = rows[i];
-      }
-      if (k == 0)
-      {
-	tmp_x.init(mesh, xtmp, *primal_x, 0);    
-	tmp_x.vector().set(tmp, m/3 , tmp_i);
-	tmp_x.sync_ghosts();
-      }
-      else if (k == 1)
-      {
-	tmp_y.init(mesh, ytmp, *primal_y, 0);    
-	tmp_y.vector().set(tmp, m/3 , tmp_i);
-	tmp_y.sync_ghosts();
-      }
-      else
-      {
-	tmp_z.init(mesh, xtmp, *primal_z, 0);    
-	tmp_z.vector().set(tmp, m/3 , tmp_i);
-	tmp_z.sync_ghosts();
-      }	
-    }
-
-    delete[] tmp;
-    delete[] tmp_i;
-
-    //    Form *primal_amom = new AdaptiveRefinementProjectVectorLinearForm(tmp);
-
-
+    Function tmp;
+    Vector xtmp;
+    tmp.init(mesh, xtmp, *(it->second.first), it->second.second);
+    tmp.vector().set(values, m , rows);
+    tmp.vector().apply();
+    tmp.sync_ghosts();
 
     File post_file("post_func.pvd");
-    post_file << tmp_x;
+    post_file << tmp;
 
     uint local_dim = (*(it->second.first)).dofMaps()[it->second.second].local_dimension();
     continue;
-    /*
     Vector xtmp_new;
     xtmp_new.init(new_mesh.numVertices() - new_mesh.distdata().num_ghost(0));
 
@@ -199,7 +156,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     p_filename << "../scratch/projected_" << p_count++ << "_" << MPI::processNumber() << ".bin" << std::ends;
     File p_file(p_filename.str());
     p_file << xtmp_new;
-*/
+
   }
 
   mesh = new_mesh;  
@@ -218,8 +175,8 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   
   MPI_Status status;
 
-  //  real *values = new real[f->vector().local_size()];
-  //  f->vector().get(values);
+  real *values = new real[f->vector().local_size()];
+  f->vector().get(values);
   
   Array<real> *send_buffer = new Array<real>[pe_size];
   Array<uint> *send_buffer_indices = new Array<uint>[pe_size];
@@ -234,7 +191,6 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   UFC ufc(form.form(), mesh, form.dofMaps());
   uint local_dim = (form.dofMaps())[offset].local_dimension();
   uint *indices = new uint[local_dim];
-  real *values = new real[local_dim];
   uint nsdim = mesh.topology().dim();
 
   for (CellIterator c(mesh); !c.end(); ++c) 
@@ -244,7 +200,6 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
     
     ufc.update(*c, mesh.distdata());
     (form.dofMaps())[offset].tabulate_dofs(indices, ufc.cell, c->index());
-    f->vector().get(values, local_dim, indices);
 
     for (VertexIterator v(*c); !v.end(); ++v)
     {
@@ -262,7 +217,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 	
 	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
 	{
-	  std::pair<uint, real> p(mesh.distdata().get_global(*v), values[i]);
+	  std::pair<uint, real> p(indices[i], values[indices[i]]);
 	  recv_data.push_back(p);
 	}
 	
@@ -276,8 +231,8 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 
 	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
 	{
-	  send_buffer[target_proc].push_back(values[i]);
-	  send_buffer_indices[target_proc].push_back(mesh.distdata().get_global(*v));
+	  send_buffer[target_proc].push_back(values[indices[i]]);
+	  send_buffer_indices[target_proc].push_back(indices[i]);
 	}
 
 	marked.set(*v, true);
