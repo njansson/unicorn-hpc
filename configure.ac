@@ -42,3 +42,16 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile src/Makefile unicorn.pc])
 AC_OUTPUT
 
+# Display help text
+echo \
+"
+---------------------------------------------------------
+
+Configuration of Unicorn ${PACKAGE_VERSION} finished.
+
+Prefix: '${prefix}'.
+Compiler: ${CXX} ${CXXFLAGS} ${CPPFLAGS}
+Libs: ${LD} ${LDFLAGS} ${LIBS}
+
+---------------------------------------------------------
+"
