@@ -107,8 +107,10 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
   RivaraRefinement::refine(new_mesh, cell_marker, 0.0,0.0,0.0, false);
   new_mesh.renumber();
 
-  if(mkdir("../scratch", S_IRWXU) < 0)
-    perror("mkdir failed");
+  
+  if(MPI::processNumber() == 0)
+    if(mkdir("../scratch", S_IRWXU) < 0)
+      perror("mkdir failed");
 
   int p_count = 0;
   for (std::vector<project_func>::iterator it = pf.begin(); 
@@ -127,7 +129,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     post_file << tmp;
 
     uint local_dim = (*(it->second.first)).dofMaps()[it->second.second].local_dimension();
-    continue;
+
     Vector xtmp_new;
     xtmp_new.init(new_mesh.numVertices() - new_mesh.distdata().num_ghost(0));
 
@@ -192,7 +194,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   uint local_dim = (form.dofMaps())[offset].local_dimension();
   uint *indices = new uint[local_dim];
   uint nsdim = mesh.topology().dim();
-
+  message("Local dim: %d", local_dim);
   for (CellIterator c(mesh); !c.end(); ++c) 
   {
 
@@ -215,12 +217,13 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 	  !marked.get(*v))
       {
 	
+
 	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
 	{
-	  std::pair<uint, real> p(indices[i], values[indices[i]]);
+	  std::pair<uint, real> p(indices[i], 
+				  values[mesh.distdata().get_local(indices[i], 0)]);
 	  recv_data.push_back(p);
 	}
-	
 	marked.set(*v, true);
 	continue;
 	
@@ -231,7 +234,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 
 	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
 	{
-	  send_buffer[target_proc].push_back(values[indices[i]]);
+	  send_buffer[target_proc].push_back(values[mesh.distdata().get_local(indices[i], 0)]);
 	  send_buffer_indices[target_proc].push_back(indices[i]);
 	}
 
@@ -240,7 +243,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
     }
     local_size = std::max(local_size, (uint) send_buffer[target_proc].size());
   }
-  
+
   delete[] values;
 
   MPI_Allreduce(&local_size, &recv_size, 1, 
