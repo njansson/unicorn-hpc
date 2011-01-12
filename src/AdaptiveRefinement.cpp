@@ -13,6 +13,7 @@
 #include <dolfin/io/BinaryFile.h>
 #include <dolfin/fem/UFC.h>
 #include "unicorn/AdaptiveRefinement.h"
+#include "unicorn/AdaptiveRefinementProjectVector.h"
 
 using namespace dolfin;
 using namespace dolfin::unicorn;
@@ -120,14 +121,19 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
       error("Projection only implemented for discrete functions");   
     Function tmp;
     Vector xtmp;
-    tmp.init(mesh, xtmp, *(it->second.first), it->second.second);
+    Form *primal_amom = new AdaptiveRefinementProjectVectorLinearForm(tmp);
+
+    tmp.init(mesh, xtmp, *primal_amom, 1);
+    message("m: %d v: %d vec_size: %d", m, mesh.numVertices() - mesh.distdata().num_ghost(0),
+	    tmp.vector().local_size());
+    if (tmp.vector().local_size() < m)
+      error("Vector too small");
     tmp.vector().set(values, m , rows);
-    tmp.vector().apply();
     tmp.sync_ghosts();
 
     File post_file("post_func.pvd");
     post_file << tmp;
-
+    continue;
     uint local_dim = (*(it->second.first)).dofMaps()[it->second.second].local_dimension();
 
     Vector xtmp_new;
@@ -194,7 +200,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   uint local_dim = (form.dofMaps())[offset].local_dimension();
   uint *indices = new uint[local_dim];
   uint nsdim = mesh.topology().dim();
-  message("Local dim: %d", local_dim);
+
   for (CellIterator c(mesh); !c.end(); ++c) 
   {
 
@@ -217,12 +223,13 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 	  !marked.get(*v))
       {
 	
-
+	uint tt = 0;
 	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
 	{
 	  std::pair<uint, real> p(indices[i], 
-				  values[mesh.distdata().get_local(indices[i], 0)]);
+				  values[mesh.distdata().get_local(indices[ci], 0) + tt * c->numEntities(0)]);
 	  recv_data.push_back(p);
+	  tt++;
 	}
 	marked.set(*v, true);
 	continue;
@@ -232,10 +239,12 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
       if (!mesh.distdata().is_ghost(v->index(), 0) && !marked.get(*v))
       {
 
+	uint tt = 0;
 	for (uint i = ci; i < local_dim; i += c->numEntities(0)) 
 	{
-	  send_buffer[target_proc].push_back(values[mesh.distdata().get_local(indices[i], 0)]);
+	  send_buffer[target_proc].push_back(values[mesh.distdata().get_local(indices[ci], 0) + tt * c->numEntities(0)]);
 	  send_buffer_indices[target_proc].push_back(indices[i]);
+	  tt++
 	}
 
 	marked.set(*v, true);
