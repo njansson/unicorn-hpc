@@ -244,7 +244,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 	{
 	  send_buffer[target_proc].push_back(values[mesh.distdata().get_local(indices[ci], 0) + tt * c->numEntities(0)]);
 	  send_buffer_indices[target_proc].push_back(indices[i]);
-	  tt++
+	  tt++;
 	}
 
 	marked.set(*v, true);
