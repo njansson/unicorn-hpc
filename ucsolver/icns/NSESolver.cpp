@@ -30,7 +30,6 @@
 #include "unicorn/NSEDualGradient3D.h"
 #include "unicorn/SpaceTimeFunction.h"
 #include "unicorn/AdaptiveRefinement.h"
-#include "unicorn/AdaptiveRefinementProjectVector.h"
 
 using namespace dolfin;
 using namespace unicorn;
@@ -336,14 +335,14 @@ void NSESolver::solve()
     std::stringstream p_filename;
     p_filename << "../scratch/projected_0" << "_" << MPI::processNumber() << ".bin" << std::ends;
     File p_file(p_filename.str());
-    p_file >> p.vector();
-    p.vector().apply();
+    p_file >> u.vector();
+    u.vector().apply();
     
 
     dolfin_set("adapt_projected", false);
 
     File pp("projected.pvd");
-    pp << p;
+    pp << u;
 
   }
 
@@ -719,39 +718,36 @@ void NSESolver::solve()
       dolfin_set("Load balancer redistribute", false);      
 
       Form *primal_amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
-      //      Form *primal_Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
+      Form *primal_Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
 
       Function p_primal, u_primal;
       Vector xp_primal, xu_primal;
-
-      //      Form *primal_amom = new AdaptiveRefinementProjectVectorLinearForm(u_primal);
-
-
-      //      p_primal.init(mesh, xp_primal, *primal_Lmom, 4);
+      
+      p_primal.init(mesh, xp_primal, *primal_Lmom, 4);
       u_primal.init(mesh, xu_primal, *primal_amom, 1);
-      //      p_pfile >> p_primal.vector();
-      //      p_primal.sync_ghosts();
+      p_pfile >> p_primal.vector();
+      p_primal.sync_ghosts();
       p_ufile >> u_primal.vector();
       u_primal.sync_ghosts();
 
       std::vector<AdaptiveRefinement::project_func>  pf;
       File post_file("pre_func.pvd");
-      post_file << u_primal;
+      post_file << p_primal;
 
-      //      AdaptiveRefinement::form_tuple p_form(primal_Lmom, 4);
-      //      AdaptiveRefinement::project_func p_project(&p_primal, p_form);
+      AdaptiveRefinement::form_tuple p_form(primal_Lmom, 4);
+      AdaptiveRefinement::project_func p_project(&p_primal, p_form);
 
-      AdaptiveRefinement::form_tuple u_form(primal_amom, 0);
+      AdaptiveRefinement::form_tuple u_form(primal_amom, 1);
       AdaptiveRefinement::project_func u_project(&u_primal, u_form);
 
-      //pf.push_back(p_project);    
+      //      pf.push_back(p_project);    
       pf.push_back(u_project);    
 
       
       AdaptiveRefinement::refine_and_project(mesh, pf, cell_marker);
       dolfin_set("adapt_projected", true);
 
-      //      delete primal_Lmom;
+      delete primal_Lmom;
       delete primal_amom;
     }
     else

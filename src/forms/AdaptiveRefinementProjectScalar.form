@@ -1,0 +1,13 @@
+
+
+name = "AdaptiveRefinementProjectVector"
+scalar = FiniteElement("Lagrange", "tetrahedron", 1)
+
+
+
+v      = TestFunction(scalar)      
+u      = Function(scalar)
+
+L = v*u * dx
+
+

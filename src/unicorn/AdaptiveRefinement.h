@@ -34,6 +34,9 @@ namespace dolfin
 				    Form& form, uint offset,
 				    MeshFunction<uint>& distribution);
 
+      static void decompose_func(Mesh& mesh, Function *f, uint offset, Form& form,
+				 Function& f_x, Function& f_y, Function& f_z);
+
 
       // Comparison operator for index/value pairs    
       struct less_pair : public std::binary_function<std::pair<uint, real>,
