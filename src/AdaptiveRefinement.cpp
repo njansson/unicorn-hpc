@@ -85,17 +85,24 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     dolfin::error("Unknown refinement algorithm");
   //  dolfin_set("output destination","silent");
 
+  MeshFunction<real> cell_refinement_marker_r(mesh);
+  cell_refinement_marker_r.init(mesh.topology().dim());
+  for (CellIterator c(mesh); !c.end(); ++c)
+  {
+    cell_refinement_marker_r.set(c->index(), cell_marker(*c));
+  }
+  
+  File refinefile("marked.pvd");
+  refinefile << cell_refinement_marker_r;
+
   MeshFunction<uint> *partitions = mesh.data().meshFunction("partitions");
    
-  real *x_values = 0;
-  uint *x_rows = 0;
-  uint x_m = 0;
-  real *y_values = 0;
-  uint *y_rows = 0;
-  uint y_m = 0;
-  real *z_values = 0;
-  uint *z_rows = 0;
-  uint z_m = 0;
+  real *x_values, *y_values, *z_values;
+  uint *x_rows, *y_rows, *z_rows;
+  uint x_m, y_m, z_m;
+  x_values = y_values = z_values = 0;
+  x_rows = y_rows, z_rows = 0;
+  x_m = y_m = z_m = 0;
   Function coarse_x, coarse_y, coarse_z;
   Vector x_coarse_x, x_coarse_y, x_coarse_z;
   Form *pre_x = new AdaptiveRefinementProjectScalarLinearForm(coarse_x);
@@ -115,15 +122,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     AdaptiveRefinement::decompose_func(mesh, it->first, it->second.second, *(it->second.first),
 				       coarse_x, coarse_y, coarse_z);
 
-    File ff_x("func_x.pvd");
-    File ff_y("func_y.pvd");
-    File ff_z("func_z.pvd");
-    
-    ff_x << coarse_x;
-    ff_y << coarse_y;
-    ff_z << coarse_z;
-    
-
     AdaptiveRefinement::redistribute_func(mesh, &coarse_x, &x_values, &x_rows, x_m,
 					  *pre_x, 1, *partitions);
     
@@ -133,7 +131,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     AdaptiveRefinement::redistribute_func(mesh, &coarse_z, &z_values, &z_rows, z_m,
 					  *pre_z, 1, *partitions);
     
-
     /*
     AdaptiveRefinement::redistribute_func(mesh, it->first, &values, &rows, m,
 					  *(it->second.first), it->second.second,
@@ -146,7 +143,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
 
   Mesh new_mesh;
   new_mesh = mesh;
-  RivaraRefinement::refine(new_mesh, cell_marker, 0.0, 0.0, 0.0, false);
+  RivaraRefinement::refine(new_mesh, new_cell_marker, 0.0, 0.0, 0.0, false);
   new_mesh.renumber();
 
   
@@ -160,9 +157,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
   {
     if(it->first->type() != Function::discrete)
       error("Projection only implemented for discrete functions");   
-
-
-    uint local_num_vert = mesh.numVertices() - mesh.distdata().num_ghost(0);
 
     Function post_x, post_y, post_z;
     Vector x_post_x, x_post_y, x_post_z;
@@ -178,8 +172,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     post_y.sync_ghosts();
     post_z.sync_ghosts();
 
-
-    uint local_dim = (*pre_x).dofMaps()[1].local_dimension();
 
     Function tmp;
     Vector xtmp_new;
@@ -197,6 +189,8 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     uint i = 0;
     MeshFunction<bool> processed(new_mesh, 0);
     processed = false;
+
+    tmp.vector().zero();
 
     for (CellIterator c(new_mesh); !c.end(); ++c) {
 
@@ -225,6 +219,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
 	 vv[i] = test_value;
 	 indices[i++] = local_indices[ci];
        }
+
        
        post_y.eval(&test_value, &x[0]);      
        if (!std::isinf(test_value))  {
@@ -240,20 +235,20 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
      }
     }
 
-    tmp.vector().set(vv, i, indices);
-    tmp.sync_ghosts();
-
+    if ( i > 0)
+      xtmp_new.set(vv, i, indices);
         
     std::stringstream p_filename;
     p_filename << "../scratch/projected_" << p_count++ << "_" << MPI::processNumber() << ".bin" << std::ends;
     File p_file(p_filename.str());
     p_file << xtmp_new;
 
+
     delete[] vv;
     delete[] indices;
     delete[] local_indices;
 
-    delete refined, pre_x, pre_y, pre_z;
+    //    delete refined, pre_x, pre_y, pre_z;
 
   }
 
@@ -367,14 +362,9 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   delete[] send_buffer_indices;
 
   local_size = recv_data.size();
-  if(local_size == 0)
-    error("Kaos redistribute");
-  else
-    message("realloc with size %d", local_size);
   values = new real[local_size];
   uint *rows = new uint[local_size];
 
-  message("pre local_size %d", local_size);
   for (uint i = 0; i < local_size; i++) {
     rows[i] = recv_data[i].first;
     values[i] = recv_data[i].second;    
