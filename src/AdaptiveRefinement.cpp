@@ -119,23 +119,18 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     if(it->first->type() != Function::discrete)
       error("Projection only implemented for discrete functions");   
 
-    AdaptiveRefinement::decompose_func(mesh, it->first, it->second.second, *(it->second.first),
+    AdaptiveRefinement::decompose_func(mesh, it->first, 
+				       it->second.second, *(it->second.first), 
 				       coarse_x, coarse_y, coarse_z);
 
-    AdaptiveRefinement::redistribute_func(mesh, &coarse_x, &x_values, &x_rows, x_m,
-					  *pre_x, 1, *partitions);
+    AdaptiveRefinement::redistribute_func(mesh, &coarse_x, &x_values, 
+					  &x_rows, x_m, *partitions);
+    AdaptiveRefinement::redistribute_func(mesh, &coarse_y, &y_values, 
+					  &y_rows, y_m, *partitions);
     
-    AdaptiveRefinement::redistribute_func(mesh, &coarse_y, &y_values, &y_rows, y_m,
-					  *pre_y, 1, *partitions);
-    
-    AdaptiveRefinement::redistribute_func(mesh, &coarse_z, &z_values, &z_rows, z_m,
-					  *pre_z, 1, *partitions);
-    
-    /*
-    AdaptiveRefinement::redistribute_func(mesh, it->first, &values, &rows, m,
-					  *(it->second.first), it->second.second,
-					  *partitions);
-					  */
+    AdaptiveRefinement::redistribute_func(mesh, &coarse_z, &z_values, 
+					  &z_rows, z_m, *partitions);
+        
   }
 
   MeshFunction<bool> new_cell_marker;
@@ -173,80 +168,27 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     post_z.sync_ghosts();
 
 
+    delete[] x_values;
+    delete[] y_values;
+    delete[] z_values;
+
+    delete[] x_rows;
+    delete[] y_rows;
+    delete[] z_rows;
+
+
+
     Function tmp;
     Vector xtmp_new;
-    Form *refined = new AdaptiveRefinementProjectVectorLinearForm(tmp);
-    tmp.init(new_mesh, xtmp_new, *refined, 0);
+    
+    AdaptiveRefinement::project(new_mesh, post_x, post_y, post_z, tmp, xtmp_new);
 
-
-    UFC ufc(refined->form(), new_mesh, refined->dofMaps());
-
-    real test_value;
-    real x[3];
-    real *vv = new real[xtmp_new.local_size()];
-    uint *indices = new uint[xtmp_new.local_size()];
-    uint *local_indices = new uint[refined->dofMaps()[0].local_dimension()];
-    uint i = 0;
-    MeshFunction<bool> processed(new_mesh, 0);
-    processed = false;
-
-    tmp.vector().zero();
-
-    for (CellIterator c(new_mesh); !c.end(); ++c) {
-
-
-     ufc.update(*c, new_mesh.distdata());
-     (refined->dofMaps())[0].tabulate_dofs(local_indices, ufc.cell, c->index());
-
-     for (VertexIterator v(*c); !v.end(); ++v) {
-
-
-       uint *cvi = c->entities(0);
-       uint ci = 0;
-       for(ci = 0; ci < c->numEntities(0); ci++)
-	 if(cvi[ci] == v->index())
-	   break;
-       
-       if(new_mesh.distdata().is_ghost(v->index(), 0) || processed.get(*v))
-	 continue;
-       processed.set(*v, true);
-
-       x[0] = v->x()[0];
-       x[1] = v->x()[1];
-       x[2] = v->x()[2];           
-       post_x.eval(&test_value, &x[0]);      
-       if (!std::isinf(test_value)) {
-	 vv[i] = test_value;
-	 indices[i++] = local_indices[ci];
-       }
-
-       
-       post_y.eval(&test_value, &x[0]);      
-       if (!std::isinf(test_value))  {
-	 vv[i] = test_value;
-	 indices[i++] = local_indices[ci +  c->numEntities(0)];
-       }
-       
-       post_z.eval(&test_value, &x[0]);      
-       if (!std::isinf(test_value)) {
-	 vv[i] = test_value;
-	 indices[i++] = local_indices[ci + 2 * c->numEntities(0)]; 
-       }       
-     }
-    }
-
-    if ( i > 0)
-      xtmp_new.set(vv, i, indices);
-        
     std::stringstream p_filename;
     p_filename << "../scratch/projected_" << p_count++ << "_" << MPI::processNumber() << ".bin" << std::ends;
     File p_file(p_filename.str());
     p_file << xtmp_new;
 
 
-    delete[] vv;
-    delete[] indices;
-    delete[] local_indices;
 
     //    delete refined, pre_x, pre_y, pre_z;
 
@@ -258,7 +200,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
 //-----------------------------------------------------------------------------
 void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f, 
 					   real **vp, uint **rp, uint& m,
-					   Form& form, uint offset,
 					   MeshFunction<uint>& distribution)
 {
 
@@ -433,5 +374,74 @@ void AdaptiveRefinement::decompose_func(Mesh& mesh, Function *f, uint offset,
   delete[] indices;
 
   
+}
+//-----------------------------------------------------------------------------
+void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
+				 Function& post_y, Function& post_z,
+				 Function& projected, Vector& x_proj)
+{
+
+    Form *refined = new AdaptiveRefinementProjectVectorLinearForm(projected);
+    projected.init(new_mesh, x_proj, *refined, 0);
+
+
+    UFC ufc(refined->form(), new_mesh, refined->dofMaps());
+
+    real test_value;
+    real x[3];
+    real *vv = new real[x_proj.local_size()];
+    uint *indices = new uint[x_proj.local_size()];
+    uint *local_indices = new uint[refined->dofMaps()[0].local_dimension()];
+    uint i = 0;
+    MeshFunction<bool> processed(new_mesh, 0);
+    processed = false;
+
+    projected.vector().zero();
+
+    for (CellIterator c(new_mesh); !c.end(); ++c) {
+
+
+     ufc.update(*c, new_mesh.distdata());
+     (refined->dofMaps())[0].tabulate_dofs(local_indices, ufc.cell, c->index());
+
+     for (VertexIterator v(*c); !v.end(); ++v) {
+
+
+       uint *cvi = c->entities(0);
+       uint ci = 0;
+       for(ci = 0; ci < c->numEntities(0); ci++)
+	 if(cvi[ci] == v->index())
+	   break;
+       
+       if(new_mesh.distdata().is_ghost(v->index(), 0) || processed.get(*v))
+	 continue;
+       processed.set(*v, true);
+
+       x[0] = v->x()[0];
+       x[1] = v->x()[1];
+       x[2] = v->x()[2];           
+       post_x.eval(&test_value, &x[0]);      
+       if (!std::isinf(test_value)) {
+	 vv[i] = test_value;
+	 indices[i++] = local_indices[ci];
+       }
+
+       
+       post_y.eval(&test_value, &x[0]);      
+       if (!std::isinf(test_value))  {
+	 vv[i] = test_value;
+	 indices[i++] = local_indices[ci +  c->numEntities(0)];
+       }
+       
+       post_z.eval(&test_value, &x[0]);      
+       if (!std::isinf(test_value)) {
+	 vv[i] = test_value;
+	 indices[i++] = local_indices[ci + 2 * c->numEntities(0)]; 
+       }       
+     }
+    }
+
+    if ( i > 0)
+      x_proj.set(vv, i, indices);
 }
 //-----------------------------------------------------------------------------

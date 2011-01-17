@@ -31,13 +31,16 @@ namespace dolfin
 
       static void redistribute_func(Mesh& mesh, Function *f, 
 				    real **vp, uint **rp, uint& m,
-				    Form& form, uint offset,
 				    MeshFunction<uint>& distribution);
 
       static void decompose_func(Mesh& mesh, Function *f, uint offset, Form& form,
 				 Function& f_x, Function& f_y, Function& f_z);
 
 
+      static void project(Mesh& new_mesh, Function& post_x,
+			  Function& post_y, Function& post_z,
+			  Function& projected, Vector& x_proj);
+      
       // Comparison operator for index/value pairs    
       struct less_pair : public std::binary_function<std::pair<uint, real>,
 						     std::pair<uint, real>, bool>
