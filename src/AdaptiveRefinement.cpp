@@ -130,15 +130,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     
     AdaptiveRefinement::redistribute_func(mesh, &coarse_z, &z_values, 
 					  &z_rows, z_m, *partitions);
-
-
-    File xxpf("pre_x.pvd");
-    File xypf("pre_y.pvd");
-    File xzpf("pre_z.pvd");
-    
-    xxpf << coarse_x;
-    xypf << coarse_y;
-    xzpf << coarse_z;
         
   }
 
@@ -175,15 +166,6 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     post_x.sync_ghosts();
     post_y.sync_ghosts();
     post_z.sync_ghosts();
-
-    File xpf("post_x.pvd");
-    File ypf("post_y.pvd");
-    File zpf("post_z.pvd");
-
-    xpf << post_x;
-    ypf << post_y;
-    zpf << post_z;
-
 
     delete[] x_values;
     delete[] y_values;
@@ -491,9 +473,6 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
     x_proj.apply();
   }
   projected.sync_ghosts();
-  
-  File pfile("proj.pvd");
-  pfile << projected;
   
   delete[] vv;
   delete[] indices;
