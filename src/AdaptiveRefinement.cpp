@@ -189,8 +189,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     p_file << xtmp_new;
 
 
-
-    //    delete refined, pre_x, pre_y, pre_z;
+    delete pre_x, pre_y, pre_z;
 
   }
 
@@ -441,7 +440,9 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
      }
     }
 
-    if ( i > 0)
+    if ( i > 0) {
       x_proj.set(vv, i, indices);
+      x_proj.apply();
+    }
 }
 //-----------------------------------------------------------------------------
