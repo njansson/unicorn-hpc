@@ -345,16 +345,15 @@ void AdaptiveRefinement::decompose_func(Mesh& mesh, Function *f, uint offset,
       if (!mesh.distdata().is_ghost(v->index(), 0) && !marked.get(*v))
       {
 
-	f->vector().get(&dof_value, 1, &indices[ci]);
 	new_index = mesh.distdata().get_global(v->index(), 0);
+
+	f->vector().get(&dof_value, 1, &indices[ci]);
 	f_x.vector().set(&dof_value, 1, &new_index);
 
 	f->vector().get(&dof_value, 1, &indices[ci + c->numEntities(0)]);
-	new_index = mesh.distdata().get_global(v->index(), 0);
 	f_y.vector().set(&dof_value, 1, &new_index);
 
 	f->vector().get(&dof_value, 1, &indices[ci + 2 * c->numEntities(0)]);
-	new_index = mesh.distdata().get_global(v->index(), 0);
 	f_z.vector().set(&dof_value, 1, &new_index);
 	
 	marked.set(*v, true);
@@ -364,13 +363,13 @@ void AdaptiveRefinement::decompose_func(Mesh& mesh, Function *f, uint offset,
     }
   }
 
-  f_x.vector().apply();
-  f_y.vector().apply();
-  f_z.vector().apply();
+  f_x.sync_ghosts();
+  f_y.sync_ghosts();
+  f_z.sync_ghosts();
+
 
   delete[] indices;
 
-  
 }
 //-----------------------------------------------------------------------------
 void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
@@ -435,7 +434,11 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
 	  if(!std::isinf(test_value))
 	    break;
 	}
+
+	if(std::isinf(test_value))
+	  error("Couldn't find any suitable projection point");	   	
       }
+
       vv[i] = test_value;
       indices[i++] = local_indices[ci];
       
@@ -461,6 +464,7 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
     x_proj.set(vv, i, indices);
     x_proj.apply();
   }
+  projected.sync_ghosts();
   
   File pfile("proj.pvd");
   pfile << projected;
