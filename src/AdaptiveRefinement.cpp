@@ -130,6 +130,15 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     
     AdaptiveRefinement::redistribute_func(mesh, &coarse_z, &z_values, 
 					  &z_rows, z_m, *partitions);
+
+
+    File xxpf("pre_x.pvd");
+    File xypf("pre_y.pvd");
+    File xzpf("pre_z.pvd");
+    
+    xxpf << coarse_x;
+    xypf << coarse_y;
+    xzpf << coarse_z;
         
   }
 
@@ -167,6 +176,14 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     post_y.sync_ghosts();
     post_z.sync_ghosts();
 
+    File xpf("post_x.pvd");
+    File ypf("post_y.pvd");
+    File zpf("post_z.pvd");
+
+    xpf << post_x;
+    ypf << post_y;
+    zpf << post_z;
+
 
     delete[] x_values;
     delete[] y_values;
@@ -192,6 +209,7 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
   }
 
   mesh = new_mesh;  
+  mesh.renumber();
 
 }
 //-----------------------------------------------------------------------------
@@ -221,6 +239,8 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
   local_size = 0;
 
   uint nsdim = mesh.topology().dim();
+  real value;
+  uint global_index;
 
   for (CellIterator c(mesh); !c.end(); ++c) 
   {
@@ -235,8 +255,10 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 	  !marked.get(*v))
       {	
 	
-	std::pair<uint, real> p(mesh.distdata().get_global(v->index(), 0), 
-				values[v->index()]);				  
+	global_index = mesh.distdata().get_global(v->index(), 0);
+	f->vector().get(&value, 1, &global_index);
+
+	std::pair<uint, real> p(global_index, value);
 	recv_data.push_back(p);	
 	marked.set(*v, true);
 	continue;	
@@ -244,8 +266,12 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
       
       if (!mesh.distdata().is_ghost(v->index(), 0) && !marked.get(*v))
       {	
-	send_buffer[target_proc].push_back(values[v->index()]);
-	send_buffer_indices[target_proc].push_back(mesh.distdata().get_global(v->index(), 0));	
+	global_index = mesh.distdata().get_global(v->index(), 0);
+	f->vector().get(&value, 1, &global_index);
+
+	//	send_buffer[target_proc].push_back(values[v->index()]);
+	send_buffer[target_proc].push_back(value);
+	send_buffer_indices[target_proc].push_back(global_index);	
 	marked.set(*v, true);
       }
     }
