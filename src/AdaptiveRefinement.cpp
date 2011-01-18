@@ -231,15 +231,15 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
 
     for (VertexIterator v(*c); !v.end(); ++v)
     {
-
+      
+      global_index = mesh.distdata().get_global(v->index(), 0);
+      f->vector().get(&value, 1, &global_index);
+      
       if (target_proc == pe_rank && 
 	  !mesh.distdata().is_ghost(v->index(), 0) &&
 	  !marked.get(*v))
       {	
 	
-	global_index = mesh.distdata().get_global(v->index(), 0);
-	f->vector().get(&value, 1, &global_index);
-
 	std::pair<uint, real> p(global_index, value);
 	recv_data.push_back(p);	
 	marked.set(*v, true);
@@ -248,10 +248,7 @@ void AdaptiveRefinement::redistribute_func(Mesh& mesh, Function *f,
       
       if (!mesh.distdata().is_ghost(v->index(), 0) && !marked.get(*v))
       {	
-	global_index = mesh.distdata().get_global(v->index(), 0);
-	f->vector().get(&value, 1, &global_index);
-
-	//	send_buffer[target_proc].push_back(values[v->index()]);
+	
 	send_buffer[target_proc].push_back(value);
 	send_buffer_indices[target_proc].push_back(global_index);	
 	marked.set(*v, true);

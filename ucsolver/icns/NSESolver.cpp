@@ -6,7 +6,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2010-09-13
+// Last changed: 2011-01-18
 
 #include <cstring>
 #include <sstream>
@@ -336,17 +336,9 @@ void NSESolver::solve()
     p_filename << "../scratch/projected_0" << "_" << MPI::processNumber() << ".bin" << std::ends;
     File p_file(p_filename.str());
     p_file >> u.vector();
-    u.vector().apply();
-    
-
-    //    dolfin_set("adapt_projected", false);
-
-    File pp("projected.pvd");
-    pp << u;
-
+    u.sync_ghosts();   
+    dolfin_set("adapt_projected", false);
   }
-
-
 
   Assembler assembler(mesh);
   
@@ -670,7 +662,7 @@ void NSESolver::solve()
     p_ufile << u.vector();
     p_pfile << p.vector();        
   }
-
+  
   if(solver_type == "dual")
   {
     file_r << errest->Rf;
@@ -718,34 +710,26 @@ void NSESolver::solve()
       dolfin_set("Load balancer redistribute", false);      
 
       Form *primal_amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
-      //      Form *primal_Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
 
-      Function p_primal, u_primal;
-      Vector xp_primal, xu_primal;
-      
-      //      p_primal.init(mesh, xp_primal, *primal_Lmom, 4);
+      Function u_primal;
+      Vector xu_primal;
+
       u_primal.init(mesh, xu_primal, *primal_amom, 1);
-      //      p_pfile >> p_primal.vector();
-      //      p_primal.sync_ghosts();
       p_ufile >> u_primal.vector();
       u_primal.sync_ghosts();
 
       std::vector<AdaptiveRefinement::project_func>  pf;
-      //      AdaptiveRefinement::form_tuple p_form(primal_Lmom, 4);
-      //      AdaptiveRefinement::project_func p_project(&p_primal, p_form);
-
       AdaptiveRefinement::form_tuple u_form(primal_amom, 1);
       AdaptiveRefinement::project_func u_project(&u_primal, u_form);
 
-      //      pf.push_back(p_project);    
       pf.push_back(u_project);    
-
       
       AdaptiveRefinement::refine_and_project(mesh, pf, cell_marker);
       dolfin_set("adapt_projected", true);
+      pf.clear();
 
-      //      delete primal_Lmom;
-      //      delete primal_amom;
+      delete primal_amom;
+
     }
     else
       AdaptiveRefinement::refine(mesh, cell_marker);
