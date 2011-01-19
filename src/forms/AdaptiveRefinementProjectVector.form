@@ -1,0 +1,12 @@
+name = "AdaptiveRefinementProjectVector"
+vector = VectorElement("Lagrange", "tetrahedron", 1)
+
+
+
+v      = TestFunction(vector)      
+u      = Function(vector)
+
+
+L = dot(v, u) * dx
+
+

@@ -2,7 +2,7 @@
 // Licensed under the GNU LGPL Version 2.1.
 //
 // First added:  2010-09-13
-// Last changed: 2010-10-11
+// Last changed: 2011-01-18
 
 #ifndef __ADAPTIVEREFINEMENT_H
 #define __ADAPTIVEREFINEMENT_H
@@ -31,21 +31,14 @@ namespace dolfin
 
       static void redistribute_func(Mesh& mesh, Function *f, 
 				    real **vp, uint **rp, uint& m,
-				    Form& form, uint offset,
 				    MeshFunction<uint>& distribution);
 
+      static void decompose_func(Mesh& mesh, Function *f, uint offset, Form& form,
+				 Function& f_x, Function& f_y, Function& f_z);
 
-      // Comparison operator for index/value pairs    
-      struct less_pair : public std::binary_function<std::pair<uint, real>,
-						     std::pair<uint, real>, bool>
-      {
-        bool operator()(std::pair<uint, real> x, std::pair<uint, real> y)
-	{
-	  return x.second < y.second;
-	}
-      };
-    
 
+      static void project(Mesh& new_mesh, Function& post_x,
+			  Function& post_y, Function& post_z, Vector& x_proj);
       
     };
   }
