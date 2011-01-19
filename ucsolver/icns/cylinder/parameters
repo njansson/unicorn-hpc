@@ -6,7 +6,7 @@ The initial data for Unicorn solver:
 10        n_samples - number of samples 
 10        adapt_iter - number of adaptive iterations
 0.001     adapt_tol - adaptive tolerance
-15        adapt_percentage - adaptive percentage 
+10        adapt_percentage - adaptive percentage 
 rivara	  adapt_algorithm - adaptive refinement type
 1	  adapt_project - adaptive projection
 
@@ -14,5 +14,5 @@ rivara	  adapt_algorithm - adaptive refinement type
 0.5	  dual_T - final time, dual solver
 1.0       Ubar - free stream velocity
 
-bicgstab  krylov_method - krylov method
+gmres	  krylov_method - krylov method
 amg	  krylov_pc - preconditioner
