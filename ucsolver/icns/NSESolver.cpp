@@ -567,13 +567,7 @@ void NSESolver::solve()
     dolfin_set("output destination","silent");      
     
     if(solver_type == "dual")
-    {
-      real w = 1.0;
-      if(s <= T / 2.0)
-      	w = 0.0;
-
-      errest->ComputeErrorIndicator(t, k, T, w);
-    }
+      errest->ComputeErrorIndicator(t, k, T, 1.0);
 
     if(residual > rtol)
       warning("NSE fixed point iteration did not converge"); 
