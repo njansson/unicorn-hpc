@@ -426,7 +426,7 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
       x[1] = v->x()[1];
       x[2] = v->x()[2];           
       post_x.eval(&test_value, &x[0]);      
-      if (std::isinf(test_value)) {
+      if (test_value == std::numeric_limits<real>::infinity()) {
 	for (EdgeIterator e(*v); !e.end(); ++e) {
 	  const uint *edge_v = e->entities(0);
 
@@ -436,11 +436,11 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
 	  x[1] = v_e->x()[1];
 	  x[2] = v_e->x()[2];        
 	  post_x.eval(&test_value, &x[0]);   
-	  if(!std::isinf(test_value))
+	if (test_value != std::numeric_limits<real>::infinity()) 
 	    break;
 	}
 
-	if(std::isinf(test_value))
+	if (test_value == std::numeric_limits<real>::infinity()) 
 	  error("Couldn't find any suitable projection point");	   	
       }
 
@@ -449,13 +449,13 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
       
       
       post_y.eval(&test_value, &x[0]);      
-      if (!std::isinf(test_value))  {
+      if (test_value != std::numeric_limits<real>::infinity())  {
 	vv[i] = test_value;
 	indices[i++] = local_indices[ci +  c->numEntities(0)];
       }
       
       post_z.eval(&test_value, &x[0]);      
-      if (!std::isinf(test_value)) {
+      if (test_value != std::numeric_limits<real>::infinity())  {
 	vv[i] = test_value;
 	indices[i++] = local_indices[ci + 2 * c->numEntities(0)]; 
       }
