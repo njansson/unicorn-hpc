@@ -197,7 +197,7 @@ namespace dolfin { namespace unicorn
       //real scale = cell.volume() / pow(cell.diameter(), cell.dim());
       //real scale = h;
       //real scale = pow(cell.volume(), 1.0 / cell.dim()) / cell.diameter() * h;
-      real scale = h / sqrt(cell.dim());
+      real scale = h / sqrt((real)cell.dim());
 
       real Finv[3*3];
       for (uint ii = 0; ii < 3; ii++)
