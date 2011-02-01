@@ -1,20 +1,19 @@
 // Copyright (C) 2008 Murtazo Nazarov
 // Licensed under the GNU GPL Version 2.
 //
-// Modified by Niclas Jansson 2009-2010.
+// Modified by Niclas Jansson 2009-2011.
 //
 #include <dolfin.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <boost/tokenizer.hpp>
+#include <cstring>
 
 
 #include "unicorn/UniParameters.h"
 
-typedef boost::tokenizer<boost::char_separator<char> > tokenizer;   
 using namespace dolfin;
 using namespace dolfin::unicorn;
 
@@ -50,22 +49,23 @@ void UniParameters::parse_parameters(std::string fname)
   if (!param_file.good())
     error("The parameters file %s cannot be opened", fname.c_str());
 
-  boost::char_separator<char> sep(" -\n\t");
+  const char *sep = " -\n\t";
+  char *token;
 
   while (param_file.good()) 
   {
     getline(param_file, str);
-    tokenizer tok(str,sep);
     std::string str_value;
     uint state = 0;
-    for(tokenizer::iterator beg=tok.begin(); beg!=tok.end(); beg++,(++state %= 2))
+    for(token = strtok(const_cast<char *>(str.c_str()), sep); 
+	token; token = strtok(NULL, sep), (++state %= 2))
     {
       if ( state == 0)
       {
-	str_value = *beg;
+	str_value = token;
 	continue;
       }
-      std::map<std::string, Type>::iterator it = parameters.find(*beg);
+      std::map<std::string, Type>::iterator it = parameters.find(token);
 
       if ( it != parameters.end())
       {
@@ -73,7 +73,7 @@ void UniParameters::parse_parameters(std::string fname)
 	{
 	  int value;
 	  if (parse_numeric(&value, str_value))
-	    dolfin_add(*beg, value);
+	    dolfin_add(token, value);
 	  else
 	    error("Failed to parse numeric type");
 	}
@@ -81,13 +81,13 @@ void UniParameters::parse_parameters(std::string fname)
 	{
 	  real value;
 	  if (parse_numeric(&value, str_value))
-	    dolfin_add(*beg, value);
+	    dolfin_add(token, value);
 	  else
 	    error("Failed to parse numeric type");
 	}
 	else if( it->second  == _STR_ )
 	{
-	  dolfin_add(*beg, str_value);
+	  dolfin_add(token, str_value);
 	}
 	else if( it->second == _BOOL_ )
 	{
@@ -95,9 +95,9 @@ void UniParameters::parse_parameters(std::string fname)
 	  if (parse_numeric(&value, str_value))
 	  {
 	    if (value)
-	      dolfin_add(*beg, true);
+	      dolfin_add(token, true);
 	    else
-	      dolfin_add(*beg, false);
+	      dolfin_add(token, false);
 	  }
 	  else
 	    error("Failed to parse numeric type");
