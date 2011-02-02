@@ -4,15 +4,27 @@
 #include <dolfin.h>
 #include <cstring>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <unicorn/unicorn_config.h>
 #include <unicorn/EquiAffineMap.h>
 #include <unicorn/MeshQuality.h>
 #include <unicorn/TimeDependentPDE.h>
 #include <unicorn/Project.h>
 #include <dolfin/fem/UFC.h>
 
+
+#if HAVE_SUNPERF_H
+#include <sunperf.h>
+#elif HAVE_SCSL_BLAS_H
+#include <scsl_blas.h>
+#elif HAVE_GSL_CBLAS_H
+extern "C" {
+#include <gsl_cblas.h>
+}
+#elif HAVE_CBLAS_H
 extern "C" {
 #include <cblas.h>
 }
+#endif
 
 #define RM(row,col,nrow) ((row) + ((nrow)*(col)))
 
@@ -205,7 +217,16 @@ namespace dolfin { namespace unicorn
 	  Finv[RM(ii,jj,3)] = map.C[RM(ii,jj,3)] * scale;
       
       real B[3*3];
-      cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+
+#if (HAVE_SCSL_BLAS_H)
+      dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, 
+	    &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+#elif ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H))
+      cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, 
+		  &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+#elif HAVE_F77_BLAS
+      error("ElasticSmoother not supported for F77 BLAS");
+#endif
 
 
       int d = cell.dim();
@@ -249,8 +270,16 @@ namespace dolfin { namespace unicorn
 
 	real B[3*3];
 	memset(&B[0], 0, 3*3*sizeof(real));
+
+#if (HAVE_SCSL_BLAS_H)
+	dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
+	      3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+#elif ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H))
 	cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
 		    3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+#elif HAVE_F77_BLAS
+      error("ElasticSmoother not supported for F77 BLAS");
+#endif
 
 	for(int i = 0; i < N; i++)
 	{
