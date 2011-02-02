@@ -2,7 +2,6 @@
 
 
 echo "Updating configuration..."
-autoheader
 echo "Running libtoolize"
 libtoolize -i
 

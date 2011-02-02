@@ -29,7 +29,7 @@ void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,
   if(dolfin::MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");
   dolfin_init(argc, argv);
-  message("Initializing Unicorn version %s.", PACKAGE_VERSION);
+  message("Initializing Unicorn version %s.", UNICORN_VERSION);
 
   if( argc < 5 ) 
     {
