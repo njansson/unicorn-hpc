@@ -4,7 +4,7 @@
 // First added:  2010-03-23
 // Last changed: 2010-03-23
 
-#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <dolfin.h>
+#include "unicorn/unicorn_config.h"
 #include "unicorn/UniParameters.h"
 #include "unicorn/init.h"
 

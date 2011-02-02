@@ -12,7 +12,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_C_INLINE
 
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([stdlib.h sys/time.h unistd.h])
@@ -24,12 +23,21 @@ AC_FUNC_ERROR_AT_LINE
 # Try to find a suitable BLAS
 AC_CHECK_HEADERS([cblas.h gsl_cblas.h sunperf.h scsl_blas.h],,)
 have_blas=no
-AC_SEARCH_LIBS([sgemm], [sunperf scs_mp scs blas],have_blas=yes, have_blas=no)
+AC_SEARCH_LIBS([sgemm], [sunperf scs_mp scs blas sci],have_blas=yes, have_blas=no)
 if test $have_blas = no; then
-   AC_SEARCH_LIBS([cblas_sgemm], [sunperf scs_mp scs blas gslcblas],have_blas=yes, have_blas=no)
+   AC_SEARCH_LIBS([cblas_sgemm], [sunperf scs_mp scs blas gslcblas sci],have_blas=yes, have_blas=no)
    if test $have_blas = no; then
       AC_CHECK_LIB(cblas, cblas_sgemm, [have_blas=yes, LIBS="-lcblas -latlas -lm $LIBS"],[have_blas=no],[-latlas -lm])
    fi
+   
+   # Fallback to FORTAN BLAS
+   if test $have_blas = no; then
+      AC_SEARCH_LIBS([sgemm_], [sunperf scs_mp scs blas sci],have_blas=yes, have_blas=no)
+      if test $have_blas = yes; then
+         AC_DEFINE(HAVE_F77_BLAS, [1], [Have FORTRAN BLAS])
+      fi
+   fi
+
 fi
 
 if test $have_blas = no; then
@@ -37,8 +45,7 @@ if test $have_blas = no; then
 fi
 
 
-
-AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_HEADERS([src/unicorn/unicorn_config.h])
 AC_CONFIG_FILES([Makefile src/Makefile unicorn.pc])
 AC_OUTPUT
 
