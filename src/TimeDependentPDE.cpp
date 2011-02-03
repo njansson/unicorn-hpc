@@ -99,9 +99,8 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
       k = korig;
     }
 
-    total_timer.restart();
-    
-    local_timer.restart();
+    MPI::startTimer(total_timer);
+    MPI::startTimer(local_timer);
     if(assembler)
     {
       delete assembler;
@@ -114,21 +113,21 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
 
     preparestep();
     if(dolfin::MPI::processNumber() == 0)
-      message("TPDE preparestep timer: %g", local_timer.elapsed());
+      message("TPDE preparestep timer: %g", MPI::stopTimer(local_timer));
 
-    local_timer.restart();
+    MPI::startTimer(local_timer);
     *x0 = *x;
 
     korig = k;
     step();
     if(dolfin::MPI::processNumber() == 0)
-      message("TPDE step timer: %g", local_timer.elapsed());
+      message("TPDE step timer: %g", MPI::stopTimer(local_timer));
 
 
-    local_timer.restart();
+
     save(U, t);
 
-    local_timer.restart();
+    MPI::startTimer(local_timer);
 
     bool cont = update(t, false); 
     if(!cont)
@@ -138,7 +137,7 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
     if(dolfin::MPI::processNumber() == 0)
     {
       std::cout << "TPDE: Stepping k: " << k << " t: " << t << std::endl;
-      std::cout << "TPDE total step timer: " << total_timer.elapsed() << std::endl;
+      std::cout << "TPDE total step timer: " << MPI::stopTimer(total_timer) << std::endl;
     }
   }
 
@@ -167,10 +166,10 @@ void TimeDependentPDE::step()
     incr0 = incr;
     res0 = res;
     res = 0;
-    local2_timer.restart();
+    MPI::startTimer(local2_timer);
     prepareiteration();
     if(dolfin::MPI::processNumber() == 0)
-      std::cout << "TPDE prepareiteration timer: " << local2_timer.elapsed() << std::endl;
+      std::cout << "TPDE prepareiteration timer: " << MPI::stopTimer(local2_timer) << std::endl;
     if(dolfin::MPI::processNumber() == 0)
       std::cout << "maxit: " << maxit << std::endl;
     incr = iter();
@@ -219,9 +218,9 @@ real TimeDependentPDE::iter()
     std::cout << "iterk: " << k << std::endl;
   }
 
-  iter_timer.restart();
+  MPI::startTimer(iter_timer);
 
-  local_timer.restart();
+  MPI::startTimer(local_timer);
   //if(t == 0.0)
 
   reassemble = true;
@@ -238,24 +237,24 @@ real TimeDependentPDE::iter()
   assembler->assemble(J, a(), reset_tensor);
   dolfin_set("output destination", "terminal");
   if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE assemble J timer: " << local_timer.elapsed() << std::endl;
+    std::cout << "TPDE assemble J timer: " << MPI::stopTimer(local_timer) << std::endl;
 
-  local_timer.restart();
+  MPI::startTimer(local_timer);
   fu(*x, *dotx, t);
   if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE fu timer: " << local_timer.elapsed() << std::endl;
+    std::cout << "TPDE fu timer: " << MPI::stopTimer(local_timer) << std::endl;
 
   // Add J * UP to Newton residual
 //   JNoBC->mult(*x, *xtmp);
 //   *dotx += *xtmp;
 
 
-  local_timer.restart();
+  MPI::startTimer(local_timer);
   dolfin_set("output destination", "silent");
   for (uint i = 0; i < bc().size(); i++)
     bc()[i]->apply(J, *dotx, a());
   if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE BC timer: " << local_timer.elapsed() << std::endl;
+    std::cout << "TPDE BC timer: " << MPI::stopTimer(local_timer) << std::endl;
 
   if(reset_tensor)
   {
@@ -267,7 +266,7 @@ real TimeDependentPDE::iter()
   J.mult(*x, *residual);
   *residual -= *dotx;
 
-  local_timer.restart();
+  MPI::startTimer(local_timer);
   dolfin_set("output destination", "silent");
   if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination", "terminal");
@@ -283,7 +282,7 @@ real TimeDependentPDE::iter()
 //   dotx->disp();
 
   if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE linear solve timer: " << local_timer.elapsed() << std::endl;
+    std::cout << "TPDE linear solve timer: " << MPI::stopTimer(local_timer) << std::endl;
 
   *dx -= *x;
   
@@ -294,7 +293,7 @@ real TimeDependentPDE::iter()
   res = std::max(oldres, resnorm);
 
   if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE total iter timer: " << iter_timer.elapsed() << std::endl;
+    std::cout << "TPDE total iter timer: " << MPI::stopTimer(iter_timer) << std::endl;
 
   return relincr;
   //return dx->norm(linf);

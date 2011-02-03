@@ -134,10 +134,10 @@ namespace dolfin { namespace unicorn
     Matrix* JNoBC;
     Vector JD;
 
-    boost::timer local_timer;
-    boost::timer local2_timer;
-    boost::timer iter_timer;
-    boost::timer total_timer;
+    real local_timer;
+    real local2_timer;
+    real iter_timer;
+    real total_timer;
   };
 
 }}
