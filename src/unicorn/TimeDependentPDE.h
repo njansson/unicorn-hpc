@@ -10,7 +10,6 @@
 #define __TIME_DEPENDENT_PDE_H
 
 #include <dolfin.h>
-#include <boost/timer.hpp>
 
 namespace dolfin { namespace unicorn
 {
