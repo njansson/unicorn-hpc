@@ -3,7 +3,6 @@
 
 #include <dolfin.h>
 #include <cstring>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <unicorn/unicorn_config.h>
 #include <unicorn/EquiAffineMap.h>
 #include <unicorn/MeshQuality.h>
