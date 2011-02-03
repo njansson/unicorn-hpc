@@ -6,7 +6,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2011-01-18
+// Last changed: 2011-02-03
 
 #include <cstring>
 #include <sstream>
@@ -67,6 +67,10 @@ NSESolver::NSESolver(Mesh& mesh, NodeNormal& node_normal,
     dolfin_add("krylov_method", "gmres");
   if(!ParameterSystem::parameters.defined("krylov_pc"))
     dolfin_add("krylov_pc", "amg");
+  if(!ParameterSystem::parameters.defined("krylov_pc_keep"))
+    dolfin_set("Krylov keep PC", false);
+  else
+    dolfin_set("Krylov keep PC", dolfin_get("krylov_pc_keep"));
 
 }
 //-----------------------------------------------------------------------------
