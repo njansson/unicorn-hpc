@@ -1,0 +1,56 @@
+
+Unicorn 0.1.1-hpc
+-----------------
+
+Background:
+
+Unicorn an attempt to unify continuum mechanics models and solvers in
+the FEniCS (www.fenicsproject.org) project. We define a fundamental
+model for conservation laws (mass, momentum, energy) which is fixed
+and then allow additional constitutive models for stress-strain
+relations. The total model is then solved using the G2 (General
+Galerkin) method which is based on FEM and duality-based adaptivity.
+
+Dependencies:
+
+Unicorn is part of a chain of components in FEniCS like so:
+
+FIAT - UFC - FFC - DOLFIN - Unicorn
+
+The package dependencies of Unicorn  are:
+
+    * ufc (1.1)
+    * ffc (0.5.1)
+    * dolfin (0.8.1-hpc)
+
+Source code structure:
+
+Unicorn is divided into two parts: a library (exists under src/) and
+example solvers (exists under ucsolver/), which uses the library to
+solve the equations of continuum mechanics using G2. There currently
+exists only one variant of ucsolver for the hpc branch (icns -
+Incompressible Navier-Stokes)
+
+There also exists test programs (under test/) which are used for
+development purposes, i.e. for testing various parts of the library or
+new ideas. These are not guaranteed to work but could be interesting
+to study.
+
+Development structure:
+
+Unicorn is openly developed as Free Software. The source code is
+version controlled in the Mercurial system in a public repository:
+
+https://launchpad.net/unicorn/hpc
+
+License:
+
+Unicorn is distributed under the Lesser General Public License (LGPL):
+
+http://www.fsf.org/licensing/licenses/lgpl.html
+
+
+
+
+
+
