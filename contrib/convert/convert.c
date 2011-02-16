@@ -9,79 +9,116 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libxml/xmlreader.h>
 
-int parse_header(xmlTextReaderPtr xml_reader) {
+void progress(int *state) {
+  switch(*state)
+    {
+    case 0:
+      putchar(45);
+      break;
+    case 1:      
+      putchar(92);
+      break;
+    case 2:
+      putchar(124);
+      break;
+    case 3:
+      putchar(47);
+      break;
+    }
+  fflush(stdout);
+  putchar(8);
+  *state = (*state + 1)%4;
+}
+int parse_header(xmlTextReaderPtr xml_reader, FILE *binary_fp,
+		 int *dim, int *celltype) {
 
-  printf("celltype=%s dim=%s\n",
-	 xmlTextReaderGetAttribute(xml_reader,"celltype"),
-	 xmlTextReaderGetAttribute(xml_reader,"dim"));
+  *dim = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"dim"));
+	 
+  if(strcmp((const char *) xmlTextReaderGetAttribute(xml_reader,"celltype"),
+	     "triangle") == 0)
+    *celltype = 0;
+  else if (strcmp((const char *)
+		   xmlTextReaderGetAttribute(xml_reader,"celltype"),
+		   "tetrahedron") == 0)
+    *celltype = 1;
 
+  fwrite(dim, sizeof(int), 1, binary_fp);
+  fwrite(celltype, sizeof(int), 1, binary_fp);
   return 0;
 }
 
 
-int parse_vertices(xmlTextReaderPtr xml_reader) {
+int parse_vertices(xmlTextReaderPtr xml_reader, FILE *binary_fp, int dim) {
 
-  int i, size;
-  double x,y,z;
+  int i, size,state;
+  double *data, *dp;
 
   size = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"size"));
+  data = malloc(size * dim * sizeof(double));
+  dp = &data[0];
 
-  x = y = z = 0.0;
+  state = 0;
+  printf("Reading vertices...");
   xmlTextReaderRead(xml_reader);    
   xmlTextReaderRead(xml_reader);    
   for (i = 0 ; i < size;
        xmlTextReaderRead(xml_reader),
 	 xmlTextReaderRead(xml_reader), i++) {
+    progress(&state);
+    *(dp++) = atof((const char *)xmlTextReaderGetAttribute(xml_reader,"x"));
+    *(dp++) = atof((const char *)xmlTextReaderGetAttribute(xml_reader,"y"));
+    if ( dim == 3)
+      *(dp++) = atof((const char *)xmlTextReaderGetAttribute(xml_reader,"z"));
     
-    x = atof((const char *)xmlTextReaderGetAttribute(xml_reader,"x"));
-    y = atof((const char *)xmlTextReaderGetAttribute(xml_reader,"y"));
-    if ( size == 3)
-      z = atof((const char *)xmlTextReaderGetAttribute(xml_reader,"z"));
-    
-    printf("x:%g y:%g z:%g\n", x,y,z);
-        
   }  
-  
+  printf("Done\n");
+  fwrite(data, sizeof(double), size * dim, binary_fp);
+  free(data);
   return 0;
 }
 
-int parse_cells(xmlTextReaderPtr xml_reader) {
+int parse_cells(xmlTextReaderPtr xml_reader, FILE *binary_fp, int celltype) {
 
-  int i, size;
-  int v0, v1, v2, v3;
-  
+  int i, size, state;
+  int *data, *dp;
 
   size = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"size"));
-  
+  data = malloc(size * (3 + celltype) * sizeof(int));
+  dp = &data[0];
+
+  state = 0;
+  printf("Reading cells...");  
   xmlTextReaderRead(xml_reader);    
   xmlTextReaderRead(xml_reader);    
   for (i = 0 ; i < size;
        xmlTextReaderRead(xml_reader),
 	 xmlTextReaderRead(xml_reader), i++) {
-    
-    v0 = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v0"));
-    v1 = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v1"));
-    v2 = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v2"));
-    
-    printf("v0:%d v1:%d v2:%d\n", v0,v1,v2);
-        
+    progress(&state);
+    *(dp++) = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v0"));
+    *(dp++) = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v1"));
+    *(dp++) = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v2"));
+    if (celltype == 1)
+      *(dp++) = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v2"));           
   }  
-  
+  printf("Done\n");
+
+  fwrite(data, sizeof(int), size * (3 + celltype), binary_fp);
+  free(data);
+
   return 0;
 }
-
-
 
 
 int main(int argc, char *argv[]) {
   
   FILE  *binary_fp;
   xmlTextReaderPtr xml_reader;
-  int status;
+  int dim, celltype;
 
-  if (argc < 2 ) { 
+  if (argc < 3 ) { 
     fprintf(stderr, "Usage: ./convert <xml mesh> <binary mesh>\n");
     return -1;
   }
@@ -92,39 +129,29 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Cant open DOLFIN xml file %s\n", argv[1]);
     return -1;
   }
+
+  binary_fp = fopen(argv[2], "w");
   
+  printf("Converting DOLFIN-xml to flat binary\n");
+
   /* Parse header */
-  status = xmlTextReaderRead(xml_reader);
-  status = xmlTextReaderRead(xml_reader);
-  status = xmlTextReaderRead(xml_reader);
-  parse_header(xml_reader);
-  
-  /* Parse vertices */
-  status = xmlTextReaderRead(xml_reader);
-  status = xmlTextReaderRead(xml_reader);
-  parse_vertices(xml_reader);
-
-  /* Parse vertices */
-  status = xmlTextReaderRead(xml_reader);
-  status = xmlTextReaderRead(xml_reader);
-  parse_cells(xml_reader);
-
-
+  xmlTextReaderRead(xml_reader);
+  xmlTextReaderRead(xml_reader);
+  xmlTextReaderRead(xml_reader);
+  parse_header(xml_reader, binary_fp, &dim, &celltype);
     
+  /* Parse vertices */
+  xmlTextReaderRead(xml_reader);
+  xmlTextReaderRead(xml_reader);
+  parse_vertices(xml_reader, binary_fp, dim);
+
+  /* Parse cells */
+  xmlTextReaderRead(xml_reader);
+  xmlTextReaderRead(xml_reader);
+  parse_cells(xml_reader, binary_fp, celltype);
+
   xmlFreeTextReader(xml_reader);
-
-
-  //  binary_fp = fopen(argv[2], "w");
  
-
-   
-
-  
-
-
-  //  fclose(xml_fp);
-  //  fclose(binary_fp);
-
- 
+  fclose(binary_fp);
   return 0;
 }
