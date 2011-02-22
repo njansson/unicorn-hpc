@@ -75,6 +75,7 @@ int parse_vertices(xmlTextReaderPtr xml_reader, FILE *binary_fp, int dim) {
     
   }  
   printf("Done\n");
+  fwrite(&size, sizeof(int), 1, binary_fp);
   fwrite(data, sizeof(double), size * dim, binary_fp);
   free(data);
   return 0;
@@ -104,7 +105,7 @@ int parse_cells(xmlTextReaderPtr xml_reader, FILE *binary_fp, int celltype) {
       *(dp++) = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"v2"));           
   }  
   printf("Done\n");
-
+  fwrite(&size, sizeof(int), 1, binary_fp);
   fwrite(data, sizeof(int), size * (3 + celltype), binary_fp);
   free(data);
 
