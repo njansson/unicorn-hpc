@@ -5,6 +5,7 @@ pkgconfig_DATA = unicorn.pc
 SUBDIRS = src
 
 dist_data_DATA =regen.sh test/elastic-smoother/Makefile test/elastic-smoother/README test/elastic-smoother/main.cpp  test/elastic-smoother/wedge.xml
+EXTRA_DIST = ucsolver
 
 
 
