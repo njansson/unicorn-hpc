@@ -43,14 +43,24 @@ version controlled in the Mercurial system in a public repository:
 
 https://launchpad.net/unicorn/hpc
 
+Testing:
+
+To verify correct installation and functionality of Unicorn, follow these steps:
+
+1. $ ./regen.sh (Generate configuration)
+2. $ source local.sh (Configure and setup environment variables)
+3. make install (Compile and install)
+4. cd ucsolver/icns/cube
+5. make
+6. mpirun -np 8 ./cube -p parameters -m mesh.xml 1> log1 2> log2 &
+(increase or decrease "8" to match the number of cores in your system)
+
+The test corresponds to turbulent flow around a cube described in the
+chapter "Turbulent Flow and Fluid-Structure Interaction" in the book "Automated Scientific Computing".
+
 License:
 
 Unicorn is distributed under the Lesser General Public License (LGPL):
 
 http://www.fsf.org/licensing/licenses/lgpl.html
-
-
-
-
-
 
