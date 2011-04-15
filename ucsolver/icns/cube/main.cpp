@@ -6,7 +6,8 @@
 // Modified by Johan Jansson 2011
 //
 //
-// Unicorn test problem from "Automated Scientific Computing" of turbulent flow past a cube
+// Unicorn test problem from "Automated Scientific Computing" of turbulent flow past a cube.
+// The output quantity in "aero_f.dat" is the drag force F (second column). The drag coefficient is Cd = 2F.
 // 
 
 #include <stdlib.h>
