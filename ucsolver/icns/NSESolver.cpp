@@ -6,7 +6,7 @@
 // Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2011-02-03
+// Last changed: 2011-04-16
 
 #include <cstring>
 #include <sstream>
@@ -17,6 +17,7 @@
 #include <iomanip>
 
 #include <dolfin.h>
+#include <dolfin/config/dolfin_config.h>
 #include <dolfin/fem/UFC.h>
 
 #include "unicorn/Drag3D.h"
@@ -337,7 +338,11 @@ void NSESolver::solve()
   if(solver_type == "primal" && dolfin_get("adapt_projected"))  
   {
     std::stringstream p_filename;
+#ifdef ENABLE_MPIIO
+    p_filename << "../scratch/projected_0.bin" << std::ends; 
+#else
     p_filename << "../scratch/projected_0" << "_" << MPI::processNumber() << ".bin" << std::ends;
+#endif
     File p_file(p_filename.str());
     p_file >> u.vector();
     u.sync_ghosts();   
@@ -359,10 +364,14 @@ void NSESolver::solve()
   output_filename << solver_type << "_solution.pvd";
   
   std::stringstream p_ufilename;
-  p_ufilename << "project_u" << "_" << MPI::processNumber() << ".bin" << std::ends;
-
   std::stringstream p_pfilename;
+#ifdef ENABLE_MPIIO
+  p_ufilename << "project_u.bin" << std::ends;
+  p_pfilename << "project_p.bin" << std::ends;
+#else
+  p_ufilename << "project_u" << "_" << MPI::processNumber() << ".bin" << std::ends;
   p_pfilename << "project_p" << "_" << MPI::processNumber() << ".bin" << std::ends;
+#endif
 
   File p_ufile(p_ufilename.str());
   File p_pfile(p_pfilename.str());
@@ -620,21 +629,33 @@ void NSESolver::solve()
 	
 	// Save primal velocity
 	std::stringstream filename;
+#ifdef ENABLE_MPIIO
+	filename << "velocity" << number.str() << ".bin" << std::ends;
+#else
 	filename << "velocity" << number.str() <<  "_" << MPI::processNumber() << ".bin" << std::ends;
+#endif
 
 	File velxmlfile(filename.str());
 	velxmlfile << u.vector();
 
 	// Save time derivative of primal velocity
 	std::stringstream dtfilename;
+#ifdef ENABLE_MPIIO
+	dtfilename << "dtvelocity" << number.str() << ".bin" << std::ends;
+#else
 	dtfilename << "dtvelocity" << number.str() <<  "_" << MPI::processNumber() << ".bin"  << std::ends;
+#endif
 	
 	File dtxmlfile(dtfilename.str());
 	dtxmlfile << dtu.vector();
 
 	// Save pressure
 	std::stringstream pfilename;
+#ifdef ENABLE_MPIIO
+	pfilename << "pressure" << number.str() << ".bin" << std::ends;
+#else
 	pfilename << "pressure" << number.str() << "_" << MPI::processNumber() << ".bin" <<  std::ends;
+#endif
 	
 	File pxmlfile(pfilename.str());
 	pxmlfile << p.vector();

@@ -2,7 +2,7 @@
 // Licensed under the GNU LGPL Version 2.1.
 //
 // First added:  2010-09-13
-// Last changed: 2011-01-18
+// Last changed: 2011-04-16
 
 #include <algorithm>
 #include <limits>
@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <dolfin.h>
+#include <dolfin/config/dolfin_config.h>
 #include <dolfin/io/BinaryFile.h>
 #include <dolfin/fem/UFC.h>
 #include "unicorn/AdaptiveRefinement.h"
@@ -181,7 +182,11 @@ void AdaptiveRefinement::refine_and_project(Mesh& mesh,
     AdaptiveRefinement::project(new_mesh, post_x, post_y, post_z, xproj);
 
     std::stringstream p_filename;
+#ifdef ENABLE_MPIIO
+    p_filename << "../scratch/projected_" << p_count++ << ".bin" << std::ends;
+#else
     p_filename << "../scratch/projected_" << p_count++ << "_" << MPI::processNumber() << ".bin" << std::ends;
+#endif
     File p_file(p_filename.str());
     p_file << xproj;
 
