@@ -43,14 +43,42 @@ version controlled in the Mercurial system in a public repository:
 
 https://launchpad.net/unicorn/hpc
 
+Testing:
+
+The test corresponds to turbulent flow around a cube described in the
+chapter "Turbulent Flow and Fluid-Structure Interaction" and section
+"High Re turbulent flow" in the book "Automated Scientific Computing".
+
+To verify correct installation and functionality of Unicorn, follow
+these steps:
+
+1. $ source local.sh (Configure and setup environment variables)
+2. make install (Compile and install)
+3. cd ucsolver/icns/cube
+4. make
+5. mpirun -np 8 ./cube -p parameters -m mesh.xml 1> log1 2> log2 &
+(increase or decrease "8" to match the number of cores in your system)
+
+When the simulation runs it will create output files in the directory
+iter_0 (and subsequently iter_1, iter_2, etc.) corresponding to
+iteration 0 of the adaptive mesh refinement iteration.
+
+If the simulation runs and creates files in iter_0, Unicorn is
+functioning correctly.
+
+To reproduce the drag computation for the cube geometry given in
+section "High Re turbulent flow", let the iteration run, producing
+several iter_x directories. Inside these directories, a file
+"aero_f.dat" is generated. The output quantity in "aero_f.dat" is a
+time series of the drag force F (second column). The drag coefficient
+is Cd = 2F. The mean value (of the time series) of the drag
+coefficient is what is plotted in figure 1, and should converge to the
+same value and tolerance as given in figure 1 and in section "High Re
+turbulent flow".
+
 License:
 
 Unicorn is distributed under the Lesser General Public License (LGPL):
 
 http://www.fsf.org/licensing/licenses/lgpl.html
-
-
-
-
-
 
