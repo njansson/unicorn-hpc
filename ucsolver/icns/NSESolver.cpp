@@ -610,7 +610,7 @@ void NSESolver::solve()
     if ( (time_step == 1 || WALL_CLOCK_LIMIT) || (t > (T-T0)*(real(sample)/real(no_samples))) ){
       if(dolfin::MPI::processNumber() == 0)
 	dolfin_set("output destination","terminal");      
-      chkp.write(solver_type, solver_type == "dual", t+k, mesh, func, vec, t > 0.0); // FIXME +k (^-^)
+      chkp.write(solver_type, solver_type == "dual", t+k, mesh, func, vec, time_step != 1); // FIXME +k (^-^)
       message("Save solution to file");
       dolfin_set("output destination","silent");      
       file_solution << output;
@@ -691,7 +691,7 @@ void NSESolver::solve()
 
   if(dolfin::MPI::processNumber() == 0)
     dolfin_set("output destination","terminal");      
-  chkp.write(solver_type, solver_type == "dual", t-k, mesh, func, vec, false); 
+  chkp.write(solver_type, solver_type == "dual", t-k, mesh, func, vec, true); 
   message("save solution to file");
   file_solution << output;
   dolfin_set("output destination","silent");      
