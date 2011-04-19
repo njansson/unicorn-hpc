@@ -1,0 +1,1 @@
+TESTS = unicorn/test.sh
