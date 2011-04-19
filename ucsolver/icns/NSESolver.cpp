@@ -495,9 +495,6 @@ void NSESolver::solve()
       message("Compute stab took %g seconds",toc());
       dolfin_set("output destination","silent");
 
-      // Compute time derivative of primal velocity
-      ComputeTimeDerivative(mesh, u, u0, k, dtu);
-
       // Compute cell mean
       ComputeMean(mesh,um,uc, *amom);
       if(dolfin::MPI::processNumber() == 0)
@@ -563,6 +560,9 @@ void NSESolver::solve()
       message("Linear solve took %g seconds",toc());
       dolfin_set("output destination","silent");    
       
+      // Compute time derivative of primal velocity
+      ComputeTimeDerivative(mesh, u, u0, k, dtu);
+
       iteration++;
     }
     if(dolfin::MPI::processNumber() == 0)
