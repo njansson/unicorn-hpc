@@ -145,9 +145,10 @@ void NSESolver::solve()
 
   real T0 = 0.0;        // start time 
   real t  = 0.0;        // current time
+  real primal_T = dolfin_get("T"); // Final time, primal solver
   if(chkp.restart())
     t = chkp.restart_time();
-  real s = T - t;
+  real s = primal_T - t;
   td.sync(&t);
 
   // Set time step (proportional to the minimum cell diameter) 
@@ -433,7 +434,7 @@ void NSESolver::solve()
     std::vector<std::string> primal_fnames;
     
     Up->util_fileList("velocity", no_samples, primal_fnames);
-    Up->util_addFiles(primal_fnames, T);
+    Up->util_addFiles(primal_fnames, primal_T);
     
     Up->eval(s);
     
@@ -443,7 +444,7 @@ void NSESolver::solve()
     std::vector<std::string> dtprimal_fnames;
     
     dtUp->util_fileList("dtvelocity", no_samples, dtprimal_fnames);
-    dtUp->util_addFiles(dtprimal_fnames, T);
+    dtUp->util_addFiles(dtprimal_fnames, primal_T);
     
     dtUp->eval(s);
 
@@ -452,7 +453,7 @@ void NSESolver::solve()
     std::vector<std::string> pprimal_fnames;
     
     Pp->util_fileList("pressure", no_samples, pprimal_fnames);
-    Pp->util_addFiles(pprimal_fnames, T);
+    Pp->util_addFiles(pprimal_fnames, primal_T);
     
     Pp->eval(s);
   }
@@ -472,7 +473,7 @@ void NSESolver::solve()
     message("Time step %d",time_step);
     dolfin_set("output destination","silent");
     
-    s = T - t;
+    s = primal_T - t;
     if (solver_type == "dual")
     {
       Up->eval(s);
@@ -503,9 +504,6 @@ void NSESolver::solve()
         dolfin_set("output destination","terminal");
       message("Compute stab took %g seconds",toc());
       dolfin_set("output destination","silent");
-
-      // Compute time derivative of primal velocity
-      ComputeTimeDerivative(mesh, u, u0, k, dtu);
 
       // Compute cell mean
       ComputeMean(mesh,um,uc, *amom);
@@ -572,6 +570,9 @@ void NSESolver::solve()
       message("Linear solve took %g seconds",toc());
       dolfin_set("output destination","silent");    
       
+      // Compute time derivative of primal velocity
+      ComputeTimeDerivative(mesh, u, u0, k, dtu);
+
       iteration++;
     }
     if(dolfin::MPI::processNumber() == 0)
