@@ -1,5 +1,5 @@
  
-AC_INIT([unicorn],[0.1.1-hpc])
+AC_INIT([unicorn],[0.1.2-hpc])
 AC_DEFINE_UNQUOTED(UNICORN_VERSION,["${PACKAGE_VERSION}"],[Version of Unicorn])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -47,7 +47,9 @@ fi
 
 
 AC_CONFIG_HEADERS([src/unicorn/unicorn_config.h])
-AC_CONFIG_FILES([Makefile src/Makefile unicorn.pc])
+AC_CONFIG_FILES([Makefile src/Makefile test/Makefile \
+			  test/unicorn/Makefile \
+			  test/icns/Makefile unicorn.pc])
 AC_OUTPUT
 
 # Display help text
