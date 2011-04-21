@@ -1,5 +1,0 @@
-#!/bin/sh
-echo 'Running ICNS solver test'
-echo '========================'
-rm -fr iter*
-mpirun -np 4 ./cylinder -p parameters -m ../../ucsolver/icns/cylinder/cylinder_3d_bmk.xml.gz
