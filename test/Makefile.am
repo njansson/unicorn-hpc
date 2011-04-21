@@ -1,1 +1,3 @@
-TESTS = unicorn/test.sh
+SUBDIRS = unicorn
+
+
