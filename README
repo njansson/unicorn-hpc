@@ -1,5 +1,5 @@
 
-Unicorn 0.1.1-hpc
+Unicorn 0.1.2-hpc
 -----------------
 
 Background:
@@ -43,6 +43,15 @@ Unicorn is openly developed as Free Software. The source code is
 version controlled in the Bazaar system in a public repository:
 
 https://launchpad.net/unicorn/hpc
+
+Installation:
+
+To build and install Unicorn, follow these steps:
+
+1. ./configure 
+2. make (Compile without running any tests) 
+3. make check (Compile and run pre-installation tests, can be omitted)
+4. make install 
 
 Testing:
 
