@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
+#include <cstdlib>
 #include <fstream>
 #include <list>
 #include <map>
@@ -16,15 +17,16 @@
 
 using namespace dolfin;
 
-struct DVertex {
-  DVertex(int _id, Point _p) 
+
+struct dVertex {
+  dVertex(int _id, Point _p) 
   { id = _id; p = _p;};
   unsigned int id;
   Point p;
 };
 
-struct DCell {
-  DCell(Array<unsigned int> _vertices) 
+struct dCell {
+  dCell(Array<unsigned int> _vertices) 
   { vertices = _vertices;};
   Array<unsigned int> vertices;
 };
@@ -53,8 +55,8 @@ int main(int argc, char *argv[]) {
   double t;
   unsigned int id, tdim, gdim, num_vertices, num_cells, num_entities;
   std::ifstream in;
-  std::list<DVertex> vlist;
-  std::list<DCell> dmesh;
+  std::list<dVertex> vlist;
+  std::list<dCell> dmesh;
   for(std::vector<std::string>::iterator it = chkp_files.begin(); 
       it != chkp_files.end(); ++it) { 
 
@@ -75,15 +77,15 @@ int main(int argc, char *argv[]) {
       double *coords = new double[gdim *num_vertices];
       in.read((char *)coords, (gdim * num_vertices) * sizeof(double));
       
-      std::list<DVertex> _vlist;
+      std::list<dVertex> _vlist;
       int vi = 0;
       for(unsigned int i = 0; i < gdim * num_vertices; i += gdim) {
 	switch(gdim)
 	{
 	case 2:
-	  _vlist.push_back(DVertex(vi++,  Point(coords[i], coords[i+1]))); break;
+	  _vlist.push_back(dVertex(vi++,  Point(coords[i], coords[i+1]))); break;
 	case 3:
-	  _vlist.push_back(DVertex(vi++,  Point(coords[i], coords[i+1], coords[i+2]))); break;
+	  _vlist.push_back(dVertex(vi++,  Point(coords[i], coords[i+1], coords[i+2]))); break;
 	}
       }
       delete[] coords;
@@ -96,7 +98,7 @@ int main(int argc, char *argv[]) {
 
       unsigned int *mp = &mapping[0];
       std::map<unsigned int, unsigned int> vmap;      
-      for(std::list<DVertex>::iterator it = _vlist.begin(); 
+      for(std::list<dVertex>::iterator it = _vlist.begin(); 
 	  it != _vlist.end(); ++it) 
 	vmap[it->id] = *(mp++);
       delete[] mapping;	
@@ -106,7 +108,7 @@ int main(int argc, char *argv[]) {
 	v.clear();
 	for(unsigned int j = 0; j < num_entities; j++)
 	  v.push_back(vmap[cells[i+j]]);
-	dmesh.push_back(DCell(v));
+	dmesh.push_back(dCell(v));
       }
       delete[] cells;
 
@@ -120,10 +122,10 @@ int main(int argc, char *argv[]) {
 	ghost_set.insert(ghosts[i]);
       delete[] ghosts;
 
-      for(std::list<DVertex>::iterator it = _vlist.begin(); 
+      for(std::list<dVertex>::iterator it = _vlist.begin(); 
 	  it != _vlist.end(); ++it) 
 	if(ghost_set.find(it->id) == ghost_set.end()) 
-	  vlist.push_back(DVertex(vmap[it->id], it->p));
+	  vlist.push_back(dVertex(vmap[it->id], it->p));
     }
     in.close();
   }
@@ -135,11 +137,11 @@ int main(int argc, char *argv[]) {
   editor.initCells(dmesh.size());
 
   
-  for(std::list<DVertex>::iterator it = vlist.begin(); it != vlist.end(); ++it)
+  for(std::list<dVertex>::iterator it = vlist.begin(); it != vlist.end(); ++it)
     editor.addVertex(it->id, it->p);
 
   unsigned int ci = 0;
-  for(std::list<DCell>::iterator it = dmesh.begin(); it != dmesh.end(); ++it)
+  for(std::list<dCell>::iterator it = dmesh.begin(); it != dmesh.end(); ++it)
     editor.addCell(ci++, it->vertices);
   
   editor.close();
