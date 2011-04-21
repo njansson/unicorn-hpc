@@ -74,8 +74,8 @@ several iter_x directories. Inside these directories, a file
 time series of the drag force F (second column). The drag coefficient
 is Cd = 2F. The mean value (of the time series) of the drag
 coefficient is what is plotted in figure 1, and should converge to the
-same value and tolerance as given in figure 1 and in section "High Re
-turbulent flow".
+reference value Cd ~ 1.25 +- 5% as given in figure 1 and in
+section "High Re turbulent flow".
 
 License:
 
