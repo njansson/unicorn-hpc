@@ -1,0 +1,11 @@
+#!/bin/sh
+echo 'Running minimal solver test'
+for i in 1 4 9 
+do
+rm -fr iter*
+mpirun -np $i ./minimal -p parameters -m usquare.xml
+if [ ! -d "iter_4" ]; then
+    echo "*** Output directory not created" 1>&2
+    exit 1
+fi
+done
