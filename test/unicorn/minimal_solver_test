@@ -1,4 +1,5 @@
 #!/bin/sh
+cd unicorn
 echo 'Running minimal framework test'
 echo '=============================='
 for i in 1 4 9 
