@@ -11,6 +11,6 @@ cylinder_SOURCES = main.cpp \
 	$(top_builddir)/ucsolver/icns/unicorn/NSEResMomentum3D.cpp \
         $(top_builddir)/ucsolver/icns/unicorn/Drag3D.cpp \
         $(top_builddir)/ucsolver/icns/NSESolver.cpp 
-TESTS = icns_solver_test icns_chkp_restart_test
+
 
 
