@@ -47,7 +47,9 @@ fi
 
 
 AC_CONFIG_HEADERS([src/unicorn/unicorn_config.h])
-AC_CONFIG_FILES([Makefile src/Makefile test/Makefile test/unicorn/Makefile unicorn.pc])
+AC_CONFIG_FILES([Makefile src/Makefile test/Makefile \
+			  test/unicorn/Makefile \
+			  test/icns/Makefile unicorn.pc])
 AC_OUTPUT
 
 # Display help text

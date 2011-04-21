@@ -1,5 +1,6 @@
 #!/bin/sh
-echo 'Running minimal solver test'
+echo 'Running minimal framework test'
+echo '=============================='
 for i in 1 4 9 
 do
 rm -fr iter*
