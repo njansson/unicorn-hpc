@@ -7,7 +7,7 @@ AC_LANG(C++)
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT([disable-shared])
 PKG_CHECK_MODULES([DOLFIN], [dolfin = 0.8.1-hpc])
-CXXFLAGS="$DOLFIN_CFLAGS"
+CXXFLAGS="$CXXFLAGS $DOLFIN_CFLAGS"
 AC_PROG_CXX(`pkg-config --variable=compiler dolfin`)
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -22,11 +22,11 @@ AC_FUNC_ERROR_AT_LINE
 
 
 # Try to find a suitable BLAS
-AC_CHECK_HEADERS([cblas.h gsl_cblas.h sunperf.h scsl_blas.h],,)
+AC_CHECK_HEADERS([cblas.h gsl_cblas.h sunperf.h scsl_cblas.h],,)
 have_blas=no
-AC_SEARCH_LIBS([sgemm], [sunperf scs_mp scs blas sci],have_blas=yes, have_blas=no)
+AC_SEARCH_LIBS([sgemm], [sunperf scs blas sci],have_blas=yes, have_blas=no)
 if test $have_blas = no; then
-   AC_SEARCH_LIBS([cblas_sgemm], [sunperf scs_mp scs blas gslcblas sci],have_blas=yes, have_blas=no)
+   AC_SEARCH_LIBS([cblas_sgemm], [sunperf scs blas gslcblas sci],have_blas=yes, have_blas=no)
    if test $have_blas = no; then
       AC_CHECK_LIB(cblas, cblas_sgemm, [have_blas=yes, LIBS="-lcblas -latlas -lm $LIBS"],[have_blas=no],[-latlas -lm])
    fi
