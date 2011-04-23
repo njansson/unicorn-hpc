@@ -13,8 +13,8 @@
 
 #if HAVE_SUNPERF_H
 #include <sunperf.h>
-#elif HAVE_SCSL_BLAS_H
-#include <scsl_blas.h>
+#elif HAVE_SCSL_CBLAS_H
+#include <cmplrs/cblas.h>
 #elif HAVE_GSL_CBLAS_H
 extern "C" {
 #include <gsl_cblas.h>
@@ -217,10 +217,7 @@ namespace dolfin { namespace unicorn
       
       real B[3*3];
 
-#if (HAVE_SCSL_BLAS_H)
-      dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, 
-	    &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
-#elif ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H))
+#if ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H || HAVE_SCSL_CBLAS_H))
       cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, 
 		  &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #elif HAVE_F77_BLAS
@@ -270,10 +267,7 @@ namespace dolfin { namespace unicorn
 	real B[3*3];
 	memset(&B[0], 0, 3*3*sizeof(real));
 
-#if (HAVE_SCSL_BLAS_H)
-	dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
-	      3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
-#elif ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H))
+#if ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H || HAVE_SCSL_CBLAS_H))
 	cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
 		    3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #elif HAVE_F77_BLAS
