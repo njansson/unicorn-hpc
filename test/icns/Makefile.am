@@ -12,5 +12,5 @@ cylinder_SOURCES = main.cpp \
         $(top_builddir)/ucsolver/icns/unicorn/Drag3D.cpp \
         $(top_builddir)/ucsolver/icns/NSESolver.cpp 
 
-
+dist_data_DATA = parameters solver_test chkp_restart_test
 
