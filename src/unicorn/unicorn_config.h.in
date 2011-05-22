@@ -25,8 +25,8 @@
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
 
-/* Define to 1 if you have the <scsl_blas.h> header file. */
-#undef HAVE_SCSL_BLAS_H
+/* Define to 1 if you have the <scsl_cblas.h> header file. */
+#undef HAVE_SCSL_CBLAS_H
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H
