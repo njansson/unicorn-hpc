@@ -157,9 +157,9 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   pde.reset_tensor = reset_tensor;
 
   //Compute solution
-  pde.timer1.restart();
+  MPI::startTimer(pde.timer1);
   pde.solve(U, U0);
-  message("ElasticSmoother timer smooth: %g", pde.timer1.elapsed());
+  message("ElasticSmoother timer smooth: %g", MPI::stopTimer(pde.timer1));
 
 //   File smoothed_mesh("smoothed.xml");
 //   smoothed_mesh << sub;
