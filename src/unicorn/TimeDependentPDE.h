@@ -10,6 +10,7 @@
 #define __TIME_DEPENDENT_PDE_H
 
 #include <dolfin.h>
+//#include <boost/timer.hpp>
 
 namespace dolfin { namespace unicorn
 {
@@ -23,11 +24,12 @@ namespace dolfin { namespace unicorn
     /// Define a time dependent PDE with boundary conditions
     TimeDependentPDE(Form& a, Form& L, Mesh& mesh,
 		     Array <BoundaryCondition*>& bcs, real T,
+		     std::string name,
 		     Form* aJac = 0,
 		     Form* aP = 0,
 		     Form* LP = 0);
 
-    TimeDependentPDE(Mesh& mesh, Array <BoundaryCondition*>& bcs, real T);
+    TimeDependentPDE(Mesh& mesh, Array <BoundaryCondition*>& bcs, real T, std::string name);
 
     /// Destructor
     virtual ~TimeDependentPDE();
@@ -46,6 +48,8 @@ namespace dolfin { namespace unicorn
 
     /// Revert one time step (e.g. if diverging)
     virtual void revert();
+
+    virtual void reset(real T);
 
     /// ODE timestep
     virtual real timestep(real t, real k0) const;
@@ -129,14 +133,26 @@ namespace dolfin { namespace unicorn
     bool reset_tensor;
     bool reassemble;
 
-    Matrix J;
+    Matrix* J;
     Matrix* JNoBC;
     Vector JD;
+
+   /* boost::timer local_timer;
+    boost::timer local2_timer;
+    boost::timer iter_timer;
+    boost::timer total_timer;
+    boost::timer pde_timer;
+    boost::timer pde_timer2;*/
+    std::string st;
+
+ std::string name;
 
     real local_timer;
     real local2_timer;
     real iter_timer;
     real total_timer;
+    real pde_timer;
+    real pde_timer2;
   };
 
 }}

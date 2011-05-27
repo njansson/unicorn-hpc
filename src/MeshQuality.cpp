@@ -36,6 +36,8 @@ bool MeshQuality::isInverted(uint& first)
 
 real MeshQuality::cellQuality(Cell& cell) const
 {
+  int d = cell.mesh().topology().dim();
+
   EquiAffineMap map;
   map.update(cell);
   
@@ -45,13 +47,11 @@ real MeshQuality::cellQuality(Cell& cell) const
   // Compute Frobenius norm
   //  real Fnorm = map.B.norm();
   real Fnorm = 0.0;
-  for (uint i = 0; i < 3; i ++) 
-    for (uint j = 0; j < 3; j++)
+  for (uint i = 0; i < d; i ++) 
+    for (uint j = 0; j < d; j++)
       Fnorm += map.B[RM(i, j, 3)] * map.B[RM(i, j, 3)];
   Fnorm = sqrt(Fnorm);
   
-  int d = cell.mesh().topology().dim();
-
   real mu = d * pow(det, 2.0 / d) / pow(Fnorm, 2.0);
   return mu;
 }
@@ -251,7 +251,6 @@ void MeshQuality::disp()
 {
   if(dolfin::MPI::processNumber() == 0)
   {
-    dolfin_set("output destination", "terminal");
     cout << "Mesh quality rank " << dolfin::MPI::processNumber() << ":" << endl;
     cout << "mu_min: " << mu_min << endl;
     cout << "mu_max: " << mu_max << endl;
@@ -264,7 +263,6 @@ void MeshQuality::disp()
     cout << "h_avg: " << h_avg << endl;
     cout << "bbox_min: " << bbox_min << endl;
     cout << "bbox_max: " << bbox_max << endl;
-    dolfin_set("output destination", "silent");
   }
 }
 //-----------------------------------------------------------------------------

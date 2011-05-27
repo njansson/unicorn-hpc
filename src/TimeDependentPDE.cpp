@@ -16,6 +16,7 @@ using namespace dolfin::unicorn;
 //-----------------------------------------------------------------------------
 TimeDependentPDE::TimeDependentPDE(Form& a, Form& L, Mesh& mesh, 
 				   Array <BoundaryCondition*>& bcs, real T,
+				   std::string name,
 				   Form* aJac, Form* aP, Form* LP)
   : _mesh(&mesh), _bcs(&bcs),
     t(0), T(T),
@@ -29,7 +30,8 @@ TimeDependentPDE::TimeDependentPDE(Form& a, Form& L, Mesh& mesh,
     assembler(0),
     reset_tensor(true),
     reassemble(true),
-    JNoBC(0)
+    J(0), JNoBC(0),
+    name(name)
 {
 
   if(!ParameterSystem::parameters.defined("PDE reassemble matrix"))
@@ -40,7 +42,7 @@ TimeDependentPDE::TimeDependentPDE(Form& a, Form& L, Mesh& mesh,
 }
 //-----------------------------------------------------------------------------
 TimeDependentPDE::TimeDependentPDE(Mesh& mesh,
-				   Array <BoundaryCondition*>& bcs, real T) :
+				   Array <BoundaryCondition*>& bcs, real T, std::string name) :
     _mesh(&mesh), _bcs(&bcs),
     t(0), T(T),
     k(dolfin_get("ODE initial time step")),
@@ -51,7 +53,8 @@ TimeDependentPDE::TimeDependentPDE(Mesh& mesh,
     assembler(0),
     reset_tensor(true),
     reassemble(true),
-    JNoBC(0)
+    J(0), JNoBC(0),
+    name(name)
 {
 
   if(!ParameterSystem::parameters.defined("PDE reassemble matrix"))
@@ -81,6 +84,8 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
   dolfin_assert(_Lf);
   dolfin_assert(_mesh);
 
+  pde_timer = time(); //.start();
+
   message("Solving time dependent PDE.");
 
   u0(U.vector());
@@ -88,19 +93,12 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
 
   save(U, t);
 
-  korig = k;
-
   // Start time-stepping
   while(t < T) {
 
-    if(k != korig)
-    {
-      reassemble = true;
-      k = korig;
-    }
-
-    MPI::startTimer(total_timer);
-    MPI::startTimer(local_timer);
+    total_timer = time(); //.start();
+    
+    local_timer = time(); //.start();
     if(assembler)
     {
       delete assembler;
@@ -112,34 +110,35 @@ dolfin::uint TimeDependentPDE::solve(Function& U, Function& U0)
     }
 
     preparestep();
-    if(dolfin::MPI::processNumber() == 0)
-      message("TPDE preparestep timer: %g", MPI::stopTimer(local_timer));
+    //message("TPDE preparestep timer: %g", local_timer.elapsed());
+    message("TPDE preparestep timer: %g", time() - local_timer);
+//    local_timer.stop();
 
-    MPI::startTimer(local_timer);
+    //local_timer.restart();
+    local_timer = time(); //.start();
     *x0 = *x;
 
-    korig = k;
     step();
-    if(dolfin::MPI::processNumber() == 0)
-      message("TPDE step timer: %g", MPI::stopTimer(local_timer));
+    //message("TPDE step timer: %g", local_timer.elapsed());
+    message("TPDE step timer:  %g", time() - local_timer);
+//    local_timer.stop();
 
-
-
+    local_timer = time(); //.start();
     save(U, t);
 
-    MPI::startTimer(local_timer);
+    local_timer = time(); //.start();
 
     bool cont = update(t, false); 
     if(!cont)
       break;
 
     t += k;
-    if(dolfin::MPI::processNumber() == 0)
-    {
-      std::cout << "TPDE: Stepping k: " << k << " t: " << t << std::endl;
-      std::cout << "TPDE total step timer: " << MPI::stopTimer(total_timer) << std::endl;
-    }
+    cout << "TPDE: Stepping k: " << k << " t: " << t << endl;
+    cout << "TPDE total step timer: " << time() -  total_timer<< endl;;
   }
+
+  message("TPDE total PDE timer:  %g", time() - pde_timer);
+  //pde_timer.stop();
 
   return 0;
 }
@@ -153,9 +152,7 @@ void TimeDependentPDE::step()
 {
   const real tol = dolfin_get("ODE discrete tolerance");
 
-  dolfin_set("output destination", "terminal");
-  if(dolfin::MPI::processNumber() == 0)
-    cout << "TimeDependentPDE::step" << endl;
+  cout << "TimeDependentPDE::step" << endl;
 
   incr = 0;
   real incr0 = 0;
@@ -166,30 +163,24 @@ void TimeDependentPDE::step()
     incr0 = incr;
     res0 = res;
     res = 0;
-    MPI::startTimer(local2_timer);
+    local2_timer = time(); //.start();
     prepareiteration();
-    if(dolfin::MPI::processNumber() == 0)
-      std::cout << "TPDE prepareiteration timer: " << MPI::stopTimer(local2_timer) << std::endl;
-    if(dolfin::MPI::processNumber() == 0)
-      std::cout << "maxit: " << maxit << std::endl;
+    cout << "TPDE prepareiteration timer: " << time() - local2_timer << endl;
+    cout << "maxit: " << maxit << endl;
     incr = iter();
     itercounter++;
     postiteration();
 
-    if(dolfin::MPI::processNumber() == 0)
-      std::cout << "increment: " << incr << " " << it << std::endl;
-    if(dolfin::MPI::processNumber() == 0)
-      std::cout << "res: " << res << std::endl;
+    cout << name << " increment: " << incr << " " << it << endl;
+    cout << "res: " << res << endl;
     if(incr < tol)
     {
-      if(dolfin::MPI::processNumber() == 0)
-	std::cout << "increment: iteration converged" << std::endl;
+      cout << "increment: iteration converged" << endl;
       break;
     }
     else if(it > maxit)
     {
-      if(dolfin::MPI::processNumber() == 0)
-	message("TPDE: fixed-point iteration diverging");
+      message("TPDE: fixed-point iteration diverging");
       k = 0.5 * k;
       reassemble = true;
       *x = *x0;
@@ -198,13 +189,11 @@ void TimeDependentPDE::step()
     }
     else if(it == maxit - 1)
     {
-      if(dolfin::MPI::processNumber() == 0)
-	message("TPDE: fixed-point iteration didn't converge");
+      message("TPDE: fixed-point iteration didn't converge");
     }
     else
     {
-      if(dolfin::MPI::processNumber() == 0)
-	std::cout << "continue iter" << std::endl;
+      cout << "continue iter" << endl;
     }
     reset_tensor = false;
   }
@@ -212,15 +201,12 @@ void TimeDependentPDE::step()
 //-----------------------------------------------------------------------------
 real TimeDependentPDE::iter()
 {
-  if(dolfin::MPI::processNumber() == 0)
-  {
-    std::cout << "TimeDependentPDE::iter" << std::endl;
-    std::cout << "iterk: " << k << std::endl;
-  }
+  cout << "TimeDependentPDE::iter" << endl;
+  cout << "iterk: " << k << endl;
 
-  MPI::startTimer(iter_timer);
+  iter_timer = time(); //.start();
 
-  MPI::startTimer(local_timer);
+  local_timer= time(); //.start();
   //if(t == 0.0)
 
   reassemble = true;
@@ -231,30 +217,23 @@ real TimeDependentPDE::iter()
     dolfin_set("PDE reassemble matrix", false);
 
 
-  if(dolfin::MPI::processNumber() == 0)
-    message("TPDE: reassembling Jacobian matrix");
-  dolfin_set("output destination", "silent");
-  assembler->assemble(J, a(), reset_tensor);
-  dolfin_set("output destination", "terminal");
-  if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE assemble J timer: " << MPI::stopTimer(local_timer) << std::endl;
+  message("TPDE: reassembling Jacobian matrix");
+  assembler->assemble(*J, a(), reset_tensor);
+  cout << "TPDE assemble J timer: " << time() - local_timer << endl;
 
-  MPI::startTimer(local_timer);
+  local_timer = time() ;
   fu(*x, *dotx, t);
-  if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE fu timer: " << MPI::stopTimer(local_timer) << std::endl;
-
+  cout << "TPDE fu timer: " << time() - local_timer << endl;
+//  local_timer.stop();
   // Add J * UP to Newton residual
 //   JNoBC->mult(*x, *xtmp);
 //   *dotx += *xtmp;
 
 
-  MPI::startTimer(local_timer);
-  dolfin_set("output destination", "silent");
+  local_timer = time(); //.start();
   for (uint i = 0; i < bc().size(); i++)
-    bc()[i]->apply(J, *dotx, a());
-  if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE BC timer: " << MPI::stopTimer(local_timer) << std::endl;
+    bc()[i]->apply(*J, *dotx, a());
+  cout << "TPDE BC timer: " << time() - local_timer << endl;
 
   if(reset_tensor)
   {
@@ -263,39 +242,36 @@ real TimeDependentPDE::iter()
 
   *dx = *x;
 
-  J.mult(*x, *residual);
+  J->mult(*x, *residual);
   *residual -= *dotx;
 
-  MPI::startTimer(local_timer);
-  dolfin_set("output destination", "silent");
-  if(dolfin::MPI::processNumber() == 0)
-      dolfin_set("output destination", "terminal");
-  ksolver->solve(J, *x, *dotx);
-  dolfin_set("output destination", "silent");
+  local_timer = time(); //. start();
+  ksolver->solve(*J, *x, *dotx);
   //lusolver->solve(J, *dx, *dotx);
 
-//   std::cout << "J:" << std::endl;
+//   cout << "J:" << endl;
 //   J.disp();
-//   std::cout << "x:" << std::endl;
+//   cout << "x:" << endl;
 //   x->disp();
-//   std::cout << "dotx:" << std::endl;
+//   cout << "dotx:" << endl;
 //   dotx->disp();
 
-  if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE linear solve timer: " << MPI::stopTimer(local_timer) << std::endl;
+  cout << "TPDE linear solve timer: "<< time() - local_timer<< endl; 
 
   *dx -= *x;
   
-  real relincr = dx->norm(linf) / x->norm(linf);
+  real relincr = 0.0;
+  if(x->norm(l2) > 1.0e-8)
+    relincr = dx->norm(l2) / x->norm(l2);
   real resnorm = residual->norm(linf);
 
   real oldres = res;
   res = std::max(oldres, resnorm);
 
-  if(dolfin::MPI::processNumber() == 0)
-    std::cout << "TPDE total iter timer: " << MPI::stopTimer(iter_timer) << std::endl;
+  cout << "TPDE total iter timer: " << time() - iter_timer << endl;
 
   return relincr;
+  //return dx->norm(linf);
   //return dx->norm(linf);
 }
 //-----------------------------------------------------------------------------
@@ -308,6 +284,15 @@ void TimeDependentPDE::revert()
 {
 }
 //-----------------------------------------------------------------------------
+void TimeDependentPDE::reset(real T)
+{
+  this->T = T;
+  this->t = 0;
+  itercounter = 0;
+  sampleperiod = T / 100.0;
+  lastsample = 0.0;
+}    
+//-----------------------------------------------------------------------------
 real TimeDependentPDE::timestep(real t, real k0) const
 {
   return k;
@@ -315,9 +300,10 @@ real TimeDependentPDE::timestep(real t, real k0) const
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::fu(const Vector& foox, Vector& foodotx, real t)
 {
-  dolfin_set("output destination", "silent");
   assembler->assemble(*dotx, L(), reset_tensor);
-  dolfin_set("output destination", "terminal");
+  cout << "DEBUG dotx: " << dotx->norm(linf) << endl;
+  cout << "DEBUG U: " << foox.norm(linf) << endl;
+  cout << "DEBUG U2: " << x->norm(linf) << endl;
 
   fevals = fevals + 1;
 }
@@ -350,6 +336,9 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 {
   message("TPDE::init(U, U0)");
 
+  if(!J)
+    J = new Matrix;
+
   x = new Vector;
   x0 = new Vector;
   U.init(mesh(), *x, a(), 0);
@@ -362,7 +351,7 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 
   assembler = new Assembler(mesh());
 
-  ksolver = new KrylovSolver(bicgstab, jacobi);
+  ksolver = new KrylovSolver(bicgstab, sor);
 
 //  lusolver = new LUSolver;
 
@@ -370,7 +359,7 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::free()
 {
-  //std::cout << "TPDE::free()" << std::endl;
+  //cout << "TPDE::free()" << endl;
 
   delete x;
   delete x0;
@@ -383,13 +372,15 @@ void TimeDependentPDE::free()
 
   if(JNoBC != 0)
     delete JNoBC;
+//   if(J != 0)
+//     delete J;
   if(assembler)
     delete assembler;
 }
 //-----------------------------------------------------------------------------
 void TimeDependentPDE::save(Function& U, real t)
 {
-  //std::cout << "Saving" << std::endl;
+  //cout << "Saving" << endl;
   
   if(t == 0.0)
   {
