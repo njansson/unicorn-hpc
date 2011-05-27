@@ -34,7 +34,7 @@ using namespace dolfin::unicorn;
 
 real bmarg = 1.0e-3 + DOLFIN_EPS;
 
-real rd = 5.0;
+real rd = 4.0;
 real b = 0.0;
 real coef = 0.0;
 real T0 = 0.0;;
