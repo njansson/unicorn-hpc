@@ -3,6 +3,7 @@
 
 #include <dolfin.h>
 #include <cstring>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <unicorn/unicorn_config.h>
 #include <unicorn/EquiAffineMap.h>
 #include <unicorn/MeshQuality.h>
@@ -10,11 +11,12 @@
 #include <unicorn/Project.h>
 #include <dolfin/fem/UFC.h>
 
+#include <boost/timer.hpp>
 
 #if HAVE_SUNPERF_H
 #include <sunperf.h>
-#elif HAVE_SCSL_CBLAS_H
-#include <cmplrs/cblas.h>
+#elif HAVE_SCSL_BLAS_H
+#include <scsl_blas.h>
 #elif HAVE_GSL_CBLAS_H
 extern "C" {
 #include <gsl_cblas.h>
@@ -124,7 +126,7 @@ namespace dolfin { namespace unicorn
       Function(mesh), q(mesh), hq(mesh), maxqual(0.0),
 	minqual(1.0e12), mqual(mesh)
       {
-	real p = 2.0;
+	real p = 4.0;
 
 	// Compute h
 	q.init(mesh.topology().dim());
@@ -172,7 +174,7 @@ namespace dolfin { namespace unicorn
 
 	//int d = cell().dim();
 
-	real p = 3.0;
+	real p = 12.0;
 	//real p = 1.0;
 
 	real val = 1.0;
@@ -215,10 +217,14 @@ namespace dolfin { namespace unicorn
 	for (uint jj = 0; jj < 3; jj++)
 	  Finv[RM(ii,jj,3)] = map.C[RM(ii,jj,3)] * scale;
       
+
       real B[3*3];
 
-#if ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H || HAVE_SCSL_CBLAS_H))
-      cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, 
+#if (HAVE_SCSL_BLAS_H)
+      dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 3, 3, 3, 1.0, 
+	    &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+#elif ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H))
+      cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 3, 3, 3, 1.0, 
 		  &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #elif HAVE_F77_BLAS
       error("ElasticSmoother not supported for F77 BLAS");
@@ -267,7 +273,10 @@ namespace dolfin { namespace unicorn
 	real B[3*3];
 	memset(&B[0], 0, 3*3*sizeof(real));
 
-#if ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H || HAVE_SCSL_CBLAS_H))
+#if (HAVE_SCSL_BLAS_H)
+	dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
+	      3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
+#elif ((HAVE_CBLAS_H || HAVE_GSL_CBLAS_H))
 	cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
 		    3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #elif HAVE_F77_BLAS
@@ -298,7 +307,8 @@ namespace dolfin { namespace unicorn
     class MyBC : public Function
     {
     public:
-    MyBC(Mesh& mesh) : Function(mesh)
+    MyBC(Mesh& mesh) :
+      Function(mesh)
       {
       }
       
@@ -312,6 +322,9 @@ namespace dolfin { namespace unicorn
 	}
       }
     };
+
+    Matrix* J;
+    bool reset_tensor;
     
     class ElasticityPDE : public TimeDependentPDE
     {
@@ -328,12 +341,12 @@ namespace dolfin { namespace unicorn
 		    Function& icv,
 		    real kk,
 		    MeshFunction<real>& h0) :
-      TimeDependentPDE(mesh, bc, T),
+      TimeDependentPDE(mesh, bc, T, "ElasticSmoother"),
 	aS(aS), LS(LS),
 	U(U), B(B), B0(B0), kf(kf), icv(icv),
 	hmin(0.0), kk(kk), h0(h0),
 	qual(0), num_steps(0), max_steps(dolfin_get("Smoother max time steps")),
-	min_steps(4)
+	min_steps(0)
       {
 	kf.k = &k;
 	//sampleperiod = T / 10.0;
@@ -358,7 +371,6 @@ namespace dolfin { namespace unicorn
 	int d = mesh.topology().dim();
 	
 	vxvalues = new real[d * mesh.numVertices()];
-
 	qual = new MeshQuality(mesh);
 
 	init(*a, *L, 0, 0, 0);
@@ -402,7 +414,6 @@ namespace dolfin { namespace unicorn
       {
 	tic();
 	
-	dolfin_set("output destination", "silent");
 	//assembler.assemble(BM, *aS);
 	//BM.mat().lump(Bm.vec());
 
@@ -410,7 +421,6 @@ namespace dolfin { namespace unicorn
 
 	Btmp.zero();
 	assembler->assemble(Btmp, *LS);
-	dolfin_set("output destination", "terminal");
 		
 	B.vector() = Btmp;
 	
@@ -453,6 +463,7 @@ namespace dolfin { namespace unicorn
       
       void preparestep()
       {
+	timer0.restart();
 // 	int d = mesh().topology().dim();
 // 	int N = mesh().numVertices();
 // 	int M = mesh().numCells();
@@ -509,11 +520,9 @@ namespace dolfin { namespace unicorn
 // 	cout << "B: " << endl;
 // 	B.vector().vec().disp();
 	
-	dolfin_set("output destination", "silent");
 	assembler->assemble(dotx, L(), reset_tensor);
 	//     for (uint i = 0; i < bc_mom.size(); i++)
 	//       bc_mom[i]->apply(M, dotx, a());
-	dolfin_set("output destination", "terminal");
 // 	set("output destination", "silent");
 // 	assembler.assemble(dotx, L());
 // 	for (uint i = 0; i < bc().size(); i++)
@@ -528,6 +537,7 @@ namespace dolfin { namespace unicorn
       
       void save(Function& U, real t)
       {
+	/*
 	cout << "Saving at t: " << t << endl;
 	//     Function U_0 = U[0];
 
@@ -565,11 +575,13 @@ namespace dolfin { namespace unicorn
       
 	  qual->disp();
 	}
+	*/
+	//qual->disp();
       }
 
       void u0(GenericVector& x)
-	//void u0(uBlasVector& x)
       {
+	timer2.restart();
 	int d = mesh().topology().dim();
 	int N = mesh().numVertices();
 	if(MPI::numProcesses() > 1)
@@ -602,6 +614,9 @@ namespace dolfin { namespace unicorn
 	  }
 	  
 	  B.vector().apply();
+	  delete[] idx;
+	  delete[] id;
+	  delete[] B_block;
 	}
 
 	{
@@ -641,33 +656,10 @@ namespace dolfin { namespace unicorn
 	  delete[] idx;
 	  delete[] id;
 	}
-// 	real* Xarr = new real[X.vector().local_size()];
-// 	uint *Xrows = new uint[X.vector().local_size()];
-// 	uint Xcounter = 0;
-
-// 	for (VertexIterator n(mesh()); !n.end(); ++n)
-// 	{
-// 	  Vertex vertex = *n;
-
-// 	  for(int i = 0; i < d; i++)
-// 	  {
-// 	    //Xarr[i * N + n->index()] = n->x()[i];
-// 	    Xarr[Xcounter] = n->x()[i];
-// 	    Xrows[Xcounter] = i * N + mesh().distdata().get_global(vertex);
-// 	    std::cout << "Xrows[]: " << Xrows[Xcounter] << std::endl;
-// 	    Xcounter++;
-// 	  }
-// 	}
-	
-// 	std::cout << "ElasticityPDE::u0 1" << std::endl;
-// 	std::cout << "size: " << X.vector().local_size() << std::endl;
-// 	X.vector().set(Xarr, X.vector().local_size(), Xrows);
-// 	X.vector().apply();
-// 	delete[] Xarr;
-// 	std::cout << "ElasticityPDE::u0 2" << std::endl;
 
 	U.vector().zero();
 
+	message("ElasticSmoother timer u0: %g", timer2.elapsed());
       }
 
       void revert()
@@ -679,7 +671,10 @@ namespace dolfin { namespace unicorn
       //bool update(const uBlasVector& u, real t, bool end)
       bool update(real t, bool end)
       {
- 	std::cout << "ElasticSmoother::update:" << std::endl;
+	cout << "ElasticSmoother::update:" << endl;
+
+	max_steps = dolfin_get("Smoother max time steps");
+
 // 	cout << "U:" << endl;
 // 	U.vector().disp();
 // 	cout << "B:" << endl;
@@ -689,6 +684,7 @@ namespace dolfin { namespace unicorn
 
 	qual->meshQuality();
 	//qual.disp();
+	cout << "smoother_mu_min: " << qual->mu_min << endl;
 	uint inverted_cell;
 	
 	if(qual->isInverted(inverted_cell)) {
@@ -704,7 +700,7 @@ namespace dolfin { namespace unicorn
 	cout << "dotx norm: " << norm << endl;
 
 	real xnorm = U.vector().norm(linf);
-	std::cout << "x norm: " << xnorm << std::endl;
+	cout << "x norm: " << xnorm << endl;
 
 	real hhmin = 1.0e9;
 
@@ -720,7 +716,8 @@ namespace dolfin { namespace unicorn
 
 	cout << "hhmin: " << hhmin << endl;
 
-        k = 1.0 / 8.0 * hhmin * qual->mu_min / (xnorm + hhmin);
+        k = 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + hhmin);
+	//k *= 4.0;
 	//k = 0.01;
 	//	k = 1.0e-3;
         //k = 1.0e-1;
@@ -728,6 +725,7 @@ namespace dolfin { namespace unicorn
 	//k = 1.0 * 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + 1.0e-7);
 
 
+	cout << "smoother_incr: " << incr << endl;
 	cout << "t: " << t << endl;
 	cout << "T: " << T << endl;
 	cout << "num_steps: " << num_steps << endl;
@@ -735,10 +733,10 @@ namespace dolfin { namespace unicorn
 	num_steps++;
 	korig = k;
 
-	//if(num_steps > min_steps &&
-	//   (xinc < sstate_tol || num_steps > max_steps))
-	if((num_steps > min_steps &&
-	    (num_steps > max_steps)))
+	message("ElasticSmoother timer step: %g", timer0.elapsed());
+
+
+	if(num_steps >= max_steps)
 	{
 	  return false;
 	}
@@ -781,6 +779,10 @@ namespace dolfin { namespace unicorn
       int num_steps;
       int max_steps;
       int min_steps;
+
+      boost::timer timer0;
+      boost::timer timer1;
+      boost::timer timer2;
     };
   };
 //-----------------------------------------------------------------------------
