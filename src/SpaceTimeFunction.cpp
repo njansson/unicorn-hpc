@@ -8,6 +8,7 @@
 // since we call the envelope class from one of the letter classes.
 
 #include <sstream>
+#include <dolfin/config/dolfin_config.h>
 #include <dolfin/la/Vector.h>
 #include <dolfin/function/Function.h>
 #include <dolfin/io/File.h>
@@ -131,7 +132,11 @@ void SpaceTimeFunction::util_fileList(std::string basename, int N,
 
     filename << basename;
     filename << number.str();
+#ifdef ENABLE_MPIIO
+    filename << ".bin";
+#else
     filename <<  "_" << MPI::processNumber() << ".bin";
+#endif
     filename << std::ends;
 
     filenames.push_back(filename.str());
