@@ -13,8 +13,6 @@
 #include <dolfin/mesh/Point.h>
 #include <dolfin/mesh/Cell.h>
 
-#include <dolfin/la/uBlasDenseMatrix.h>
-
 #define RM(row,col,nrow) ((row) + ((nrow)*(col)))
 
 namespace dolfin { namespace unicorn
