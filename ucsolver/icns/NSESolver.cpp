@@ -3,10 +3,10 @@
 //
 // Modified by Garth N. Wells 2005.
 // Modified by Anders Logg 2005-2006.
-// Modified by Niclas Jansson 2008-2010.
+// Modified by Niclas Jansson 2008-2011.
 //
 // First added:  2005
-// Last changed: 2011-04-16
+// Last changed: 2011-06-14
 
 #include <cstring>
 #include <sstream>
@@ -362,7 +362,7 @@ void NSESolver::solve()
   output.push_back(p_output);
 
   std::ostringstream output_filename;
-  output_filename << solver_type << "_solution.pvd";
+  output_filename << solver_type << "_solution.bin";
   
   std::stringstream p_ufilename;
   std::stringstream p_pfilename;
@@ -380,6 +380,12 @@ void NSESolver::solve()
   File file_solution(output_filename.str(), t);
   File file_r("residual.pvd");
   File file_ei("ei.pvd");
+
+  if (solver_type == "primal") 
+  {
+    File file_mesh("mesh.bin");
+    file_mesh << mesh;
+  }
 
   std::ofstream forceFile;
 
@@ -636,8 +642,8 @@ void NSESolver::solve()
 	filename << "velocity" << number.str() <<  "_" << MPI::processNumber() << ".bin" << std::ends;
 #endif
 
-	File velxmlfile(filename.str());
-	velxmlfile << u.vector();
+	File velbinfile(filename.str());
+	velbinfile << u.vector();
 
 	// Save time derivative of primal velocity
 	std::stringstream dtfilename;
@@ -647,8 +653,8 @@ void NSESolver::solve()
 	dtfilename << "dtvelocity" << number.str() <<  "_" << MPI::processNumber() << ".bin"  << std::ends;
 #endif
 	
-	File dtxmlfile(dtfilename.str());
-	dtxmlfile << dtu.vector();
+	File dtbinfile(dtfilename.str());
+	dtbinfile << dtu.vector();
 
 	// Save pressure
 	std::stringstream pfilename;
@@ -658,8 +664,8 @@ void NSESolver::solve()
 	pfilename << "pressure" << number.str() << "_" << MPI::processNumber() << ".bin" <<  std::ends;
 #endif
 	
-	File pxmlfile(pfilename.str());
-	pxmlfile << p.vector();
+	File pbinfile(pfilename.str());
+	pbinfile << p.vector();
 
       }
       
