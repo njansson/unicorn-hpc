@@ -8,9 +8,19 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <libxml/xmlreader.h>
+
+#define BINARY_MAGIC 0xBABE
+
+typedef struct {
+  uint32_t magic;
+  uint32_t bendian; 
+  uint32_t pe_size;
+  uint32_t type;
+} BinaryFileHeader;
 
 void progress(int *state) {
   switch(*state)
@@ -86,6 +96,7 @@ int parse_cells(xmlTextReaderPtr xml_reader, FILE *binary_fp, int celltype) {
   int i, size, state;
   int *data, *dp;
 
+
   size = atoi((const char *)xmlTextReaderGetAttribute(xml_reader,"size"));
   data = malloc(size * (3 + celltype) * sizeof(int));
   dp = &data[0];
@@ -115,9 +126,11 @@ int parse_cells(xmlTextReaderPtr xml_reader, FILE *binary_fp, int celltype) {
 
 int main(int argc, char *argv[]) {
   
+  BinaryFileHeader hdr;
   FILE  *binary_fp;
   xmlTextReaderPtr xml_reader;
-  int dim, celltype;
+  int dim, celltype, x;
+
 
   if (argc < 3 ) { 
     fprintf(stderr, "Usage: ./convert <xml mesh> <binary mesh>\n");
@@ -132,6 +145,18 @@ int main(int argc, char *argv[]) {
   }
 
   binary_fp = fopen(argv[2], "w");
+
+
+  hdr.type = 0;
+  hdr.magic = BINARY_MAGIC;
+  x = 1;
+  if(*(char *)&x == 1)
+    hdr.bendian = 0;
+  else
+    hdr.bendian = 1;
+
+  fwrite(&hdr, sizeof(BinaryFileHeader), 1, binary_fp);
+  
   
   printf("Converting DOLFIN-xml to flat binary\n");
 
