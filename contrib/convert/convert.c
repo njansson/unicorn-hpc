@@ -15,6 +15,8 @@
 
 #define BINARY_MAGIC 0xBABE
 
+enum Binary_data_t { BINARY_MESH_DATA, BINARY_VECTOR_DATA, BINARY_FUNCTION_DATA};
+
 typedef struct {
   uint32_t magic;
   uint32_t bendian; 

@@ -3,10 +3,10 @@
 //
 // Modified by Garth N. Wells 2005.
 // Modified by Anders Logg 2005-2006.
-// Modified by Niclas Jansson 2008-2011.
+// Modified by Niclas Jansson 2008-2010.
 //
 // First added:  2005
-// Last changed: 2011-06-13
+// Last changed: 2011-04-16
 
 #include <cstring>
 #include <sstream>
@@ -355,14 +355,14 @@ void NSESolver::solve()
   // Initialize output files 
   std::string f_fname = "aero_f.dat";
 
-  std::vector<std::pair<Function*, std::string> > output, output2;
+  std::vector<std::pair<Function*, std::string> > output;
   std::pair<Function*, std::string> u_output(&u, "Velocity");
   std::pair<Function*, std::string> p_output(&p, "Pressure");
   output.push_back(u_output);
   output.push_back(p_output);
 
   std::ostringstream output_filename;
-  output_filename << solver_type << "_solution.bin";
+  output_filename << solver_type << "_solution.pvd";
   
   std::stringstream p_ufilename;
   std::stringstream p_pfilename;
@@ -373,21 +373,6 @@ void NSESolver::solve()
   p_ufilename << "project_u" << "_" << MPI::processNumber() << ".bin" << std::ends;
   p_pfilename << "project_p" << "_" << MPI::processNumber() << ".bin" << std::ends;
 #endif
-
-  std::stringstream u_filename, p_filename, dt_filename;
-#ifdef ENABLE_MPIIO
-  u_filename << "velocity.bin" << std::ends;
-  p_filename << "pressure.bin" << std::ends;
-  dt_filename << "dtvelocity.bin" << std::ends;
-#else
-  u_filename << "velocity" << number.str() <<  "_" << MPI::processNumber() << ".bin" << std::ends;
-  p_filename << "pressure" << number.str() <<  "_" << MPI::processNumber() << ".bin" << std::ends;
-  dt_filename << "dtvelocity" << number.str() <<  "_" << MPI::processNumber() << ".bin" << std::ends;
-#endif
-  
-  File ubinfile(u_filename.str());
-  File pbinfile(p_filename.str());
-  File dtbinfile(dt_filename.str());
 
   File p_ufile(p_ufilename.str());
   File p_pfile(p_pfilename.str());
@@ -640,15 +625,41 @@ void NSESolver::solve()
       if(solver_type == "primal")
       {
 
+	std::stringstream number;
+	number << std::setfill('0') << std::setw(6) << sample;
 	
 	// Save primal velocity
-	ubinfile << u.vector();
+	std::stringstream filename;
+#ifdef ENABLE_MPIIO
+	filename << "velocity" << number.str() << ".bin" << std::ends;
+#else
+	filename << "velocity" << number.str() <<  "_" << MPI::processNumber() << ".bin" << std::ends;
+#endif
+
+	File velxmlfile(filename.str());
+	velxmlfile << u.vector();
 
 	// Save time derivative of primal velocity
-	dtbinfile << dtu.vector();
+	std::stringstream dtfilename;
+#ifdef ENABLE_MPIIO
+	dtfilename << "dtvelocity" << number.str() << ".bin" << std::ends;
+#else
+	dtfilename << "dtvelocity" << number.str() <<  "_" << MPI::processNumber() << ".bin"  << std::ends;
+#endif
 	
+	File dtxmlfile(dtfilename.str());
+	dtxmlfile << dtu.vector();
+
 	// Save pressure
-	pbinfile << p.vector();
+	std::stringstream pfilename;
+#ifdef ENABLE_MPIIO
+	pfilename << "pressure" << number.str() << ".bin" << std::ends;
+#else
+	pfilename << "pressure" << number.str() << "_" << MPI::processNumber() << ".bin" <<  std::ends;
+#endif
+	
+	File pxmlfile(pfilename.str());
+	pxmlfile << p.vector();
 
       }
       
