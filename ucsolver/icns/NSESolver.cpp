@@ -396,7 +396,7 @@ void NSESolver::solve()
     file_mesh << mesh;
   }
 
-  std::ffstream forceFile;
+  std::ofstream forceFile;
 
   if(solver_type == "primal" && MPI::processNumber() == 0)
   {
