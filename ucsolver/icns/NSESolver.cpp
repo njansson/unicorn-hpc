@@ -72,6 +72,9 @@ NSESolver::NSESolver(Mesh& mesh, NodeNormal& node_normal,
     dolfin_set("Krylov keep PC", false);
   else
     dolfin_set("Krylov keep PC", dolfin_get("krylov_pc_keep"));
+  if(!ParameterSystem::parameters.defined("output_format"))
+    dolfin_add("output_format", "vtk");
+    
 
 }
 //-----------------------------------------------------------------------------
@@ -362,7 +365,13 @@ void NSESolver::solve()
   output.push_back(p_output);
 
   std::ostringstream output_filename;
-  output_filename << solver_type << "_solution.bin";
+  output_filename << solver_type << "_solution";
+  const std::string output_format = dolfin_get("output_format");  
+  if(output_format == "vtk")
+    output_filename << ".pvd";
+  else if(output_format == "binary")
+    output_filename << ".bin";
+  
   
   std::stringstream p_ufilename;
   std::stringstream p_pfilename;
@@ -381,13 +390,13 @@ void NSESolver::solve()
   File file_r("residual.pvd");
   File file_ei("ei.pvd");
 
-  if (solver_type == "primal") 
+  if (solver_type == "primal")  
   {
     File file_mesh("mesh.bin");
     file_mesh << mesh;
   }
 
-  std::ofstream forceFile;
+  std::ffstream forceFile;
 
   if(solver_type == "primal" && MPI::processNumber() == 0)
   {
@@ -418,8 +427,12 @@ void NSESolver::solve()
   int time_step = 0;
   int sample = 0;
   int no_samples = dolfin_get("n_samples");
-  if(chkp.restart())
+  if(chkp.restart()) 
+  {
     sample = ceil(( (t-k) * no_samples ) / T);
+    if (output_format == "binary")
+      file_solution.set_counter(sample);
+  }
 
   // Residual, tolerance and maxmimum number of fixed point iterations
   real residual;
