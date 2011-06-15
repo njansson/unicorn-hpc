@@ -40,6 +40,7 @@ void UniParameters::parse_parameters(std::string fname)
   parameters["krylov_method"] = _STR_;
   parameters["krylov_pc"] = _STR_;
   parameters["krylov_pc_keep"] = _BOOL_;
+  parameters["output_format"] = _STR_;
 
   std::ifstream param_file;
 
