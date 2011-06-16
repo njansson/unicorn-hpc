@@ -387,8 +387,21 @@ void NSESolver::solve()
   File p_pfile(p_pfilename.str());
 
   File file_solution(output_filename.str(), t);
-  File file_r("residual.pvd");
-  File file_ei("ei.pvd");
+  std::ostringstream res_fname, ei_fname;
+  res_fname << "residual";
+  ei_fname << "ei";
+  if(output_format == "vtk") 
+  {
+    res_fname << ".pvd";
+    ei_fname << ".pvd";
+  }
+  else if(output_format == "binary")
+  {
+    res_fname << ".bin";
+    ei_fname << ".bin";
+  }
+  File file_r(res_fname.str());
+  File file_ei(ei_fname.str());
 
   if (solver_type == "primal")  
   {

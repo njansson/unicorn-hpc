@@ -40,7 +40,14 @@ void AdaptiveRefinement::refine(Mesh& mesh, MeshFunction<bool>& cell_marker)
     cell_refinement_marker_r.set(c->index(), cell_marker(*c));
   }
 
-  File refinefile("marked.pvd");
+  std::ostringstream marked_filename;
+  marked_filename << "marked";
+  const std::string marked_format = dolfin_get("output_format");  
+  if(marked_format == "vtk")
+    marked_filename << ".pvd";
+  else if(marked_format == "binary")
+    marked_filename << ".bin";
+  File refinefile(marked_filename.str());
   refinefile << cell_refinement_marker_r;
 
   if(MPI::processNumber() == 0)
