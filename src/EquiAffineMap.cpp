@@ -111,8 +111,13 @@ void EquiAffineMap::updateTriangle(Cell& cell)
 
   B[RM(0,0,3)] = -a * p0.x() + 2 * a * p1.x() - a * p2.x();
   B[RM(1,0,3)] = -a * p0.y() + 2 * a * p1.y() - a * p2.y();
-  B[RM(0,1,3)] =  p2.x() - p0.x();
-  B[RM(1,1,3)] =  p2.y() - p0.y();
+  B[RM(2,0,3)] = 0.0;
+  B[RM(0,1,3)] = p2.x() - p0.x();
+  B[RM(1,1,3)] = p2.y() - p0.y();
+  B[RM(2,1,3)] = 0.0;
+  B[RM(0,2,3)] = 0.0;
+  B[RM(1,2,3)] = 0.0;
+  B[RM(2,2,3)] = 0.0;
 
   // Compute determinant
   det = B[RM(0,0,3)] * B[RM(1,1,3)] - B[RM(0,1,3)] * B[RM(1,0,3)];
@@ -122,10 +127,15 @@ void EquiAffineMap::updateTriangle(Cell& cell)
     error("Map from reference cell is singular.");
   
   // Compute inverse of Jacobian
-  C[RM(0, 0, 3)] =  B[RM(1, 1, 3)] / det;
+  C[RM(0, 0, 3)] = B[RM(1, 1, 3)] / det;
   C[RM(0, 1, 3)] = -B[RM(0, 1, 3)] / det;
+  C[RM(0, 2, 3)] = 0.0;
   C[RM(1, 0, 3)] = -B[RM(1, 0, 3)] / det;
-  C[RM(1, 1, 3)] =  B[RM(0, 0, 3)] / det;
+  C[RM(1, 1, 3)] = B[RM(0, 0, 3)] / det;
+  C[RM(1, 2, 3)] = 0.0;
+  C[RM(2, 0, 3)] = 0.0;
+  C[RM(2, 1, 3)] = 0.0;
+  C[RM(2, 2, 3)] = 0.0;
 
   // Take absolute value of determinant
   det = fabs(det);

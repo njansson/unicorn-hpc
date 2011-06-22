@@ -1,0 +1,21 @@
+# Copyright (c) 2005 Johan Hoffman (hoffman@cims.nyu.edu)
+# Licensed under the GNU GPL Version 2
+
+name = "NSEResContinuity2D"
+scalar = FiniteElement("Lagrange", "tetrahedron", 1)
+vector = VectorElement("Lagrange", "tetrahedron", 1)
+constant_scalar = FiniteElement("Discontinuous Lagrange", "tetrahedron", 0)
+constant_vector = VectorElement("Discontinuous Lagrange", "tetrahedron", 0)
+
+
+v    =  TestFunction(constant_scalar)   # constant scalar test basis function
+P    =  Function(scalar)                # pressure
+u    =  Function(vector)                # momentum
+u0   =  Function(vector)                # momentum from previous timestep
+
+
+vol_inv = Function(constant_scalar)     # the inverse of volume of the element
+
+# the linear form of the momentum residual:
+
+L = 0.5 * mult( dot(div(u+u0), v), vol_inv) * dx     

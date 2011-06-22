@@ -1,0 +1,109 @@
+# Copyright (c) 2005 Johan Jansson (johanjan@math.chalmers.se)
+# Licensed under the GNU GPL Version 2
+#
+# First added:  2005
+# Last changed: 2006-03-28
+#
+# The bilinear form for the incompressible Navier-Stokes equations
+# Compile this form with FFC: ffc Elasticity.form.
+
+
+cell = "tetrahedron"
+
+K1 = VectorElement("Lagrange", cell, 1)
+# Dimension of domain
+d = K1.cell_dimension()
+K2 = FiniteElement("Lagrange", cell, 1)
+K3 = FiniteElement("Discontinuous Lagrange", cell, 0)
+K4 = VectorElement("Discontinuous Lagrange", cell, 0)
+K5 = VectorElement("Discontinuous Lagrange", cell, 0, d * d)
+
+K = K1
+
+v = TestFunction(K)
+U1 = TrialFunction(K)
+UP = Function(K)
+U0 = Function(K)
+Uc = Function(K)
+Um = Function(K4)
+
+P = Function(K2)
+Phydro = Function(K2)
+nu = Function(K3)
+d1 = Function(K3)
+d2 = Function(K3)
+ff = Function(K)
+fc = Function(K)  # coriolis force
+k = Function(K3)
+
+rho_f = Function(K2)
+theta = Function(K3)
+sigma = Function(K5)
+
+mu = Function(K3)
+lmbda = Function(K3)
+
+WP = Function(K)
+Wm = Function(K4)
+
+b = Function(K3)
+
+rho_s = Function(K3)
+
+rho = mult(theta, rho_f) + mult(1.0 - theta, rho_s)
+
+
+def tomatrix(q):
+    return [ [q[d * i + j] for i in range(d)] for j in range(d) ]
+
+sigmaM = tomatrix(sigma)
+
+def ugradu(u, v):
+    return [dot(u, grad(v[i])) for i in range(d)]
+
+def E(e, mu, lmbda):
+    Ee = 2.0 * mult(mu, e) + mult(lmbda, mult(trace(e), Identity(d)))
+    return Ee
+
+def epsilon(u):
+    return 0.5 * (grad(u) + transp(grad(u)))
+
+#def S(u, P):
+#    return mult(P, Identity(d)) - mult(theta*nu, grad(u))
+
+beps = mult(b, epsilon(0.5*Uc))
+
+Sf = mult(P, Identity(d)) - mult(nu, grad(Uc))
+Ss = mult(P, Identity(d)) - mult(1.0, sigmaM) - beps
+S = mult(theta, Sf) + mult(1.0 - theta, Ss)
+
+Uc_ALE = Uc - WP
+Um_ALE = Um - Wm
+
+def f(u, v):
+    return -dot(mult(rho_f, ugradu(Uc_ALE, Uc)), v) + \
+        dot(S, grad(v)) + \
+	-mult(d1, dot(mult(rho_f, ugradu(Um_ALE, Uc)),
+                      mult(rho_f, ugradu(Um_ALE, v)))) + \
+	-mult(d2, dot(div(u), div(v))) + \
+        dot(mult(1.0 - theta, ff), v)
+    
+def dfdu(u, k, v):
+    return -dot(mult(rho_f, ugradu(Uc_ALE, u)), v) + \
+    	-mult(1 - theta, mult(k, dot(E(epsilon(u), mu, lmbda), grad(v)))) + \
+    	-mult(1 - theta, mult(b, dot(epsilon(u), grad(v)))) + \
+        -dot(mult(theta*nu, grad(u)), grad(v)) + \
+        -mult(d1, dot(ugradu(Um_ALE, u), ugradu(Um_ALE, v))) + \
+        -mult(d2, dot(div(u), div(v)))
+
+# cG(1)
+def F(u, u0, k, v):
+    uc = mult(0.5, u + u0)
+    return (-dot(mult(rho, u), v) + dot(mult(rho, u0), v) + mult(k, f(uc, v)))
+
+def dFdu(u, u0, k, v):
+    uc = mult(0.5, u)
+    return (-dot(mult(rho, u), v) + mult(k, dfdu(uc, k, v)))
+
+a = (dFdu(U1, U0, k, v)) * dx
+L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx

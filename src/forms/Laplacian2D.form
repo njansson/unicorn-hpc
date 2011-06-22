@@ -1,0 +1,30 @@
+# Copyright (c) 2005 Johan Jansson (johanjan@math.chalmers.se)
+# Licensed under the GNU GPL Version 2
+#
+# First added:  2005
+# Last changed: 2006-03-28
+#
+# The bilinear form for classical linear elasticity (Navier)
+# Compile this form with FFC: ffc Elasticity.form.
+
+cell = "triangle"
+
+K1 = VectorElement("Lagrange", cell, 1)
+
+# Dimension of domain
+d = K1.cell_dimension()
+
+K2 = VectorElement("Lagrange", cell, 1)
+K3 = VectorElement("Discontinuous Lagrange", cell, 0, d * d)
+
+K = K2
+
+def epsilon(u):
+    return 0.5 * (grad(u) + transp(grad(u)))
+
+v = TestFunction(K)
+U = TrialFunction(K)
+f = Function(K)
+
+a = (dot(grad(U), grad(v))) * dx
+L = (dot(f, v)) * dx
