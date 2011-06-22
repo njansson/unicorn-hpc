@@ -27,6 +27,9 @@ void UniParameters::parse_parameters(std::string fname)
   parameters["beta"] = _REAL_;
   parameters["nu"] = _REAL_;
   parameters["Ma"] = _REAL_;
+  parameters["mu"] = _REAL_;
+  parameters["nu_s"] = _REAL_;
+  parameters["rho_s"] = _REAL_;
   parameters["n_samples"] = _INT_;
   parameters["adapt_iter"] = _INT_;
   parameters["adapt_tol"] = _REAL_;
