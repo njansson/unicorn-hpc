@@ -1,5 +1,5 @@
 CFLAGS  = `pkg-config --cflags unicorn` -I./ -I../
-LIBS    = `pkg-config --libs unicorn` -lcblas
+LIBS    = `pkg-config --libs unicorn`
 CXX     = `pkg-config --variable=compiler dolfin`
 
 TARGET  = cylinder
