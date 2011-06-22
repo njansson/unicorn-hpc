@@ -45,7 +45,7 @@ void ElasticSmoother::maph0(Mesh& mesh, Mesh& sub,
 }
 //-----------------------------------------------------------------------------
 void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
-			     MeshFunction<bool>& masked_cells,
+			     MeshFunction<bool>& masked_vertices,
 			     MeshFunction<real>& h0)
 {
   cout << "elastic smooth" << endl;
@@ -69,7 +69,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 
   real betaval = 1.0 * E; // Damping (sqrt(E))
 
-  real kk = 1.0 / 2.0 * q.h_min * q.mu_min;
+  real kk = 1.0 / 20.0 * q.h_min * q.mu_min;
 
   cout << "k0: " << kk << endl;
 
@@ -84,7 +84,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 
   DirichletBoundary dboundary;
   DirichletBC bc0(bcf, sub, dboundary);
-  MeshBC bc1(sub, dboundary, masked_cells);
+  MeshBC bc1(sub, dboundary, masked_vertices);
   
   Function lmbda(sub, lmbdaval);
   Function mu(sub, muval);
@@ -157,9 +157,9 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   pde.reset_tensor = reset_tensor;
 
   //Compute solution
-  MPI::startTimer(pde.timer1);
+  //pde.timer1.restart();
   pde.solve(U, U0);
-  message("ElasticSmoother timer smooth: %g", MPI::stopTimer(pde.timer1));
+  //message("ElasticSmoother timer smooth: %g", pde.timer1.elapsed());
 
 //   File smoothed_mesh("smoothed.xml");
 //   smoothed_mesh << sub;
@@ -239,6 +239,8 @@ void ElasticSmoother::submesh(Mesh& mesh, Mesh& sub,
 			      MeshFunction<int>& old2new_cell)
 {
   
+  dolfin_debug("Entering create submesh");
+
   old2new_vertex.init(mesh, 0);
   old2new_cell.init(mesh, mesh.topology().dim());
 
@@ -364,7 +366,7 @@ void ElasticSmoother::submesh(Mesh& mesh, Mesh& sub,
   sub.distdata().invalid_numbering();
   sub.renumber();
 
-
+  dolfin_debug("submesh created"); 
   //  File submesh("submesh.pvd");
   //  submesh << sub;
   

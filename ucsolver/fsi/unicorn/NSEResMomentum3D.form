@@ -1,0 +1,30 @@
+# Copyright (c) 2005 Johan Hoffman (hoffman@cims.nyu.edu)
+# Licensed under the GNU GPL Version 2
+
+cell = "tetrahedron"
+
+scalar = FiniteElement("Lagrange", cell, 1)
+vector = VectorElement("Lagrange", cell, 1)
+constant_scalar = FiniteElement("Discontinuous Lagrange", cell, 0)
+constant_vector = VectorElement("Discontinuous Lagrange", cell, 0)
+
+
+v    =  TestFunction(constant_vector)   # constant scalar test basis function
+P    =  Function(scalar)                # pressure
+u    =  Function(vector)                # momentum
+dtu  =  Function(vector)                # momentum
+u0   =  Function(vector)                # momentum from previous timestep
+
+
+vol_inv = Function(constant_scalar)     # the inverse of volume of the element
+
+#k  = Constant(cell)         		# time step
+#nu = Constant()         		# time step
+
+# the linear form of the momentum residual:
+
+L = mult(dot(dtu, v) +
+         (u[0] * u[0].dx(0) * v[0] + u[1] * u[0].dx(1) * v[0] + u[2] * u[0].dx(2) * v[0]) + 
+         (u[0] * u[1].dx(0) * v[1] + u[1] * u[1].dx(1) * v[1] + u[2] * u[1].dx(2) * v[1]) +
+         (u[0] * u[2].dx(0) * v[2] + u[1] * u[2].dx(1) * v[2] + u[2] * u[2].dx(2) * v[2]) +
+          dot(grad(P), v), vol_inv) * dx     

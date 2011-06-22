@@ -1,0 +1,59 @@
+from ffc import *
+
+# Reserved variables for forms
+(a, L, M) = (None, None, None)
+
+# Reserved variable for element
+element = None
+
+cell = "triangle"
+
+scalar = FiniteElement("Lagrange", cell, 1)
+vector = VectorElement("Lagrange", cell, 1)
+dscalar = FiniteElement("Discontinuous Lagrange", cell, 0)
+dvector = VectorElement("Discontinuous Lagrange", cell, 0)
+
+v = TestFunction(scalar)
+rho = TrialFunction(scalar)
+rho0 = Function(scalar)
+U = Function(vector)
+Um = Function(dvector)
+k = Function(dscalar)
+delta = Function(dscalar)
+nu = 0.0
+
+#d1 = mult(4.0, delta)
+
+# Variational problem for cG(1)cG(1) for convection-diffusion
+#a = v*U1*dx + \
+#    0.5*k*((delta*dot(velocity, grad(v)))*dot(velocity, grad(U1))*dx) + \
+#    0.5*k*(v*div(mult(U1, velocity)))*dx
+#L = v*U0*dx - \
+#    0.5*k*((delta*dot(velocity, grad(v)))*dot(velocity, grad(U0))*dx) + \
+#    0.5*k*(v*div(mult(U0, velocity)))*dx
+
+#a = v*U1*dx + \
+#    0.5*k*(v*dot(velocity, grad(U1)) + \
+#               delta*dot(velocitym, grad(v))*dot(velocitym, grad(U1)))*dx
+#L = v*U0*dx - \
+#    0.5*k*(v*dot(velocity, grad(U0)) + \
+#               delta*dot(velocitym, grad(v))*dot(velocitym, grad(U0)))*dx
+
+# Galerkin discretization of bilinear form for the density
+aG = v*rho*dx + k*0.5*dot(grad(rho),U)*v*dx + \
+     k*0.5*nu*dot(grad(v),grad(rho))*dx
+
+# Stabilization of bilinear form for the density
+aS = k*0.5*delta*dot(grad(v),Um)*dot(Um, grad(rho))*dx
+
+# Galerkin discretization of linear form for the density
+LG = v*rho0*dx - k*0.5*dot(grad(rho0),U)*v*dx - \
+     k*0.5*nu*dot(grad(v),grad(rho0))*dx
+
+# Stabilization of linear form for the density
+LS = - k*0.5*delta*dot(grad(v),Um)*dot(Um, grad(rho0))*dx
+
+a = aG + aS
+L = LG + LS
+
+compile([a, L, M, element], "NSEDensity2D", {'language': 'dolfin', 'blas': False, 'form_postfix': True, 'precision': '15', 'cpp optimize': False, 'split_implementation': True, 'quadrature_points': False, 'output_dir': '.', 'representation': 'quadrature', 'cache_dir': None, 'optimize': False})
