@@ -33,7 +33,7 @@ namespace dolfin
     public:
       
       /// Create boundary condition for sub domain
-      MeshBC(Mesh& mesh, SubDomain& sub_domain, MeshFunction<bool>& cells,
+      MeshBC(Mesh& mesh, SubDomain& sub_domain, MeshFunction<bool>& meshf_vertices,
 	     GenericVector* node_values = 0);
       
       /// Destructor
@@ -83,7 +83,7 @@ namespace dolfin
       MeshFunction<uint>* sub_domains;
 
       // Sub domain markers (if any)
-      MeshFunction<bool>& cells;
+      MeshFunction<bool>& meshf_vertices;
       
       // The sub domain
       uint sub_domain;

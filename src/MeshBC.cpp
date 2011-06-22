@@ -25,11 +25,11 @@ using namespace dolfin;
 using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
-MeshBC::MeshBC(Mesh& mesh, SubDomain& sub_domain, MeshFunction<bool>& cells,
+MeshBC::MeshBC(Mesh& mesh, SubDomain& sub_domain, MeshFunction<bool>& meshf_vertices,
 	       GenericVector* node_values)
   : BoundaryCondition(), mesh(mesh),
     sub_domains(0), sub_domain(0), sub_domains_local(false),
-    user_sub_domain(&sub_domain), cells(cells), As(0),
+    user_sub_domain(&sub_domain), meshf_vertices(meshf_vertices), As(0),
     row_block(0), zero_block(0), a1_indices_array(0),
     boundary(0), cell_map(0), vertex_map(0), node_values(node_values)
 {
@@ -142,10 +142,9 @@ void MeshBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
   int d = mesh.topology().dim();
 
   uint count = 0;    
-  for (CellIterator c(mesh); !c.end(); ++c) {
-    if(cells(*c))
+  for (VertexIterator v(mesh); !v.end(); ++v) {
+    if(meshf_vertices(*v))
     {
-    for (VertexIterator v(*c); !v.end(); ++v) {
       
       Vertex vertex = *v;
       
@@ -173,9 +172,8 @@ void MeshBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
 	nodes.clear();
       }
     }
-    }
   }
-
+  
   // Apply changes in the temporary matrix
   As->apply();
 
