@@ -3,31 +3,12 @@
 
 #include <dolfin.h>
 #include <cstring>
-//#include <boost/numeric/ublas/matrix.hpp>
 #include <unicorn/unicorn_config.h>
 #include <unicorn/EquiAffineMap.h>
 #include <unicorn/MeshQuality.h>
 #include <unicorn/TimeDependentPDE.h>
 #include <unicorn/Project.h>
 #include <dolfin/fem/UFC.h>
-
-//#include <boost/timer.hpp>
-
-#if HAVE_SUNPERF_H
-#include <sunperf.h>
-#elif HAVE_SCSL_BLAS_H
-#include <scsl_blas.h>
-#elif HAVE_GSL_CBLAS_H
-extern "C" {
-#include <gsl_cblas.h>
-}
-#elif HAVE_CBLAS_H
-extern "C" {
-#include <cblas.h>
-}
-#endif
-
-#define RM(row,col,nrow) ((row) + ((nrow)*(col)))
 
 namespace dolfin { namespace unicorn
 {
