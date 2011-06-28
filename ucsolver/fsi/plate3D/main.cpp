@@ -486,7 +486,7 @@ int main(int argc, char* argv[])
       }
     }
     
-    if(MPI::processNumber() == 0)
+    if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     
     const std::string refine_type = dolfin_get("adapt_algorithm");
@@ -498,7 +498,7 @@ int main(int argc, char* argv[])
       dolfin::error("Unknown refinement algorithm");
     dolfin_set("output destination","silent");
     
-    if(MPI::processNumber() == 0)
+    if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     message("cells after: %d", mesh.distdata().global_numCells());
     message("vertices after: %d", mesh.distdata().global_numVertices());
@@ -515,7 +515,7 @@ int main(int argc, char* argv[])
       cell_refinement_marker.set(c->index(), true);
     }
 
-    if(MPI::processNumber() == 0)
+    if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     
     const std::string refine_type = dolfin_get("adapt_algorithm");
@@ -527,7 +527,7 @@ int main(int argc, char* argv[])
       dolfin::error("Unknown refinement algorithm");
     dolfin_set("output destination","silent");
     
-    if(MPI::processNumber() == 0)
+    if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     message("cells after: %d", mesh.distdata().global_numCells());
     message("vertices after: %d", mesh.distdata().global_numVertices());
