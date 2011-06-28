@@ -60,6 +60,8 @@
 \newcommand{\@fenicspackage}{<package unspecified>}
 \newcommand{\@fenicspackagett}{<package unspecified>}
 \newcommand{\fenicspackage}[2]{\renewcommand{\@fenicspackage}{#1}\renewcommand{\@fenicspackagett}{#2}}
+\newcommand{\@fenicspackageversion}{<version unspecified>}
+\newcommand{\fenicspackageversion}[1]{\renewcommand{\@fenicspackageversion}{#1}}
 \newcommand{\package}{\@fenicspackage}
 \newcommand{\packagett}{\@fenicspackagett}
 
@@ -79,7 +81,7 @@
   \@fenicsimage
   \vfill\large\textsf{\textbf{\@fenicsauthor}} \\
   \hrule height 2pt
-  \hfill\large\texttt{www.fenics.org}
+  \hfill\large{\textsf{Version \@fenicspackageversion}}
   \newpage
   \null\vfill
   \normalsize
@@ -93,6 +95,7 @@
 
 \newcommand{\fenics}{\textbf{\textsf{\normalsize{FE}\Large{ni}\normalsize{CS}}}}
 \newcommand{\dolfin}{\textbf{\textsf{DOLFIN}}}
+\newcommand{\unicorn}{\textbf{\textsf{Unicorn}}}
 \newcommand{\pydolfin}{\textbf{\textsf{PyDOLFIN}}}
 \newcommand{\ffc}{\textbf{\textsf{FFC}}}
 \newcommand{\fiat}{\textbf{\textsf{FIAT}}}
