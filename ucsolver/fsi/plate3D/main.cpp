@@ -337,7 +337,7 @@ void transform(Mesh& mesh)
   }
 }
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_tim)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* structure_mesh)
 {
   real T = dolfin_get("T");
   real dual_T = dolfin_get("dual_T");
