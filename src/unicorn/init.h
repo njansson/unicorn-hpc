@@ -15,7 +15,7 @@ namespace dolfin
   {
     
     void unicorn_init(int& argc, char* argv[], Mesh& mesh, 
-		      Checkpoint& chkp, long& w_limit, int& iter, Mesh* structure_mesh = 0);
+		      Checkpoint& chkp, long& w_limit, int& iter, Mesh*& structure_mesh);
   }
 }
 #endif
