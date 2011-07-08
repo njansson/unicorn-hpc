@@ -1,6 +1,7 @@
 #include <dolfin/fem/UFC.h>
 #include <dolfin/mesh/RivaraRefinement.h>
 #include <algorithm>
+#include <cstring>
 #include <map>
 
 #include "unicorn/ErrorEstimate.h"
@@ -402,7 +403,7 @@ void ErrorEstimate::ComputeLargestIndicators_cell(std::vector<int>& cells,
   uint nm = M;
   int num_recv;
   //  global_eind.insert(global_eind.begin(), local_eind, local_eind + M);
-  memcpy(global_eind, local_eind, M*sizeof(real));
+  std::memcpy(global_eind, local_eind, M*sizeof(real));
 
   for(uint i = 1; i < size; i++) {
     src =(rank - i + size) % size;
@@ -413,7 +414,7 @@ void ErrorEstimate::ComputeLargestIndicators_cell(std::vector<int>& cells,
     MPI_Get_count(&status, MPI_DOUBLE,&num_recv);
     //global_eind.insert(global_eind.end(), recv_eind, recv_eind + num_recv);
     merge(recv_eind, global_eind, work, num_recv, nm);
-    memcpy(global_eind, work, M_tot * sizeof(real));
+    std::memcpy(global_eind, work, M_tot * sizeof(real));
     nm += num_recv;
     
   }
