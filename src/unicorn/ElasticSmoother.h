@@ -22,6 +22,12 @@ extern "C" {
 extern "C" {
 #include <cblas.h>
 }
+#elif HAVE_F77_BLAS
+extern "C" {
+  void dgemm_(char transa, char transb, int m, int  n,  int  k,
+	      double  alpha,  double *a, int lda, double *b, int
+	      ldb, double beta, double *c, int ldc);
+}
 #endif
 
 #define RM(row,col,nrow) ((row) + ((nrow)*(col)))
@@ -221,6 +227,7 @@ namespace dolfin { namespace unicorn
       cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, 3, 3, 3, 1.0, 
 		  &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #elif HAVE_F77_BLAS
+      dgemm_('T', 'N', 3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
       error("ElasticSmoother not supported for F77 BLAS");
 #endif
 
@@ -271,7 +278,7 @@ namespace dolfin { namespace unicorn
 	cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, 
 		    3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #elif HAVE_F77_BLAS
-      error("ElasticSmoother not supported for F77 BLAS");
+	dgemm_('N', 'T', 3, 3, 3, 1.0, &Finv[0], 3, &Finv[0], 3, 0.0, &B[0], 3);
 #endif
 
 	for(int i = 0; i < N; i++)
