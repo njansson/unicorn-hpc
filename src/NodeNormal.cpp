@@ -238,7 +238,7 @@ void NodeNormal::ComputeNormal(Mesh& mesh)
       for (int j = 0; j < Ncol; j++)
 	n1[j] =  n_block[B(0,j,Nrow)];
 
-      real alpha_max = DOLFIN_PI/6;
+      real alpha_max = DOLFIN_PI / 6.0;
       int Nrow_ns1 = 0; // it will be number of rows for the ns1_block
       int Nrow_ns2 = 0; // it will be number of rows for the ns2_block
 
@@ -465,7 +465,7 @@ void NodeNormal::ComputeNormal(Mesh& mesh)
 	    
 	    tau_vec_2[0] =  tau_vec_1[2] * normal_vec[1] - tau_vec_1[1] * normal_vec[2];
 	    tau_vec_2[1] = -tau_vec_1[2] * normal_vec[0];
-	  tau_vec_2[2] =  tau_vec_1[1] * normal_vec[0];
+	    tau_vec_2[2] =  tau_vec_1[1] * normal_vec[0];
 	  }
 	  norm_inv = 0.0;
 	}
