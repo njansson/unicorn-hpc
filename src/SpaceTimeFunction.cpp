@@ -21,11 +21,12 @@ using namespace dolfin::unicorn;
 //-----------------------------------------------------------------------------
 SpaceTimeFunction::SpaceTimeFunction(Mesh& mesh, Function& Ut)
   : _mesh(&mesh), _function(&Ut),
-    U0(Ut), U1(Ut)
+    U0(Ut), U1(Ut), u0_t_valid(false), u1_t_valid(false)
 {
 }
 //-----------------------------------------------------------------------------
-SpaceTimeFunction::SpaceTimeFunction(const SpaceTimeFunction& f)
+SpaceTimeFunction::SpaceTimeFunction(const SpaceTimeFunction& f) 
+  : u0_t_valid(false), u1_t_valid(false)
 {
 }
 //-----------------------------------------------------------------------------
@@ -73,13 +74,20 @@ void SpaceTimeFunction::eval(real t)
   cout << "name0: " << name0 << endl;
   cout << "name1: " << name1 << endl;
 
-  File file0(name0);
-  File file1(name1);
+  if (t0 != u0_t || !u0_t_valid) {
+    File file0(name0);
+    u0_t_valid = true;
+    u0_t = t0;
+    file0 >> U0.vector();
+  }
 
 
-  file0 >> U0.vector();
-  file1 >> U1.vector();
-
+  if (t1 != u1_t || !u1_t_valid) {
+    File file1(name1);
+    u1_t_valid = true;
+    u1_t = t1;
+    file1 >> U1.vector();
+  }
 
   // Compute weights (linear Lagrange interpolation)
   real w0 = (t1 - t) / (t1 - t0);
