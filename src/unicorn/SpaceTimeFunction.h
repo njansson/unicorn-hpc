@@ -54,6 +54,12 @@ namespace dolfin { namespace unicorn
     // Space functions defining the current time interval (cache)
     Function U0;
     Function U1;
+
+    real u0_t;
+    real u1_t;
+
+    bool u0_t_valid;
+    bool u1_t_valid;
     //    Function* dtU0;
     //    Function* dtU1;
 
