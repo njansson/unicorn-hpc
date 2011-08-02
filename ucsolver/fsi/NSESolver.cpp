@@ -561,7 +561,7 @@ bool NSESolver::update(real t, bool end)
 
 //  timer0.restart();
   timer0 = time();//.restart();
-  smoothMesh();
+  //smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
