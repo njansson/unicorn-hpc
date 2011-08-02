@@ -397,15 +397,15 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
     solid_vertices.set(vertex, Geo::isStructure(p));
   }
 
-  MeshFunction<int> old2new_vertex;
-  MeshFunction<int> old2new_cells;
-  Mesh sub;
-  ElasticSmoother::submesh(mesh, sub, solid_cells, old2new_vertex, old2new_cells);
+  // MeshFunction<int> old2new_vertex;
+  // MeshFunction<int> old2new_cells;
+  // Mesh sub;
+  // ElasticSmoother::submesh(mesh, sub, solid_cells, old2new_vertex, old2new_cells);
 
-  File submeshfile("sub.xml");
-  File submeshfile2("sub.pvd");
-  submeshfile << sub;
-  submeshfile2 << sub;
+  // File submeshfile("sub.xml");
+  // File submeshfile2("sub.pvd");
+  // submeshfile << sub;
+  // submeshfile2 << sub;
 
   real rho_s = 1.0;
 

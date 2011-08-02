@@ -433,8 +433,8 @@ void NSESolver::save(Function& U, real t)
        thetafile << meshf_theta;
      }
      
-     while(lastsample + sampleperiod < t)
-     //if(true)
+     //while(lastsample + sampleperiod < t)
+     if(true)
      {
        lastsample = std::min(t, lastsample + sampleperiod);
        solutionfile << output;
