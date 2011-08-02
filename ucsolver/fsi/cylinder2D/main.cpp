@@ -374,27 +374,86 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 
   MeshFunction<bool> solid_cells(mesh, mesh.topology().dim());
 
+  bool existRegionFile = structure_mesh;
+   
+  IntersectionDetector *idetector;
+   
+  if (existRegionFile) 
+  {
+    std::cout << "Region file exists" << std::endl;
+    idetector = new IntersectionDetector(*structure_mesh);
+  }
+  else
+  {
+    std::cout << "Region file doesn't exist" << std::endl;
+  }
+
   for (CellIterator c(mesh); !c.end(); ++c)
   {
     Cell& cell = *c;
     Point mp = cell.midpoint();
 
-    solid_cells.set(cell, Geo::isStructure(mp));
-    //solid_cells.set(cell, false);
-    if(solid_cells.get(cell))
-    {
-      std::cout << "solid0" << std::endl;
-    }
+   if (existRegionFile)
+   {
+     Array<unsigned int> overlap_cells;
+     overlap_cells.clear();
+     idetector->overlap(mp, overlap_cells);
+     
+     bool bfnd = false;
+     for(int i=0; i < overlap_cells.size(); i++)
+     {	
+       Cell testcell(*structure_mesh, overlap_cells[i]);
+       if (structure_mesh->type().intersects(testcell,mp))
+       {
+	 std::cout << "solid cell" << std::endl;
+	 bfnd = true;
+	 break;
+       }			
+     }
+     
+     solid_cells.set(cell, bfnd);
+     
+   }
+   else
+     solid_cells.set(cell, Geo::isStructure(mp));
+   //solid_cells.set(cell, false);
+   if(solid_cells.get(cell))
+   {
+     std::cout << "solid0" << std::endl;
+   }
   }
-
+  
   MeshFunction<bool> solid_vertices(mesh, 0);
-
+  
   for (VertexIterator v(mesh); !v.end(); ++v)
   {
     Vertex& vertex = *v;
     Point p = vertex.point();
-
-    solid_vertices.set(vertex, Geo::isStructure(p));
+    
+    if (existRegionFile)
+    {
+      Array<unsigned int> overlap_cells;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);
+      
+      bool bfnd = false;
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      
+      solid_vertices.set(vertex, bfnd);
+      
+    }
+    else
+      solid_vertices.set(vertex, Geo::isStructure(p));
   }
 
   // MeshFunction<int> old2new_vertex;
