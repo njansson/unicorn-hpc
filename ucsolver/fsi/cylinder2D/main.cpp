@@ -66,14 +66,15 @@ namespace Geo
   
   bool isStructure(Point r)
   {
-    // Define the area that the pin occupies
-    // return (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
-    // 	    ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
-    real val =
-      (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
-       ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
-    std::cout << "isStructure: " << val << std::endl;
-    return val;
+    // // Define the area that the pin occupies
+    // // return (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
+    // // 	    ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
+    // real val =
+    //   (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
+    //    ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
+    // std::cout << "isStructure: " << val << std::endl;
+    // return val;
+    return true;
   }
 }
 
