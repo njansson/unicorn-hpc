@@ -572,6 +572,8 @@ int main(int argc, char* argv[])
     dolfin_set("output destination","silent"); 
   }
   
+  mesh.refine();
+
   for(int i = 0; i < 0; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
