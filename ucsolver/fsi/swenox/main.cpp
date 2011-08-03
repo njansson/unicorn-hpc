@@ -76,9 +76,10 @@ namespace Geo
   bool isStructure(Point r)
   {
     // Define the area that the pin occupies
-    return false && (((0.5 - bmarg) < r[0] && r[0] < (0.5 + 0.00625 / 1.0 + bmarg)) &&
-	    ((0.0 - bmarg) < r[1] && r[1] < (0.2 + bmarg)) &&
-	    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)));
+    // return false && (((0.5 - bmarg) < r[0] && r[0] < (0.5 + 0.00625 / 1.0 + bmarg)) &&
+    // 	    ((0.0 - bmarg) < r[1] && r[1] < (0.2 + bmarg)) &&
+    // 	    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)));
+    return true;
   }
 }
 
