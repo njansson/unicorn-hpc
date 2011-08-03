@@ -707,7 +707,7 @@ namespace dolfin { namespace unicorn
 
 	cout << "hhmin: " << hhmin << endl;
 
-        k = 1.0 / 8.0 * hhmin * qual->mu_min / (xnorm + hhmin);
+        k = 1.0 / 80.0 * hhmin * qual->mu_min / (xnorm + hhmin);
         //k = 1.0 / 20.0 * hhmin * qual->mu_min / (xnorm + hhmin);
 	//k *= 4.0;
 	//k = 0.01;
