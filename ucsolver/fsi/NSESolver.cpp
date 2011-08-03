@@ -433,8 +433,8 @@ void NSESolver::save(Function& U, real t)
        thetafile << meshf_theta;
      }
      
-     //while(lastsample + sampleperiod < t)
-     if(true)
+     while(lastsample + sampleperiod < t)
+       //if(true)
      {
        lastsample = std::min(t, lastsample + sampleperiod);
        solutionfile << output;
@@ -561,7 +561,7 @@ bool NSESolver::update(real t, bool end)
 
 //  timer0.restart();
   timer0 = time();//.restart();
-  //smoothMesh();
+  smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
