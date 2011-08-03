@@ -563,7 +563,7 @@ void NodeNormal::ComputeNormal(Mesh& mesh)
       for(int j = 0; j<recv_size; j += (n_tau +1)){
 	uint index = mesh.distdata().get_local(recv_index[idx], 0);
 	if(!used_shared[index]) {
-	  node_type.set(index, recv_type[j]);
+	  node_type.set(index, (int) recv_type[j]);
 	  //	  node_vec_arr[l2vidx[index]] =  recv_type[j];
 	  uint offset = 0;
 	  if(nsdim == 2) {
@@ -598,7 +598,22 @@ void NodeNormal::ComputeNormal(Mesh& mesh)
   }
   delete[] send_buff_type;
   delete[] send_buff_index;
+
+
+  shared_noffset.clear();
+  num_cells.clear();
+  shared_normal.clear();
   
+  for (std::map<uint, Array<real> >::iterator it = normal_block.begin();
+       it != normal_block.end(); it++) 
+    it->second.clear();
+  for (std::map<uint, Array<real> >::iterator it = shared_area_block.begin();
+       it != shared_area_block.end(); it++) 
+    it->second.clear();
+  
+
+  normal_block.clear();
+  shared_area_block.clear();
 }
 //-----------------------------------------------------------------------------
 void NodeNormal::cache_shared_area(Mesh& mesh, BoundaryMesh& boundary, uint nsdim, MeshFunction<uint> *vertex_map, MeshFunction<uint> *cell_map) 
