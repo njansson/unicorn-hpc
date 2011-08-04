@@ -869,11 +869,11 @@ void NSESolver::computeX(Function& XX)
     {
       for(VertexIterator v(*cell); !v.end(); ++v, ii++) 
       {
-	if (!mesh().distdata().is_ghost(v->index(), 0)) 
-	{
+	//if (!mesh().distdata().is_ghost(v->index(), 0)) 
+	//{
 	  XX_block[jj] = v->x()[i];
 	  id[jj++] = idx[ii];
-	}
+	  //}
       }
     }
     XX.vector().set(XX_block, jj, id);
@@ -1256,13 +1256,13 @@ void NSESolver::deform(Function& XX)
     {
       Vertex& vertex = *v;
 
-      if(!mesh().distdata().is_ghost(v->index(), 0))
-      {
+      //if(!mesh().distdata().is_ghost(v->index(), 0))
+      //{
 	for(unsigned int i = 0; i < d; i++)
 	{
 	  geometry.x(vertex.index(), i) = XX_block[i * local_dim + j];
 	}
-      }
+	//}
       j++;
     }
   }
@@ -1303,7 +1303,7 @@ void NSESolver::deform_fluid(Function& XX)
     {
       Vertex& vertex = *v;
 
-      if(!solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
+      if(!solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
@@ -1350,7 +1350,7 @@ void NSESolver::deform_solid(Function& XX)
     {
       Vertex& vertex = *v;
 
-      if(!solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
+      if(!solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
