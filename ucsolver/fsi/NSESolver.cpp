@@ -706,6 +706,7 @@ void NSESolver::smoothMesh()
 
   if(did_smoothing)
   {
+    deform_solid(Xtmp);
     computeX(X);
     computeW(false);
     
