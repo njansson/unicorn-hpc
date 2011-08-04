@@ -514,7 +514,7 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  transform(mesh);
+  //transform(mesh);
 
 //   mesh.refine();
 //   mesh.refine();
@@ -572,7 +572,10 @@ int main(int argc, char* argv[])
     dolfin_set("output destination","silent"); 
   }
   
-  mesh.refine();
+  // mesh.refine();
+
+  // File meshfile("refined.xml");
+  // meshfile << mesh;
 
   for(int i = 0; i < 0; i++)
   {
