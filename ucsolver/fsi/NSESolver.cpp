@@ -599,10 +599,7 @@ void NSESolver::smoothMesh()
 
   if(true || smooth_counter < 5)
   {
-    bool reset = false;
-    if(t == 0.0)
-      reset = true;
-    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, reset);
+    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
     
     Wx = motionx;
 
@@ -679,19 +676,19 @@ void NSESolver::smoothMesh()
     dolfin_set("ODE maximum iterations", 3);
     if((mqual->mu_min < 0.4 * mu_bar) || t < 30 * k)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
@@ -709,7 +706,7 @@ void NSESolver::smoothMesh()
 
   if(did_smoothing)
   {
-    deform_solid(Xtmp);
+    deform(Xtmp);
     computeX(X);
     computeW(false);
     
@@ -871,9 +868,12 @@ void NSESolver::computeX(Function& XX)
       {
 	//if (!mesh().distdata().is_ghost(v->index(), 0)) 
 	//{
-	  XX_block[jj] = v->x()[i];
-	  id[jj++] = idx[ii];
-	  //}
+	XX_block[jj] = v->x()[i];
+	id[jj++] = idx[ii];
+	//}
+	//else
+	//{
+	//}
       }
     }
     XX.vector().set(XX_block, jj, id);
@@ -948,7 +948,7 @@ void NSESolver::computeW(bool solid)
     {
       Vertex& vertex = *v;
       
-      if(solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
+      if(solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
@@ -1256,7 +1256,7 @@ void NSESolver::deform(Function& XX)
     {
       Vertex& vertex = *v;
 
-      //if(!mesh().distdata().is_ghost(v->index(), 0))
+      //if(solid_vertices.get(vertex))
       //{
 	for(unsigned int i = 0; i < d; i++)
 	{
@@ -1350,7 +1350,7 @@ void NSESolver::deform_solid(Function& XX)
     {
       Vertex& vertex = *v;
 
-      if(!solid_vertices.get(vertex))
+      if(solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
