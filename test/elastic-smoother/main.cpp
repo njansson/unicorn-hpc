@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
 {
   dolfin_init(argc, argv);
 
-  Mesh mesh("mesh.xml");
-  mesh.refine();
+  Mesh mesh("wedge.xml");
+
   //transform(mesh);
 
   mesh.renumber();
@@ -147,43 +147,9 @@ int main(int argc, char* argv[])
   qual.meshQuality();
   qual.disp();
 
-  dolfin_set("Mesh read in serial", true);
-  Mesh* structure_mesh = new Mesh("structure.xml");
-  dolfin_set("Mesh read in serial", false);
-
-  IntersectionDetector *idetector;
-  idetector = new IntersectionDetector(*structure_mesh);
-
-  MeshFunction<bool> solid_vertices(mesh, 0);
-
-  for (VertexIterator v(mesh); !v.end(); ++v)
-  {
-    Vertex& vertex = *v;
-    Point p = vertex.point();
-    
-    Array<unsigned int> overlap_cells;
-    overlap_cells.clear();
-    idetector->overlap(p, overlap_cells);
-    
-    bool bfnd = false;
-    
-    for(int i=0; i < overlap_cells.size();i++)
-    {
-      Cell testcell(*structure_mesh,overlap_cells[i]);
-      if (structure_mesh->type().intersects(testcell,p))
-      {
-	std::cout << "solid vertex" << std::endl;
-	bfnd = true;
-	break;
-      }			
-    }
-      
-    solid_vertices.set(vertex, bfnd);
-  }
-
   ElasticSmoother smoother(mesh);
   dolfin_set("Smoother max time steps", 20);
-  smoother.smooth(smoothed, solid_vertices, h0);
+  smoother.smooth(smoothed, masked, h0);
 
   qual.meshQuality();
   qual.disp();
