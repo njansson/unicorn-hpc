@@ -78,7 +78,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     wfile("meshvel.pvd"),
     thetafile("theta.pvd"),
     td(td),
-    pressure_solver(bicgstab, amg),
+    pressure_solver(bicgstab, sor),
     ksp_pressure(0),
     startup(true), indices(0), c_indices(0),
     solid_cells(solid_cells), solid_vertices(solid_vertices),
@@ -676,19 +676,19 @@ void NSESolver::smoothMesh()
     dolfin_set("ODE maximum iterations", 3);
     if((mqual->mu_min < 0.4 * mu_bar))
     {
-      dolfin_set("Smoother max time steps", 20);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 20);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 20);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
