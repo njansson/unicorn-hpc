@@ -676,19 +676,19 @@ void NSESolver::smoothMesh()
     dolfin_set("ODE maximum iterations", 3);
     if((mqual->mu_min < 0.4 * mu_bar) || t < 30 * k)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
@@ -1303,6 +1303,53 @@ void NSESolver::deform_fluid(Function& XX)
       Vertex& vertex = *v;
 
       if(!solid_vertices.get(vertex))
+      {
+	for(unsigned int i = 0; i < d; i++)
+	{
+	  geometry.x(vertex.index(), i) = XX_block[i * local_dim + j];
+	}
+      }
+      j++;
+    }
+  }
+
+  delete[] XX_block;
+  delete[] idx;
+  delete[] id;
+
+  MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
+}
+//-----------------------------------------------------------------------------
+void NSESolver::deform_solid(Function& XX)
+{
+  MeshGeometry& geometry = mesh().geometry();
+  
+  uint d = mesh().topology().dim();
+  uint N = mesh().numVertices();
+  if(MPI::numProcesses() > 1)
+    N = mesh().distdata().global_numVertices();
+  
+  UFC ufc(aM->form(), mesh(), aM->dofMaps());
+  Cell c(mesh(), 0);
+  uint local_dim = c.numEntities(0);
+  uint *idx  = new uint[d * local_dim];
+  uint *id  = new uint[d * local_dim];
+  real *XX_block = new real[d * local_dim];  
+  
+  // Update the mesh
+  for (CellIterator cell(mesh()); !cell.end(); ++cell)
+  {
+    ufc.update(*cell, mesh().distdata());
+    (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
+
+    XX.vector().get(XX_block, d * local_dim, idx);
+
+    uint j = 0;
+    for(VertexIterator v(*cell); !v.end(); ++v)
+    {
+      Vertex& vertex = *v;
+
+      if(solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
