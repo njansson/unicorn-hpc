@@ -296,14 +296,14 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
       {
 	for(VertexIterator v(*cell); !v.end(); ++v, ii++) 
 	{
-	  //if (!mesh.distdata().is_ghost(v->index(), 0)) 
-	  //{
+	  if (!mesh.distdata().is_ghost(v->index(), 0)) 
+	  {
 	    X_block[jj] = v->x()[i];
 	    id[jj++] = idx[ii];
-	    //}
-	    //else
-	    //{
-	    //}
+	  }
+	  else
+	  {
+	  }
 	}
       }
       X.vector().set(X_block, jj, id);
@@ -679,19 +679,19 @@ void NSESolver::smoothMesh()
     dolfin_set("ODE maximum iterations", 3);
     if((mqual->mu_min < 0.4 * mu_bar) || t < 30 * k)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 4);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 4);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 4);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
@@ -709,7 +709,7 @@ void NSESolver::smoothMesh()
 
   if(did_smoothing)
   {
-    //deform_solid(Xtmp);
+    //deform(Xtmp);
     computeX(X);
     computeW(false);
     
@@ -951,7 +951,7 @@ void NSESolver::computeW(bool solid)
     {
       Vertex& vertex = *v;
       
-      if(solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
+      if(solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{

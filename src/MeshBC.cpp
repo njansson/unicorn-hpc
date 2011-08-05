@@ -150,7 +150,6 @@ void MeshBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
       
       uint node = vertex.index();     
       if(!mesh.distdata().is_ghost(node, 0) || MPI::numProcesses() == 1) {
-	//if(true || MPI::numProcesses() == 1) {
 	
 	Cell cell(mesh, (vertex.entities(d))[0]);
 	

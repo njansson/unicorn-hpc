@@ -499,8 +499,8 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  mesh.refine();
-  mesh.refine();
+  //mesh.refine();
+  //mesh.refine();
 
   unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
