@@ -572,9 +572,9 @@ int main(int argc, char* argv[])
     dolfin_set("output destination","silent"); 
   }
   
-  mesh.refine();
+  //mesh.refine();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 1; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
