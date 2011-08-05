@@ -533,7 +533,7 @@ int main(int argc, char* argv[])
       Point r = c->midpoint();
       if(i < 7)
       {
-	if(c->midpoint().distance(tp) < 0.1)
+	if(c->midpoint().distance(tp) < 0.3)
 	  cell_refinement_marker.set(c->index(), true);
 	else
 	  cell_refinement_marker.set(c->index(), false);
