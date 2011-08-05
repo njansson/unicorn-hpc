@@ -483,7 +483,7 @@ void NSESolver::preparestep()
   mqual->meshQuality();
   cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
   
-  //smoothMesh();
+  smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
@@ -609,7 +609,7 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(true || smooth_counter < 5)
+  if(false && smooth_counter < 5)
   {
     bool reset_lsmoother = false;
     if(t == 0.0)
