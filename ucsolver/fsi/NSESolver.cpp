@@ -433,8 +433,8 @@ void NSESolver::save(Function& U, real t)
        thetafile << meshf_theta;
      }
      
-     while(lastsample + sampleperiod < t)
-       //if(true)
+     //while(lastsample + sampleperiod < t)
+     if(true)
      {
        lastsample = std::min(t, lastsample + sampleperiod);
        solutionfile << output;
@@ -928,6 +928,8 @@ void NSESolver::computeW(bool solid)
     }
   }
 
+  W.sync_ghosts();
+
   // W = U in solid part
   MeshGeometry& geometry = mesh().geometry();
   
@@ -944,6 +946,8 @@ void NSESolver::computeW(bool solid)
   real *W_block = new real[d * local_dim];  
   real *U_block = new real[d * local_dim];  
   
+  U.sync_ghosts();
+
   for (CellIterator cell(mesh()); !cell.end(); ++cell)
   {
     ufc.update(*cell, mesh().distdata());
@@ -954,21 +958,21 @@ void NSESolver::computeW(bool solid)
     
     uint j = 0;
     uint jj = 0;
-    for(VertexIterator v(*cell); !v.end(); ++v)
+    for(unsigned int i = 0; i < d; i++)
     {
-      Vertex& vertex = *v;
-      
-      if(solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
+      for(VertexIterator v(*cell); !v.end(); ++v, j++)
       {
-	for(unsigned int i = 0; i < d; i++)
+	Vertex& vertex = *v;
+	
+	if(!mesh().distdata().is_ghost(v->index(), 0))
 	{
-	  W_block[i * local_dim + j] = U_block[i * local_dim + j];
-	  jj++;
+	  if(solid_vertices.get(vertex))
+	    W_block[i * local_dim + j] = U_block[i * local_dim + j];
+	  id[jj++] = idx[j];
 	}
       }
-      j++;
     }
-    W.vector().set(W_block, jj, idx);
+    W.vector().set(W_block, jj, id);
   }
   W.vector().apply();
   
