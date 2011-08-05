@@ -296,14 +296,14 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
       {
 	for(VertexIterator v(*cell); !v.end(); ++v, ii++) 
 	{
-	  if (!mesh.distdata().is_ghost(v->index(), 0)) 
-	  {
+	  //if (!mesh.distdata().is_ghost(v->index(), 0)) 
+	  //{
 	    X_block[jj] = v->x()[i];
 	    id[jj++] = idx[ii];
-	  }
-	  else
-	  {
-	  }
+	    //}
+	    //else
+	    //{
+	    //}
 	}
       }
       X.vector().set(X_block, jj, id);
@@ -951,7 +951,7 @@ void NSESolver::computeW(bool solid)
     {
       Vertex& vertex = *v;
       
-      if(solid_vertices.get(vertex))
+      if(solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
