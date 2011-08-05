@@ -522,24 +522,21 @@ int main(int argc, char* argv[])
 //   mesh.refine();
 //   mesh.refine();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 1; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
     
     for (CellIterator c(mesh); !c.end(); ++c)
     {
-      Point tp(0.5, 0.1, 0.5);
+      Point tp(0.2, 0.045, 0.045);
       Point r = c->midpoint();
       if(i < 7)
       {
-	if(c->midpoint().distance(tp) < 0.15)
+	if(c->midpoint().distance(tp) < 0.1)
 	  cell_refinement_marker.set(c->index(), true);
 	else
 	  cell_refinement_marker.set(c->index(), false);
-
-	if(c->midpoint().distance(tp) < 0.35 && i < 4)
-	  cell_refinement_marker.set(c->index(), true);
       }
       else
       {
