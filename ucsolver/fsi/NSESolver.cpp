@@ -609,11 +609,18 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(false &&  smooth_counter < 5)
+  if(true || smooth_counter < 5)
   {
-    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
+    bool reset_lsmoother = false;
+    if(t == 0.0)
+      reset_lsmoother = true;
+    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, reset_lsmoother);
     
-    Wx = motionx;
+    //Wx = motionx;
+
+    Xtmp.vector() = X0.vector();
+    Xtmp.vector() += motionx;
+    deform(Xtmp);
 
     // FIXME: Not valid anymore
     // computeX(X);
