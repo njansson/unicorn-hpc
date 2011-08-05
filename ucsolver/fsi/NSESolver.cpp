@@ -482,6 +482,7 @@ void NSESolver::preparestep()
 //-----------------------------------------------------------------------------
 void NSESolver::prepareiteration()
 {
+  //smoothMesh();
   computeX(X);
   computeW(true);
   computeXinc();
@@ -510,6 +511,7 @@ void NSESolver::prepareiteration()
   cout << "Uc: " << Uc.vector().norm(linf) << endl;
   cout << "U: " << U.vector().norm(linf) << endl;
   cout << "S: " << S.vector().norm(linf) << endl;
+  cout << "W: " << W.vector().norm(linf) << endl;
 //   U.vector().disp();
 //   cout << "P: " << P.vector().norm(linf) << endl;
 //   P.vector().disp();
@@ -562,6 +564,11 @@ bool NSESolver::update(real t, bool end)
 //  timer0.restart();
   timer0 = time();//.restart();
   smoothMesh();
+  computeX(X);
+  //computeW(false);
+  //computeXinc();
+  //deform(Xinc);
+  //smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
@@ -582,7 +589,7 @@ void NSESolver::smoothMesh()
 {
   // Store mesh coordinates before smoothing
   //Xtmp.vector() = X0.vector();
-  computeX(Xtmp);
+  //computeX(Xtmp);
 
   MeshFunction<bool> smoothed(mesh(), mesh().topology().dim());
  
@@ -597,7 +604,7 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(true || smooth_counter < 5)
+  if(false &&  smooth_counter < 5)
   {
     lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
     
@@ -676,19 +683,19 @@ void NSESolver::smoothMesh()
     dolfin_set("ODE maximum iterations", 3);
     if((mqual->mu_min < 0.4 * mu_bar))
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
@@ -704,20 +711,20 @@ void NSESolver::smoothMesh()
 
   smooth_counter++;
 
-  if(did_smoothing)
-  {
-    computeX(X);
-    computeW(false);
+  // if(did_smoothing)
+  // {
+  //   computeX(X);
+  //   computeW(false);
     
-    // Revert mesh movement
-    deform(Xtmp);
+  //   // Revert mesh movement
+  //   deform(Xtmp);
 
-    //X0.vector() = Xtmp.vector();
-  }
-  else
-  {
-    //X0.vector() = Xtmp.vector();
-  }
+  //   //X0.vector() = Xtmp.vector();
+  // }
+  // else
+  // {
+  //   //X0.vector() = Xtmp.vector();
+  // }
 }
 //-----------------------------------------------------------------------------
 void NSESolver::solve_old()
@@ -887,10 +894,10 @@ void NSESolver::computeX(Function& XX)
 void NSESolver::computeXinc()
 {
   Xinc.vector() = W.vector();
-  Xinc.vector() += W0.vector();
+  //Xinc.vector() += W0.vector();
   
-  Xinc.vector() *= 0.5*k;
-  //Xinc.vector() *= k;
+  //Xinc.vector() *= 0.5*k;
+  Xinc.vector() *= k;
   Xinc.vector() += X0.vector();
   Xinc.vector().apply();
 }
