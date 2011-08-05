@@ -885,6 +885,8 @@ void NSESolver::computeX(Function& XX)
     XX.vector().set(XX_block, jj, id);
   }
   XX.vector().apply();
+
+  X.sync_ghosts();
   
   delete[] XX_block;
   delete[] idx;
@@ -900,6 +902,8 @@ void NSESolver::computeXinc()
   Xinc.vector() *= k;
   Xinc.vector() += X0.vector();
   Xinc.vector().apply();
+
+  Xinc.sync_ghosts();
 }
 //-----------------------------------------------------------------------------
 void NSESolver::computeW(bool solid)
@@ -975,6 +979,8 @@ void NSESolver::computeW(bool solid)
 
   cout << "W norm: " << W.vector().norm(linf) << endl;
   cout << "W0 norm: " << W0.vector().norm(linf) << endl;
+
+  W.sync_ghosts();
     
 }
 //-----------------------------------------------------------------------------
