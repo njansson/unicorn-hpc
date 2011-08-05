@@ -146,13 +146,10 @@ class FixBoundary : public SubDomain
 public:
   bool inside(const real* r, bool on_boundary) const
   {
-    return on_boundary &&
-      ((r[0] > 0.3 - bmarg) &&
-       (r[0] < 0.35 + bmarg) &&
-       (r[1] > 0.045 - bmarg) &&
-       (r[1] < 2.0 + bmarg) &&
-       (r[2] > 0.0 - bmarg) &&
-       (r[2] < 0.09 + bmarg));
+    return on_boundary && false &&
+      (((0.5 - bmarg) < r[0] && r[0] < (0.5125 + bmarg)) &&
+       ((0.0 - bmarg) < r[1] && r[1] < (0.0 + bmarg)) &&
+       ((0.4 - bmarg) < r[2] && r[2] < (0.6 + bmarg)));
   }
 };
 
@@ -529,7 +526,7 @@ int main(int argc, char* argv[])
     
     for (CellIterator c(mesh); !c.end(); ++c)
     {
-      Point tp(0.2, 0.045, 0.045);
+      Point tp(0.5, 0.1, 0.5);
       Point r = c->midpoint();
       if(i < 7)
       {
@@ -543,11 +540,9 @@ int main(int argc, char* argv[])
       }
       else
       {
-	// if(((0.5 - bmarg) < r[0] && r[0] < (0.5125 + bmarg)) &&
-	//    ((0.0 - bmarg) < r[1] && r[1] < (0.25 + bmarg)) &&
-	//    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)))
-	// {
-	if(false)
+	if(((0.5 - bmarg) < r[0] && r[0] < (0.5125 + bmarg)) &&
+	   ((0.0 - bmarg) < r[1] && r[1] < (0.25 + bmarg)) &&
+	   ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)))
 	{
 	  cell_refinement_marker.set(c->index(), true);
 	}
@@ -577,12 +572,9 @@ int main(int argc, char* argv[])
     dolfin_set("output destination","silent"); 
   }
   
-  // mesh.refine();
+  mesh.refine();
 
-  // File meshfile("refined.xml");
-  // meshfile << mesh;
-
-  for(int i = 0; i < 1; i++)
+  for(int i = 0; i < 0; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());

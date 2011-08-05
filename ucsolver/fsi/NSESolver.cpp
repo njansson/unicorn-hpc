@@ -78,7 +78,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     wfile("meshvel.pvd"),
     thetafile("theta.pvd"),
     td(td),
-    pressure_solver(bicgstab, sor),
+    pressure_solver(bicgstab, amg),
     ksp_pressure(0),
     startup(true), indices(0), c_indices(0),
     solid_cells(solid_cells), solid_vertices(solid_vertices),
@@ -230,17 +230,6 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   theta.init(mesh, thetax, *LM, 12);
 
   Presidual.init(P.vector().local_size());
-
-  U.sync_ghosts();
-  U0.sync_ghosts();
-  P.sync_ghosts();
-  W.sync_ghosts();
-  W0.sync_ghosts();
-  X.sync_ghosts();
-  X0.sync_ghosts();
-  Xinc.sync_ghosts();
-  motion.sync_ghosts();
-
 
   P.vector().zero();
   S.vector().zero();
@@ -444,8 +433,8 @@ void NSESolver::save(Function& U, real t)
        thetafile << meshf_theta;
      }
      
-     //while(lastsample + sampleperiod < t)
-     if(true)
+     while(lastsample + sampleperiod < t)
+       //if(true)
      {
        lastsample = std::min(t, lastsample + sampleperiod);
        solutionfile << output;
@@ -608,12 +597,9 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(false && smooth_counter < 5)
+  if(true || smooth_counter < 5)
   {
-    bool reset = false;
-    if(t == 0.0)
-      reset = true;
-    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, reset);
+    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
     
     Wx = motionx;
 
@@ -688,21 +674,21 @@ void NSESolver::smoothMesh()
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");
     dolfin_set("ODE maximum iterations", 3);
-    if((mqual->mu_min < 0.4 * mu_bar) || t < 30 * k)
+    if((mqual->mu_min < 0.4 * mu_bar))
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 20);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
@@ -720,7 +706,6 @@ void NSESolver::smoothMesh()
 
   if(did_smoothing)
   {
-    //deform(Xtmp);
     computeX(X);
     computeW(false);
     
@@ -1318,53 +1303,6 @@ void NSESolver::deform_fluid(Function& XX)
       Vertex& vertex = *v;
 
       if(!solid_vertices.get(vertex))
-      {
-	for(unsigned int i = 0; i < d; i++)
-	{
-	  geometry.x(vertex.index(), i) = XX_block[i * local_dim + j];
-	}
-      }
-      j++;
-    }
-  }
-
-  delete[] XX_block;
-  delete[] idx;
-  delete[] id;
-
-  MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
-}
-//-----------------------------------------------------------------------------
-void NSESolver::deform_solid(Function& XX)
-{
-  MeshGeometry& geometry = mesh().geometry();
-  
-  uint d = mesh().topology().dim();
-  uint N = mesh().numVertices();
-  if(MPI::numProcesses() > 1)
-    N = mesh().distdata().global_numVertices();
-  
-  UFC ufc(aM->form(), mesh(), aM->dofMaps());
-  Cell c(mesh(), 0);
-  uint local_dim = c.numEntities(0);
-  uint *idx  = new uint[d * local_dim];
-  uint *id  = new uint[d * local_dim];
-  real *XX_block = new real[d * local_dim];  
-  
-  // Update the mesh
-  for (CellIterator cell(mesh()); !cell.end(); ++cell)
-  {
-    ufc.update(*cell, mesh().distdata());
-    (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
-
-    XX.vector().get(XX_block, d * local_dim, idx);
-
-    uint j = 0;
-    for(VertexIterator v(*cell); !v.end(); ++v)
-    {
-      Vertex& vertex = *v;
-
-      if(solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
