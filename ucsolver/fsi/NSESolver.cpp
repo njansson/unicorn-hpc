@@ -599,7 +599,10 @@ void NSESolver::smoothMesh()
 
   if(true || smooth_counter < 5)
   {
-    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
+    bool reset = false;
+    if(t == 0.0)
+      reset = true;
+    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, reset);
     
     Wx = motionx;
 
