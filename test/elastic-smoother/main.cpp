@@ -188,12 +188,15 @@ int main(int argc, char* argv[])
   ElasticSmoother smoother(mesh);
   dolfin_set("Smoother max time steps", 4);
 
+  File meshfile("mesh.pvd");
+  meshfile << mesh;
 
   for(int i = 0; i < 100; i++)
   {
     smoother.smooth(smoothed, solid_vertices, h0);
     qual.meshQuality();
     qual.disp();
+    meshfile << mesh;
   }
 
   return 0;
