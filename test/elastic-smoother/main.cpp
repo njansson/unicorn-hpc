@@ -62,16 +62,18 @@ namespace Geo
 
 void transform(Mesh& mesh)
 {
-  for (VertexIterator n(mesh); !n.end(); ++n)
+  // Define the area that the pin occupies
+  for(VertexIterator v(mesh); !v.end(); ++v)
   {
-    Vertex& vertex = *n;
-    Point p = vertex.point();
-      
+    Vertex& vertex = *v;
+    
+    Point r = vertex.point();
+
     MeshGeometry& geometry = mesh.geometry();
-      
-    geometry.x(vertex.index(), 0) *= 0.01;
-    geometry.x(vertex.index(), 1) *= 0.01;
-    geometry.x(vertex.index(), 2) *= 0.01;
+
+    geometry.x(vertex.index(), 0) *= 1.0e-3;
+    geometry.x(vertex.index(), 1) *= 1.0e-3;
+    geometry.x(vertex.index(), 2) *= 1.0e-3;
   }
 }
 
@@ -80,13 +82,13 @@ int main(int argc, char* argv[])
 {
   dolfin_init(argc, argv);
 
-  Mesh mesh("wedge.xml");
-
-  //transform(mesh);
+  Mesh mesh("mesh.xml");
+  //mesh.refine();
+  transform(mesh);
 
   mesh.renumber();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 1; i++)
   {
     
     MeshFunction<bool> cell_refinement_marker(mesh);
@@ -95,9 +97,9 @@ int main(int argc, char* argv[])
     
     for (CellIterator c(mesh); !c.end(); ++c)
     {
-      if(c->midpoint()[0] < 0.25)
+      //if(c->midpoint()[0] < 0.25)
 	//if(c->midpoint()[0] > 0.75)
-	cell_refinement_marker.set(c->index(), true);
+      cell_refinement_marker.set(c->index(), true);
     }
     
     RivaraRefinement::refine(mesh, cell_refinement_marker);
@@ -129,14 +131,14 @@ int main(int argc, char* argv[])
 
   MeshGeometry& geometry = mesh.geometry();
 
-  for (VertexIterator v(mesh); !v.end(); ++v)
-  {
-    Vertex& vertex = *v;
-    Point p = vertex.point();
+  // for (VertexIterator v(mesh); !v.end(); ++v)
+  // {
+  //   Vertex& vertex = *v;
+  //   Point p = vertex.point();
 
-    if(Geo::isStructure(p))
-      geometry.x(vertex.index(), 1) += -0.003;
-  }
+  //   if(Geo::isStructure(p))
+  //     geometry.x(vertex.index(), 1) += -0.003;
+  // }
 
   if(dolfin::MPI::processNumber() == 0)
     dolfin_set("output destination", "terminal");
@@ -147,12 +149,52 @@ int main(int argc, char* argv[])
   qual.meshQuality();
   qual.disp();
 
-  ElasticSmoother smoother(mesh);
-  dolfin_set("Smoother max time steps", 20);
-  smoother.smooth(smoothed, masked, h0);
+  dolfin_set("Mesh read in serial", true);
+  Mesh* structure_mesh = new Mesh("structure.xml");
+  dolfin_set("Mesh read in serial", false);
 
-  qual.meshQuality();
-  qual.disp();
+  transform(*structure_mesh);
+
+  IntersectionDetector *idetector;
+  idetector = new IntersectionDetector(*structure_mesh);
+
+  MeshFunction<bool> solid_vertices(mesh, 0);
+
+  for (VertexIterator v(mesh); !v.end(); ++v)
+  {
+    Vertex& vertex = *v;
+    Point p = vertex.point();
+    
+    Array<unsigned int> overlap_cells;
+    overlap_cells.clear();
+    idetector->overlap(p, overlap_cells);
+    
+    bool bfnd = false;
+    
+    for(int i=0; i < overlap_cells.size();i++)
+    {
+      Cell testcell(*structure_mesh,overlap_cells[i]);
+      if (structure_mesh->type().intersects(testcell,p))
+      {
+	std::cout << "solid vertex" << std::endl;
+	bfnd = true;
+	break;
+      }			
+    }
+      
+    solid_vertices.set(vertex, bfnd);
+  }
+
+  ElasticSmoother smoother(mesh);
+  dolfin_set("Smoother max time steps", 4);
+
+
+  for(int i = 0; i < 100; i++)
+  {
+    smoother.smooth(smoothed, solid_vertices, h0);
+    qual.meshQuality();
+    qual.disp();
+  }
 
   return 0;
 }
