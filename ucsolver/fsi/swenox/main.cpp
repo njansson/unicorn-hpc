@@ -488,7 +488,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 		    p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
                     ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
-  dolfin_set("ODE discrete tolerance", 1.0e-3);
+  dolfin_set("ODE discrete tolerance", 1.0e-2);
   dolfin_set("ODE maximum iterations", 30);
   dolfin_set("PDE number of samples", 400);  
 
@@ -522,7 +522,7 @@ int main(int argc, char* argv[])
 //   mesh.refine();
 //   mesh.refine();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 1; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
@@ -574,7 +574,7 @@ int main(int argc, char* argv[])
   
   //mesh.refine();
 
-  for(int i = 0; i < 1; i++)
+  for(int i = 0; i < 0; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
