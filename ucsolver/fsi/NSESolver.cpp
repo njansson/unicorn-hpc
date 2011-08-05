@@ -231,6 +231,17 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
 
   Presidual.init(P.vector().local_size());
 
+  U.sync_ghosts();
+  U0.sync_ghosts();
+  P.sync_ghosts();
+  W.sync_ghosts();
+  W0.sync_ghosts();
+  X.sync_ghosts();
+  X0.sync_ghosts();
+  Xinc.sync_ghosts();
+  motion.sync_ghosts();
+
+
   P.vector().zero();
   S.vector().zero();
   Sdot.vector().zero();
@@ -433,8 +444,8 @@ void NSESolver::save(Function& U, real t)
        thetafile << meshf_theta;
      }
      
-     while(lastsample + sampleperiod < t)
-       //if(true)
+     //while(lastsample + sampleperiod < t)
+     if(true)
      {
        lastsample = std::min(t, lastsample + sampleperiod);
        solutionfile << output;
