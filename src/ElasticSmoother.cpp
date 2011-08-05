@@ -94,7 +94,7 @@ void ElasticSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 
   real T = 1.0e10;
 
-  real ode_tol = 2.0e-2;
+  real ode_tol = 2.0e0;
 
   dolfin_set("ODE method", "dg");
   dolfin_set("ODE order", 0);
