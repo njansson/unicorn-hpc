@@ -594,7 +594,7 @@ void NSESolver::smoothMesh()
 {
   // Store mesh coordinates before smoothing
   //Xtmp.vector() = X0.vector();
-  //computeX(Xtmp);
+  computeX(Xtmp2);
 
   MeshFunction<bool> smoothed(mesh(), mesh().topology().dim());
  
@@ -728,6 +728,9 @@ void NSESolver::smoothMesh()
   }
 
   smooth_counter++;
+
+  Xtmp2.sync_ghosts();
+  deform_solid(Xtmp2);
 
   // if(did_smoothing)
   // {
