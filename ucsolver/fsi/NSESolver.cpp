@@ -913,6 +913,9 @@ void NSESolver::computeX(Function& XX)
 //-----------------------------------------------------------------------------
 void NSESolver::computeXinc()
 {
+  U.sync_ghosts();
+  X0.sync_ghosts();
+
   Xinc.vector() = U.vector();
   //Xinc.vector() += W0.vector();
   
