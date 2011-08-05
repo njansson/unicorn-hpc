@@ -618,9 +618,14 @@ void NSESolver::smoothMesh()
     
     //Wx = motionx;
 
-    Xtmp.vector() = X0.vector();
-    Xtmp.vector() += motionx;
+    Xtmp.vector() = motionx;
+    Xtmp.vector() *= k;
+    Xtmp.vector() += X0.vector();
+    Xtmp.vector().apply();
+    Xtmp.sync_ghosts();
     deform(Xtmp);
+    
+
 
     // FIXME: Not valid anymore
     // computeX(X);
