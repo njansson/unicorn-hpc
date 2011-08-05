@@ -483,7 +483,7 @@ void NSESolver::preparestep()
   mqual->meshQuality();
   cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
   
-  smoothMesh();
+  //smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
