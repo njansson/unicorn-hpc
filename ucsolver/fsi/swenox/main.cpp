@@ -146,10 +146,13 @@ class FixBoundary : public SubDomain
 public:
   bool inside(const real* r, bool on_boundary) const
   {
-    return on_boundary && false &&
-      (((0.5 - bmarg) < r[0] && r[0] < (0.5125 + bmarg)) &&
-       ((0.0 - bmarg) < r[1] && r[1] < (0.0 + bmarg)) &&
-       ((0.4 - bmarg) < r[2] && r[2] < (0.6 + bmarg)));
+    return on_boundary &&
+      ((r[0] > 0.3 - bmarg) &&
+       (r[0] < 0.35 + bmarg) &&
+       (r[1] > 0.045 - bmarg) &&
+       (r[1] < 2.0 + bmarg) &&
+       (r[2] > 0.0 - bmarg) &&
+       (r[2] < 0.09 + bmarg));
   }
 };
 
@@ -574,7 +577,7 @@ int main(int argc, char* argv[])
   
   //mesh.refine();
 
-  for(int i = 0; i < 1; i++)
+  for(int i = 0; i < 0; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
