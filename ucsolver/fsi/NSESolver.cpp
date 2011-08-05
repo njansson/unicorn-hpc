@@ -709,7 +709,7 @@ void NSESolver::smoothMesh()
 
   if(did_smoothing)
   {
-    deform(Xtmp);
+    //deform(Xtmp);
     computeX(X);
     computeW(false);
     
