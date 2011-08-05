@@ -608,7 +608,7 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(true || smooth_counter < 5)
+  if(false && smooth_counter < 5)
   {
     bool reset = false;
     if(t == 0.0)
