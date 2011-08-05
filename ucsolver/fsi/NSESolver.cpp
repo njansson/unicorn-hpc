@@ -565,7 +565,7 @@ bool NSESolver::update(real t, bool end)
   timer0 = time();//.restart();
   smoothMesh();
   computeX(X);
-  //computeW(false);
+  computeW(false);
   //computeXinc();
   //deform(Xinc);
   //smoothMesh();
