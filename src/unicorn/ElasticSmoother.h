@@ -171,7 +171,7 @@ namespace dolfin { namespace unicorn
 
 	//int d = cell().dim();
 
-	real p = 4.0;
+	real p = 8.0;
 	//real p = 1.0;
 
 	real val = 1.0;
