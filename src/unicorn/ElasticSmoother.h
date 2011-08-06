@@ -171,7 +171,7 @@ namespace dolfin { namespace unicorn
 
 	//int d = cell().dim();
 
-	real p = 2.0;
+	real p = 4.0;
 	//real p = 1.0;
 
 	real val = 1.0;
@@ -713,7 +713,7 @@ namespace dolfin { namespace unicorn
 
 	cout << "hhmin: " << hhmin << endl;
 
-        k = 1.0 / 8.0 * hhmin * qual->mu_min / (xnorm + hhmin);
+        k = 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + hhmin);
 	//k *= 4.0;
 	//k = 0.01;
 	//	k = 1.0e-3;
