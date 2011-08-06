@@ -448,6 +448,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
   
   MeshFunction<bool> solid_vertices(mesh, 0);
   
+  int svcounter = 0;
   for (VertexIterator v(mesh); !v.end(); ++v)
   {
     Vertex& vertex = *v;
@@ -456,10 +457,11 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
     if (existRegionFile)
     {
       Array<unsigned int> overlap_cells;
+      bool bfnd;
+
+      bfnd = false;
       overlap_cells.clear();
-      idetector->overlap(p, overlap_cells);
-      
-      bool bfnd = false;
+      idetector->overlap(p, overlap_cells);      
       
       for(int i=0; i < overlap_cells.size();i++)
       {
@@ -471,14 +473,141 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 	  break;
 	}			
       }
-      
       solid_vertices.set(vertex, bfnd);
+
+      bfnd = false || bfnd;
+      p[0] += bmarg;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);      
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      solid_vertices.set(vertex, bfnd);
+      p[0] -= bmarg;
+
+
+      bfnd = false || bfnd;
+      p[0] -= bmarg;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);      
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      solid_vertices.set(vertex, bfnd);
+      p[0] += bmarg;
+
+
+      bfnd = false || bfnd;
+      p[1] += bmarg;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);      
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      solid_vertices.set(vertex, bfnd);
+      p[1] -= bmarg;
+
+
+      bfnd = false || bfnd;
+      p[1] -= bmarg;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);      
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      solid_vertices.set(vertex, bfnd);
+      p[1] += bmarg;
+
+
+      bfnd = false || bfnd;
+      p[2] += bmarg;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);      
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      solid_vertices.set(vertex, bfnd);
+      p[2] -= bmarg;
+
+
+      bfnd = false || bfnd;
+      p[2] -= bmarg;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);      
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      solid_vertices.set(vertex, bfnd);
+      p[2] += bmarg;
+
+
+
+
+
+
+
+       //if(bfnd && !mesh.distdata().is_ghost(v->index(), 0))
+       if(bfnd && !mesh.distdata().is_ghost(v->index(), 0)) // 6606 ref
+	svcounter++;
       
     }
     else
       solid_vertices.set(vertex, Geo::isStructure(p));
   }
   
+  int svcounter_tmp = svcounter;
+  MPI_Allreduce(&svcounter_tmp, &svcounter, 1, MPI_INT, 
+		MPI_SUM, dolfin::MPI::DOLFIN_COMM);
+  std::cout << "svcounter: " << svcounter << std::endl;
+
   Function U, U0;
 
 //   dolfin_set("Krylov relative tolerance", 1.0e-12);
