@@ -199,7 +199,7 @@ public:
   {
     real t = td.time();
     real ramp = 0.0;
-    real tramp = 1.0e0;
+    real tramp = 1.0e-1;
 
     
 
@@ -212,7 +212,7 @@ public:
       ramp = 1.0;
     }
 
-    ramp = 1.0;
+    //ramp = 1.0;
 
 
     for(int i = 0; i < 3; i++)
