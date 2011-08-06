@@ -634,13 +634,13 @@ void NSESolver::smoothMesh()
     dolfin_set("ODE maximum iterations", 3);
     if(mqual->mu_min < 0.5 * mu_bar)
     {
-      dolfin_set("Smoother max time steps", 4);
+      dolfin_set("Smoother max time steps", 8);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else if(mqual->mu_min < 0.75 * mu_bar || t < 30 * k || true)
     {
-      dolfin_set("Smoother max time steps", 2);
+      dolfin_set("Smoother max time steps", 3);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
