@@ -147,6 +147,7 @@ class FixBoundary : public SubDomain
 public:
   bool inside(const real* r, bool on_boundary) const
   {
+    cout << "lala: " << cell().index() << endl;
     return on_boundary &&
       ((r[0] > 0.3 - bmarg) &&
        (r[0] < 0.35 + bmarg) &&
