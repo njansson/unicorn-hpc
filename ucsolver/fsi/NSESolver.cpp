@@ -546,6 +546,9 @@ bool NSESolver::update(real t, bool end)
 {
   cout << "FSISolver::update: " << "t: " << t << " k: " << k << endl;
 
+  if(t < 30 * k)
+    mu_bar = mqual->mu_min;
+
   if(t > 10 * k)
   {
 //     if(k != 0.5*hmin/ubar)
@@ -638,7 +641,7 @@ void NSESolver::smoothMesh()
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
-    else if(mqual->mu_min < 0.75 * mu_bar || t < 30 * k || true)
+    else if(mqual->mu_min < 0.75 * mu_bar || t < 30 * k)
     {
       dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
