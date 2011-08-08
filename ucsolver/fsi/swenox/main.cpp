@@ -167,8 +167,10 @@ public:
     OutflowBoundary ob;
     FixBoundary fb;
 
+    // return on_boundary && !ib.inside(p, on_boundary) &&
+    //   !ob.inside(p, on_boundary) && !fb.inside(p, on_boundary);
     return on_boundary && !ib.inside(p, on_boundary) &&
-      !ob.inside(p, on_boundary) && !fb.inside(p, on_boundary);
+      !ob.inside(p, on_boundary);
   }
 };
 
