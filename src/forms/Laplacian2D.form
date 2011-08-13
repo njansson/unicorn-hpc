@@ -26,5 +26,6 @@ v = TestFunction(K)
 U = TrialFunction(K)
 f = Function(K)
 
-a = (dot(grad(U), grad(v))) * dx
+#a = (dot(grad(U), grad(v))) * dx
+a = dot(epsilon(U), grad(v))*dx
 L = (dot(f, v)) * dx

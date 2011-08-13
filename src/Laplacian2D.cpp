@@ -3814,7 +3814,7 @@ void UFC_Laplacian2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
     
     
     // Compute element tensor (using quadrature representation, optimisation level 2)
-    // Total number of operations to compute element tensor (from this point): 117
+    // Total number of operations to compute element tensor (from this point): 252
     
     // Reset values of the element tensor block
     for (unsigned int j = 0; j < 6; j++)
@@ -3825,8 +3825,8 @@ void UFC_Laplacian2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
       }// end loop over 'k'
     }// end loop over 'j'
     
-    // Array of quadrature weights (tensor/monomial term 0)
-    const static double W0 = 0.5;
+    // Array of quadrature weights (tensor/monomial terms (0, 1))
+    const static double W0 = 0.25;
     
     const static double P_t0_p1_a1_s1[1][2] = \
     {{-1, 1}};
@@ -3835,29 +3835,46 @@ void UFC_Laplacian2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
     // Array of non-zero columns
     static const unsigned int nzc1[2] = {3, 4};
     // Array of non-zero columns
-    static const unsigned int nzc2[2] = {0, 1};
+    static const unsigned int nzc2[2] = {0, 2};
     // Array of non-zero columns
-    static const unsigned int nzc3[2] = {0, 2};
+    static const unsigned int nzc3[2] = {0, 1};
     
-    // Number of operations to compute geometry constants = 18
-    const double G0 = Jinv_00*Jinv_10*W0*det;
+    // Number of operations to compute geometry constants = 54
+    const double G0 = 2*Jinv_00*Jinv_10*W0*det;
     const double G1 = Jinv_01*Jinv_11*W0*det;
-    const double G2 = Jinv_10*Jinv_10*W0*det;
-    const double G3 = Jinv_11*Jinv_11*W0*det;
-    const double G4 = Jinv_00*Jinv_00*W0*det;
-    const double G5 = Jinv_01*Jinv_01*W0*det;
+    const double G2 = 2*Jinv_01*Jinv_11*W0*det;
+    const double G3 = Jinv_00*Jinv_10*W0*det;
+    const double G4 = 2*Jinv_10*Jinv_10*W0*det;
+    const double G5 = Jinv_11*Jinv_11*W0*det;
+    const double G6 = 2*Jinv_01*Jinv_01*W0*det;
+    const double G7 = Jinv_00*Jinv_00*W0*det;
+    const double G8 = 2*Jinv_11*Jinv_11*W0*det;
+    const double G9 = Jinv_10*Jinv_10*W0*det;
+    const double G10 = 2*Jinv_00*Jinv_00*W0*det;
+    const double G11 = Jinv_01*Jinv_01*W0*det;
+    const double G12 = Jinv_10*Jinv_11*W0*det;
+    const double G13 = Jinv_00*Jinv_01*W0*det;
+    const double G14 = Jinv_00*Jinv_11*W0*det;
+    const double G15 = Jinv_01*Jinv_10*W0*det;
     
-    // Loop quadrature points (tensor/monomial terms (0,))
-    // Number of operations to compute element tensor for following IP loop = 99
+    // Loop quadrature points (tensor/monomial terms (0, 1))
+    // Number of operations to compute element tensor for following IP loop = 198
     // Only 1 integration point, omitting IP loop.
     
-    // Number of operations to compute declarations = 3
+    // Number of operations to compute declarations = 6
     const double Gip0 = G0 + G1;
-    const double Gip1 = G4 + G5;
-    const double Gip2 = G2 + G3;
+    const double Gip1 = G2 + G3;
+    const double Gip2 = G8 + G9;
+    const double Gip3 = G6 + G7;
+    const double Gip4 = G12;
+    const double Gip5 = G4 + G5;
+    const double Gip6 = G10 + G11;
+    const double Gip7 = G15;
+    const double Gip8 = G13;
+    const double Gip9 = G14;
     
     // Loop primary indices.
-    // Number of operations for primary indices = 96
+    // Number of operations for primary indices = 192
     for (unsigned int j = 0; j < 2; j++)
     {
       for (unsigned int k = 0; k < 2; k++)
@@ -3865,19 +3882,35 @@ void UFC_Laplacian2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
         // Number of operations to compute entry = 3
         A[nzc3[j]*6 + nzc2[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip0;
         // Number of operations to compute entry = 3
-        A[nzc1[j]*6 + nzc0[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip0;
-        // Number of operations to compute entry = 3
-        A[nzc2[j]*6 + nzc2[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip1;
-        // Number of operations to compute entry = 3
-        A[nzc2[j]*6 + nzc3[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip0;
-        // Number of operations to compute entry = 3
-        A[nzc1[j]*6 + nzc1[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip1;
+        A[nzc1[j]*6 + nzc0[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip1;
         // Number of operations to compute entry = 3
         A[nzc0[j]*6 + nzc0[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip2;
         // Number of operations to compute entry = 3
-        A[nzc3[j]*6 + nzc3[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip2;
+        A[nzc0[j]*6 + nzc1[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip1;
         // Number of operations to compute entry = 3
-        A[nzc0[j]*6 + nzc1[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip0;
+        A[nzc2[j]*6 + nzc3[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip0;
+        // Number of operations to compute entry = 3
+        A[nzc1[j]*6 + nzc1[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip3;
+        // Number of operations to compute entry = 3
+        A[nzc2[j]*6 + nzc0[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip4;
+        // Number of operations to compute entry = 3
+        A[nzc2[j]*6 + nzc2[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip5;
+        // Number of operations to compute entry = 3
+        A[nzc0[j]*6 + nzc2[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip4;
+        // Number of operations to compute entry = 3
+        A[nzc3[j]*6 + nzc3[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip6;
+        // Number of operations to compute entry = 3
+        A[nzc0[j]*6 + nzc3[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip7;
+        // Number of operations to compute entry = 3
+        A[nzc1[j]*6 + nzc3[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip8;
+        // Number of operations to compute entry = 3
+        A[nzc3[j]*6 + nzc1[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip8;
+        // Number of operations to compute entry = 3
+        A[nzc1[j]*6 + nzc2[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip9;
+        // Number of operations to compute entry = 3
+        A[nzc3[j]*6 + nzc0[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip7;
+        // Number of operations to compute entry = 3
+        A[nzc2[j]*6 + nzc1[k]] += P_t0_p1_a1_s1[0][j]*P_t0_p1_a1_s1[0][k]*Gip9;
       }// end loop over 'k'
     }// end loop over 'j'
     
@@ -3898,7 +3931,7 @@ UFC_Laplacian2DBilinearForm::~UFC_Laplacian2DBilinearForm()
 /// Return a string identifying the form
 const char* UFC_Laplacian2DBilinearForm::signature() const
 {
-    return "(dXa0[0, 1]/dxb0[0, 1])(dXa1[0, 1]/dxb0[0, 1]) | ((d/dXa0[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa1[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0)";
+    return "0.5(dXa0[0, 1]/dxb0[0, 1])(dXa1[0, 1]/dxb0[0, 1]) | ((d/dXa0[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa1[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5(dXa0[0, 1]/dxa3[0, 1])(dXa1[0, 1]/dxa2[0, 1]) | ((d/dXa0[0, 1])vi1[0, 1, 2, 3, 4, 5][a2[0, 1]])*((d/dXa1[0, 1])vi0[0, 1, 2, 3, 4, 5][a3[0, 1]])*dX(0)";
 }
 
 /// Return the rank of the global tensor (r)
