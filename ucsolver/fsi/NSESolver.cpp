@@ -118,7 +118,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   GetMinimumCellSize(mesh, hmin);  
 
   // Take very conservative time-step for startup
-  k = 8.0*hmin/ubar;
+  k = 0.5*hmin/ubar;
   message("nu: %f",nu);
   message("ubar: %f",ubar);
   message("hmin: %f",hmin);
