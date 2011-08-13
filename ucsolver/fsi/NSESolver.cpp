@@ -874,9 +874,9 @@ void NSESolver::computeW(bool solid)
     
     cout << "W norm 0: " << W.vector().norm(linf) << endl;
     
-    //W.vector() /= 0.5*k;
-    //W.vector() -= W0.vector();
-    W.vector() /= k;
+    W.vector() /= 0.5*k;
+    W.vector() -= W0.vector();
+    //W.vector() /= k;
     W.vector().apply();
 
     if(W.vector().norm(linf) > 4.0 * ubar)
