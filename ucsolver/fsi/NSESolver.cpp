@@ -854,7 +854,7 @@ void NSESolver::computeX(Function& XX)
 //-----------------------------------------------------------------------------
 void NSESolver::computeXinc()
 {
-  Xinc.vector() = W.vector();
+  Xinc.vector() = U.vector();
   Xinc.vector() += W0.vector();
   
   Xinc.vector() *= 0.5*k;
@@ -865,7 +865,7 @@ void NSESolver::computeXinc()
 //-----------------------------------------------------------------------------
 void NSESolver::computeW(bool solid)
 {
-  if(!solid)
+  if(true || !solid)
   {
     W.vector() = X.vector();
     W.vector() -= X0.vector();
@@ -885,57 +885,10 @@ void NSESolver::computeW(bool solid)
     }
   }
 
-  // W = U in solid part
-  MeshGeometry& geometry = mesh().geometry();
-  
-  uint d = mesh().topology().dim();
-  uint N = mesh().numVertices();
-  if(MPI::numProcesses() > 1)
-    N = mesh().distdata().global_numVertices();
-  
-  UFC ufc(aM->form(), mesh(), aM->dofMaps());
-  Cell c(mesh(), 0);
-  uint local_dim = c.numEntities(0);
-  uint *idx  = new uint[d * local_dim];
-  uint *id  = new uint[d * local_dim];
-  real *W_block = new real[d * local_dim];  
-  real *U_block = new real[d * local_dim];  
-  
-  for (CellIterator cell(mesh()); !cell.end(); ++cell)
-  {
-    ufc.update(*cell, mesh().distdata());
-    (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
-    
-    U.vector().get(U_block, d * local_dim, idx);
-    W.vector().get(W_block, d * local_dim, idx);
-    
-    uint j = 0;
-    uint jj = 0;
-    for(VertexIterator v(*cell); !v.end(); ++v)
-    {
-      Vertex& vertex = *v;
-      
-      if(solid_vertices.get(vertex))
-      {
-	for(unsigned int i = 0; i < d; i++)
-	{
-	  W_block[i * local_dim + j] = U_block[i * local_dim + j];
-	  jj++;
-	}
-      }
-      j++;
-    }
-    W.vector().set(W_block, jj, idx);
-  }
-  W.vector().apply();
-  
-  delete[] U_block;
-  delete[] W_block;
-  delete[] idx;
-  delete[] id;
-
   cout << "W norm: " << W.vector().norm(linf) << endl;
   cout << "W0 norm: " << W0.vector().norm(linf) << endl;
+
+  W.sync_ghosts();
     
 }
 //-----------------------------------------------------------------------------
@@ -1230,53 +1183,6 @@ void NSESolver::deform(Function& XX)
 	  geometry.x(vertex.index(), i) = XX_block[i * local_dim + j];
 	}
 	//}
-      j++;
-    }
-  }
-
-  delete[] XX_block;
-  delete[] idx;
-  delete[] id;
-
-  MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
-}
-//-----------------------------------------------------------------------------
-void NSESolver::deform_fluid(Function& XX)
-{
-  MeshGeometry& geometry = mesh().geometry();
-  
-  uint d = mesh().topology().dim();
-  uint N = mesh().numVertices();
-  if(MPI::numProcesses() > 1)
-    N = mesh().distdata().global_numVertices();
-  
-  UFC ufc(aM->form(), mesh(), aM->dofMaps());
-  Cell c(mesh(), 0);
-  uint local_dim = c.numEntities(0);
-  uint *idx  = new uint[d * local_dim];
-  uint *id  = new uint[d * local_dim];
-  real *XX_block = new real[d * local_dim];  
-  
-  // Update the mesh
-  for (CellIterator cell(mesh()); !cell.end(); ++cell)
-  {
-    ufc.update(*cell, mesh().distdata());
-    (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
-
-    XX.vector().get(XX_block, d * local_dim, idx);
-
-    uint j = 0;
-    for(VertexIterator v(*cell); !v.end(); ++v)
-    {
-      Vertex& vertex = *v;
-
-      if(!solid_vertices.get(vertex))
-      {
-	for(unsigned int i = 0; i < d; i++)
-	{
-	  geometry.x(vertex.index(), i) = XX_block[i * local_dim + j];
-	}
-      }
       j++;
     }
   }
