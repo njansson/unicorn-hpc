@@ -607,63 +607,6 @@ void NSESolver::smoothMesh()
     computeXinc();
     deform(Xinc);
     
-    // // W = U in solid part
-    // MeshGeometry& geometry = mesh().geometry();
-    
-    // uint d = mesh().topology().dim();
-    // uint N = mesh().numVertices();
-    // if(MPI::numProcesses() > 1)
-    //   N = mesh().distdata().global_numVertices();
-    
-    // UFC ufc(aM->form(), mesh(), aM->dofMaps());
-    // Cell c(mesh(), 0);
-    // uint local_dim = c.numEntities(0);
-    // uint *idx  = new uint[d * local_dim];
-    // uint *id  = new uint[d * local_dim];
-    // real *W_block = new real[d * local_dim];  
-    // real *U_block = new real[d * local_dim];  
-    
-    // for (CellIterator cell(mesh()); !cell.end(); ++cell)
-    // {
-    //   ufc.update(*cell, mesh().distdata());
-    //   (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
-      
-    //   U.vector().get(U_block, d * local_dim, idx);
-    //   W.vector().get(W_block, d * local_dim, idx);
-      
-    //   uint j = 0;
-    //   uint jj = 0;
-    //   for(VertexIterator v(*cell); !v.end(); ++v)
-    //   {
-    // 	Vertex& vertex = *v;
-	
-    // 	if(solid_vertices.get(vertex))
-    // 	{
-    // 	  for(unsigned int i = 0; i < d; i++)
-    // 	  {
-    // 	    W_block[i * local_dim + j] = U_block[i * local_dim + j];
-    // 	    jj++;
-    // 	  }
-    // 	}
-    // 	j++;
-    //   }
-    //   W.vector().set(W_block, jj, idx);
-    // }
-    // W.vector().apply();
-    
-    // delete[] U_block;
-    // delete[] W_block;
-    // delete[] idx;
-    // delete[] id;
-    
-    // MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
-
-    // Xtmp2.vector() = W.vector();
-    // Xtmp2.vector() *= k;
-    // Xtmp2.vector() += X0.vector();
-    // Xtmp2.vector().apply();
-    // deform(Xtmp2);
-
     did_smoothing = true;
     
   }
