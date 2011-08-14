@@ -479,10 +479,17 @@ void NSESolver::preparestep()
   Sdot0.vector() = Sdot.vector();
   //  P0 = P;
 
+  mqual->meshQuality();
+  cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
+
+  timer0 = time();//.restart();
   smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
+
+
+  message("FSISolver timer smoother: %g", time()- timer0);
 }
 //-----------------------------------------------------------------------------
 void NSESolver::prepareiteration()
@@ -542,8 +549,8 @@ bool NSESolver::update(real t, bool end)
 {
   cout << "FSISolver::update: " << "t: " << t << " k: " << k << endl;
 
-  mqual->meshQuality();
-  cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
+  // mqual->meshQuality();
+  // cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
   
   if(t > 10 * k)
   {
@@ -570,7 +577,6 @@ bool NSESolver::update(real t, bool end)
   }
 
 //  timer0.restart();
-  timer0 = time();//.restart();
   //smoothMesh();
 
   //mqual->meshQuality();
