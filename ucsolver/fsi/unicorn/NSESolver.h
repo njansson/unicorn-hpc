@@ -87,7 +87,6 @@ namespace dolfin {
       void smoothMesh();
       void deform(Function& X);
       void deform_fluid(Function& X);
-      void deform_solid(Function& X);
       
     protected:
 

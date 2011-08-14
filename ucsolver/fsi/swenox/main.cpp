@@ -540,9 +540,9 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  //transform(mesh);
+  transform(mesh);
 
-  //mesh.refine();
+  mesh.refine();
 //   mesh.refine();
 
   for(int i = 0; i < 0; i++)
