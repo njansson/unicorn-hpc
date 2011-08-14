@@ -118,7 +118,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   GetMinimumCellSize(mesh, hmin);  
 
   // Take very conservative time-step for startup
-  k = 0.2*hmin/ubar;
+  k = 1.0*hmin/ubar;
   message("nu: %f",nu);
   message("ubar: %f",ubar);
   message("hmin: %f",hmin);
@@ -552,6 +552,9 @@ bool NSESolver::update(real t, bool end)
   // mqual->meshQuality();
   // cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
   
+  if(t < 30 * k)
+    mu_bar = mqual->mu_min;
+
   if(t > 10 * k)
   {
 //     if(k != 0.5*hmin/ubar)
@@ -640,23 +643,23 @@ void NSESolver::smoothMesh()
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");
     dolfin_set("ODE maximum iterations", 3);
-    if((mqual->mu_min < 0.4 * mu_bar))
+    if(mqual->mu_min < 0.5 * mu_bar)
     {
       dolfin_set("Smoother max time steps", 8);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
-    else if(mqual->mu_min < 0.5 * mu_bar)
+    else if(mqual->mu_min < 0.75 * mu_bar || t < 30 * k)
     {
-      dolfin_set("Smoother max time steps", 8);
+      dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
     else
     {
-      dolfin_set("Smoother max time steps", 2);
-      smoother->smooth(smoothed, solid_vertices, h0);
-      did_smoothing = true;
+      // dolfin_set("Smoother max time steps", 2);
+      // smoother->smooth(smoothed, solid_vertices, h0);
+      // did_smoothing = true;
     }
 
     if(!smoother->reset_tensor)
