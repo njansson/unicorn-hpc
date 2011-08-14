@@ -78,7 +78,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     wfile("meshvel.pvd"),
     thetafile("theta.pvd"),
     td(td),
-    pressure_solver(bicgstab, amg),
+    pressure_solver(bicgstab, sor),
     ksp_pressure(0),
     startup(true), indices(0), c_indices(0),
     solid_cells(solid_cells), solid_vertices(solid_vertices),
@@ -379,7 +379,6 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     Point p = v->point();
 
     Point pvout(0.6, 0.21, 0);
-    //Point pvout(0.5, 0.2, 0.55);
 
     if(p.distance(pvout) < 1.0e-4)
     {
@@ -434,7 +433,7 @@ void NSESolver::save(Function& U, real t)
      }
      
      while(lastsample + sampleperiod < t)
-       //if(true)
+     //if(true)
      {
        lastsample = std::min(t, lastsample + sampleperiod);
        solutionfile << output;
@@ -478,27 +477,14 @@ void NSESolver::preparestep()
   S0.vector() = S.vector();
   Sdot0.vector() = Sdot.vector();
   //  P0 = P;
-
-  timer0 = time();//.restart();
-  mqual->meshQuality();
-  cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
-  
-  smoothMesh();
-
-  mqual->meshQuality();
-  cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
-
-  message("FSISolver timer smoother: %g", time()- timer0);
-
 }
 //-----------------------------------------------------------------------------
 void NSESolver::prepareiteration()
 {
-  //smoothMesh();
-  computeXinc();
-  deform_solid(Xinc);
   computeX(X);
   computeW(true);
+  computeXinc();
+  deform(Xinc);
 
   P0.vector() = P.vector();
 
@@ -523,7 +509,6 @@ void NSESolver::prepareiteration()
   cout << "Uc: " << Uc.vector().norm(linf) << endl;
   cout << "U: " << U.vector().norm(linf) << endl;
   cout << "S: " << S.vector().norm(linf) << endl;
-  cout << "W: " << W.vector().norm(linf) << endl;
 //   U.vector().disp();
 //   cout << "P: " << P.vector().norm(linf) << endl;
 //   P.vector().disp();
@@ -546,9 +531,9 @@ bool NSESolver::update(real t, bool end)
 {
   cout << "FSISolver::update: " << "t: " << t << " k: " << k << endl;
 
-  if(t < 30 * k)
-    mu_bar = mqual->mu_min;
-
+  mqual->meshQuality();
+  cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
+  
   if(t > 10 * k)
   {
 //     if(k != 0.5*hmin/ubar)
@@ -574,16 +559,15 @@ bool NSESolver::update(real t, bool end)
   }
 
 //  timer0.restart();
-  //timer0 = time();//.restart();
-  // smoothMesh();
-  // computeX(X);
-  // computeW(false);
-  //computeXinc();
-  //deform(Xinc);
-  //smoothMesh();
+  timer0 = time();//.restart();
+  smoothMesh();
 
+  mqual->meshQuality();
+  cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
   //wfile << W;
 
+
+  message("FSISolver timer smoother: %g", time()- timer0);
 
   message("FSISolver timer step: %g", time()- timer1);
 
@@ -597,7 +581,7 @@ void NSESolver::smoothMesh()
 {
   // Store mesh coordinates before smoothing
   //Xtmp.vector() = X0.vector();
-  computeX(Xtmp2);
+  computeX(Xtmp);
 
   MeshFunction<bool> smoothed(mesh(), mesh().topology().dim());
  
@@ -614,46 +598,98 @@ void NSESolver::smoothMesh()
 
   if(true || smooth_counter < 5)
   {
-    bool reset_lsmoother = false;
-    if(t == 0.0)
-      reset_lsmoother = true;
-    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, reset_lsmoother);
+    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
     
-    Xtmp.vector() = motionx;
-    Xtmp.vector() *= k;
-    Xtmp.vector() += X0.vector();
-    Xtmp.vector().apply();
-    Xtmp.sync_ghosts();
-    deform(Xtmp);
+    Wx = motionx;
+
+    computeX(X);
+    computeW(true);
+    computeXinc();
+    deform(Xinc);
+    
+    // // W = U in solid part
+    // MeshGeometry& geometry = mesh().geometry();
+    
+    // uint d = mesh().topology().dim();
+    // uint N = mesh().numVertices();
+    // if(MPI::numProcesses() > 1)
+    //   N = mesh().distdata().global_numVertices();
+    
+    // UFC ufc(aM->form(), mesh(), aM->dofMaps());
+    // Cell c(mesh(), 0);
+    // uint local_dim = c.numEntities(0);
+    // uint *idx  = new uint[d * local_dim];
+    // uint *id  = new uint[d * local_dim];
+    // real *W_block = new real[d * local_dim];  
+    // real *U_block = new real[d * local_dim];  
+    
+    // for (CellIterator cell(mesh()); !cell.end(); ++cell)
+    // {
+    //   ufc.update(*cell, mesh().distdata());
+    //   (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
+      
+    //   U.vector().get(U_block, d * local_dim, idx);
+    //   W.vector().get(W_block, d * local_dim, idx);
+      
+    //   uint j = 0;
+    //   uint jj = 0;
+    //   for(VertexIterator v(*cell); !v.end(); ++v)
+    //   {
+    // 	Vertex& vertex = *v;
+	
+    // 	if(solid_vertices.get(vertex))
+    // 	{
+    // 	  for(unsigned int i = 0; i < d; i++)
+    // 	  {
+    // 	    W_block[i * local_dim + j] = U_block[i * local_dim + j];
+    // 	    jj++;
+    // 	  }
+    // 	}
+    // 	j++;
+    //   }
+    //   W.vector().set(W_block, jj, idx);
+    // }
+    // W.vector().apply();
+    
+    // delete[] U_block;
+    // delete[] W_block;
+    // delete[] idx;
+    // delete[] id;
+    
+    // MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
+
+    // Xtmp2.vector() = W.vector();
+    // Xtmp2.vector() *= k;
+    // Xtmp2.vector() += X0.vector();
+    // Xtmp2.vector().apply();
+    // deform(Xtmp2);
 
     did_smoothing = true;
     
   }
 
-  if(false && smooth_counter == 5)
+  if(true || smooth_counter == 5)
   {
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");
     dolfin_set("ODE maximum iterations", 3);
-    if(mqual->mu_min < 0.5 * mu_bar)
+    if((mqual->mu_min < 0.4 * mu_bar))
     {
       dolfin_set("Smoother max time steps", 8);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
     }
-    else if(mqual->mu_min < 0.75 * mu_bar || t < 30 * k)
+    else if(mqual->mu_min < 0.5 * mu_bar)
+    {
+      dolfin_set("Smoother max time steps", 8);
+      smoother->smooth(smoothed, solid_vertices, h0);
+      did_smoothing = true;
+    }
+    else
     {
       dolfin_set("Smoother max time steps", 2);
       smoother->smooth(smoothed, solid_vertices, h0);
       did_smoothing = true;
-      // File meshfile("newmesh.xml");
-      // meshfile << mesh();
-    }
-    else
-    {
-      // dolfin_set("Smoother max time steps", 2);
-      // smoother->smooth(smoothed, solid_vertices, h0);
-      // did_smoothing = true;
     }
 
     if(!smoother->reset_tensor)
@@ -667,23 +703,20 @@ void NSESolver::smoothMesh()
 
   smooth_counter++;
 
-  Xtmp2.sync_ghosts();
-  deform_solid(Xtmp2);
-
-  // if(did_smoothing)
-  // {
-  //   computeX(X);
-  //   computeW(false);
+  if(did_smoothing)
+  {
+    computeX(X);
+    computeW(false);
     
-  //   // Revert mesh movement
-  //   deform(Xtmp);
+    // Revert mesh movement
+    deform(Xtmp);
 
-  //   //X0.vector() = Xtmp.vector();
-  // }
-  // else
-  // {
-  //   //X0.vector() = Xtmp.vector();
-  // }
+    //X0.vector() = Xtmp.vector();
+  }
+  else
+  {
+    //X0.vector() = Xtmp.vector();
+  }
 }
 //-----------------------------------------------------------------------------
 void NSESolver::solve_old()
@@ -835,11 +868,11 @@ void NSESolver::computeX(Function& XX)
     {
       for(VertexIterator v(*cell); !v.end(); ++v, ii++) 
       {
-	if (!mesh().distdata().is_ghost(v->index(), 0)) 
-	{
-	  XX_block[jj] = v->x()[i];
-	  id[jj++] = idx[ii];
-	}
+	//if (!mesh().distdata().is_ghost(v->index(), 0)) 
+	//{
+	XX_block[jj] = v->x()[i];
+	id[jj++] = idx[ii];
+	//}
 	//else
 	//{
 	//}
@@ -848,8 +881,6 @@ void NSESolver::computeX(Function& XX)
     XX.vector().set(XX_block, jj, id);
   }
   XX.vector().apply();
-
-  X.sync_ghosts();
   
   delete[] XX_block;
   delete[] idx;
@@ -858,20 +889,18 @@ void NSESolver::computeX(Function& XX)
 //-----------------------------------------------------------------------------
 void NSESolver::computeXinc()
 {
-  Xinc.vector() = U.vector();
+  Xinc.vector() = W.vector();
   Xinc.vector() += W0.vector();
   
   Xinc.vector() *= 0.5*k;
   //Xinc.vector() *= k;
   Xinc.vector() += X0.vector();
   Xinc.vector().apply();
-
-  Xinc.sync_ghosts();
 }
 //-----------------------------------------------------------------------------
 void NSESolver::computeW(bool solid)
 {
-  if(true || !solid)
+  if(!solid)
   {
     W.vector() = X.vector();
     W.vector() -= X0.vector();
@@ -891,59 +920,57 @@ void NSESolver::computeW(bool solid)
     }
   }
 
-  // // W = U in solid part
-  // MeshGeometry& geometry = mesh().geometry();
+  // W = U in solid part
+  MeshGeometry& geometry = mesh().geometry();
   
-  // uint d = mesh().topology().dim();
-  // uint N = mesh().numVertices();
-  // if(MPI::numProcesses() > 1)
-  //   N = mesh().distdata().global_numVertices();
+  uint d = mesh().topology().dim();
+  uint N = mesh().numVertices();
+  if(MPI::numProcesses() > 1)
+    N = mesh().distdata().global_numVertices();
   
-  // UFC ufc(aM->form(), mesh(), aM->dofMaps());
-  // Cell c(mesh(), 0);
-  // uint local_dim = c.numEntities(0);
-  // uint *idx  = new uint[d * local_dim];
-  // uint *id  = new uint[d * local_dim];
-  // real *W_block = new real[d * local_dim];  
-  // real *U_block = new real[d * local_dim];  
+  UFC ufc(aM->form(), mesh(), aM->dofMaps());
+  Cell c(mesh(), 0);
+  uint local_dim = c.numEntities(0);
+  uint *idx  = new uint[d * local_dim];
+  uint *id  = new uint[d * local_dim];
+  real *W_block = new real[d * local_dim];  
+  real *U_block = new real[d * local_dim];  
   
-  // for (CellIterator cell(mesh()); !cell.end(); ++cell)
-  // {
-  //   ufc.update(*cell, mesh().distdata());
-  //   (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
+  for (CellIterator cell(mesh()); !cell.end(); ++cell)
+  {
+    ufc.update(*cell, mesh().distdata());
+    (aM->dofMaps())[0].tabulate_dofs(idx, ufc.cell, cell->index());
     
-  //   U.vector().get(U_block, d * local_dim, idx);
-  //   W.vector().get(W_block, d * local_dim, idx);
+    U.vector().get(U_block, d * local_dim, idx);
+    W.vector().get(W_block, d * local_dim, idx);
     
-  //   uint j = 0;
-  //   uint jj = 0;
-  //   for(VertexIterator v(*cell); !v.end(); ++v)
-  //   {
-  //     Vertex& vertex = *v;
+    uint j = 0;
+    uint jj = 0;
+    for(VertexIterator v(*cell); !v.end(); ++v)
+    {
+      Vertex& vertex = *v;
       
-  //     if(solid_vertices.get(vertex) && !mesh().distdata().is_ghost(v->index(), 0))
-  //     {
-  // 	for(unsigned int i = 0; i < d; i++)
-  // 	{
-  // 	  W_block[i * local_dim + j] = U_block[i * local_dim + j];
-  // 	  jj++;
-  // 	}
-  //     }
-  //     j++;
-  //   }
-  //   W.vector().set(W_block, jj, idx);
-  // }
-  // W.vector().apply();
+      if(solid_vertices.get(vertex))
+      {
+	for(unsigned int i = 0; i < d; i++)
+	{
+	  W_block[i * local_dim + j] = U_block[i * local_dim + j];
+	  jj++;
+	}
+      }
+      j++;
+    }
+    W.vector().set(W_block, jj, idx);
+  }
+  W.vector().apply();
   
-  // delete[] U_block;
-  // delete[] W_block;
-  // delete[] idx;
-  // delete[] id;
+  delete[] U_block;
+  delete[] W_block;
+  delete[] idx;
+  delete[] id;
 
   cout << "W norm: " << W.vector().norm(linf) << endl;
   cout << "W0 norm: " << W0.vector().norm(linf) << endl;
-
-  W.sync_ghosts();
     
 }
 //-----------------------------------------------------------------------------
@@ -1249,7 +1276,7 @@ void NSESolver::deform(Function& XX)
   MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
 }
 //-----------------------------------------------------------------------------
-void NSESolver::deform_solid(Function& XX)
+void NSESolver::deform_fluid(Function& XX)
 {
   MeshGeometry& geometry = mesh().geometry();
   
@@ -1278,7 +1305,7 @@ void NSESolver::deform_solid(Function& XX)
     {
       Vertex& vertex = *v;
 
-      if(solid_vertices.get(vertex))
+      if(!solid_vertices.get(vertex))
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
