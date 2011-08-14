@@ -118,7 +118,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   GetMinimumCellSize(mesh, hmin);  
 
   // Take very conservative time-step for startup
-  k = 0.5*hmin/ubar;
+  k = 0.2*hmin/ubar;
   message("nu: %f",nu);
   message("ubar: %f",ubar);
   message("hmin: %f",hmin);
@@ -630,7 +630,7 @@ void NSESolver::smoothMesh()
     
   }
 
-  if(true || smooth_counter == 5)
+  if(false && smooth_counter == 5)
   {
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");
@@ -859,10 +859,10 @@ void NSESolver::computeX(Function& XX)
 void NSESolver::computeXinc()
 {
   Xinc.vector() = U.vector();
-  //Xinc.vector() += W0.vector();
+  Xinc.vector() += W0.vector();
   
-  //Xinc.vector() *= 0.5*k;
-  Xinc.vector() *= k;
+  Xinc.vector() *= 0.5*k;
+  //Xinc.vector() *= k;
   Xinc.vector() += X0.vector();
   Xinc.vector().apply();
 
@@ -996,10 +996,10 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real C1 = 1.0;
-  real C2 = 2.0;
+  real C1 = 0.5;
+  real C2 = 1.0;
 
-  real kk = 0.2 * hmin / ubar;
+  real kk = 0.1 * hmin / ubar;
   //real kk = k;
 
   UFC ufc(form.form(), mesh, form.dofMaps());
