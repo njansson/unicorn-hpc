@@ -201,7 +201,7 @@ public:
   {
     real t = td.time();
     real ramp = 0.0;
-    real tramp = 1.0e-1;
+    real tramp = 1.0e-2;
 
     
 
@@ -223,9 +223,9 @@ public:
       {
 	if ( x[0] < (0.0 + bmarg))
 	  {
-	    real Um = 20.0;
+	    real ubar = dolfin_get("Ubar");
 
-	    values[i] = ramp * Um;
+	    values[i] = ramp * ubar;
 	  }
 	else
 	{
@@ -511,7 +511,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 		    p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
                     ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
-  dolfin_set("ODE discrete tolerance", 1.0e-2);
+  dolfin_set("ODE discrete tolerance", 1.0e-4);
   dolfin_set("ODE maximum iterations", 30);
   dolfin_set("PDE number of samples", 100);  
 
@@ -543,7 +543,7 @@ int main(int argc, char* argv[])
   transform(mesh);
 
   mesh.refine();
-//   mesh.refine();
+  //mesh.refine();
 
   for(int i = 0; i < 0; i++)
   {
