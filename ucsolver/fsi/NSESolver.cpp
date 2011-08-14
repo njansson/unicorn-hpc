@@ -382,6 +382,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
 
     if(p.distance(pvout) < 1.0e-4)
     {
+      std::cout << "has_output true" << std::endl;
       v_output = vidx;
       has_output = true;
     }
