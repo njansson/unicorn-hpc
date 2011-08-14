@@ -428,7 +428,7 @@ void NSESolver::save(Function& U, real t)
        solutionfile << output;
        pfile << P;
        rhofile << rho;
-       //wfile << W;
+       wfile << W;
        thetafile << meshf_theta;
      }
      
@@ -439,7 +439,7 @@ void NSESolver::save(Function& U, real t)
        solutionfile << output;
        pfile << P;
        rhofile << rho;
-       //wfile << W;
+       wfile << W;
        thetafile << meshf_theta;
      }
    }
@@ -956,14 +956,7 @@ void NSESolver::computeW(bool solid)
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
-	  if(i == 0)
-	  {
-	    W_block[i * local_dim + j] = 1.0;
-	  }
-	  else
-	  {
-	    W_block[i * local_dim + j] = 0.0;
-	  }
+	  W_block[i * local_dim + j] = U_block[i * local_dim + j];
 	  jj++;
 	}
       }
@@ -971,7 +964,7 @@ void NSESolver::computeW(bool solid)
       {
 	for(unsigned int i = 0; i < d; i++)
 	{
-	  W_block[i * local_dim + j] = 0.0;
+	  W_block[i * local_dim + j] = W_block[i * local_dim + j];
 	  jj++;
 	}
       }
@@ -990,7 +983,7 @@ void NSESolver::computeW(bool solid)
   cout << "W norm: " << W.vector().norm(linf) << endl;
   cout << "W0 norm: " << W0.vector().norm(linf) << endl;
 
-  wfile << W;
+  //wfile << W;
     
 }
 //-----------------------------------------------------------------------------
