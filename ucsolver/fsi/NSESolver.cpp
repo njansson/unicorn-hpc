@@ -162,7 +162,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
       LR = new NSEDensity3DLinearForm(rho0, U, Um, *fk, delta1);
 
       aS = new NavierStokesStress3DBilinearForm;
-      LS = new NavierStokesStress3DLinearForm(S, S0, U, U0, *muf, *lmbdaf, *fk, vol_inv);
+      LS = new NavierStokesStress3DLinearForm(S, U, *muf, vol_inv);
     }
     else if(solver_type == "dual")
     {
@@ -186,7 +186,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
       LR = new NSEDensity2DLinearForm(rho0, U, Um, *fk, delta1);
 
       aS = new NavierStokesStress2DBilinearForm;
-      LS = new NavierStokesStress2DLinearForm(S, S0, U, U0, *muf, *lmbdaf, *fk, vol_inv);
+      LS = new NavierStokesStress2DLinearForm(S, U, *muf, vol_inv);
     }
     else if(solver_type == "dual")
     {
@@ -225,7 +225,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   Stmp.init(S.vector().size());
   Sresidual.init(S.vector().size());
 
-  vol_inv.init(mesh, vol_invx, *LS, 8);
+  vol_inv.init(mesh, vol_invx, *LS, 4);
 
   theta.init(mesh, thetax, *LM, 12);
 
@@ -749,9 +749,13 @@ void NSESolver::computeS()
   // vol_inv.vector().disp();
 
   Stmp.zero();
-  assembler->assemble(Stmp, *LS, reset_tensor);
+  assembler->assemble(Sdot.vector(), *LS, reset_tensor);
 
-  S.vector() = Stmp;
+  S.vector() = Sdot.vector();
+  S.vector() += Sdot0.vector();
+
+  S.vector() *= 0.5*k;
+  S.vector() += S0.vector();
   
   // FIXME: Zero out stress in fluid cells, why is this necessary?
   if(true)
@@ -874,9 +878,9 @@ void NSESolver::computeW(bool solid)
     
     cout << "W norm 0: " << W.vector().norm(linf) << endl;
     
-    W.vector() /= 0.5*k;
-    W.vector() -= W0.vector();
-    //W.vector() /= k;
+    //W.vector() /= 0.5*k;
+    //W.vector() -= W0.vector();
+    W.vector() /= k;
     W.vector().apply();
 
     if(W.vector().norm(linf) > 4.0 * ubar)
