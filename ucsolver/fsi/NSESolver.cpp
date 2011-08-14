@@ -868,11 +868,11 @@ void NSESolver::computeX(Function& XX)
     {
       for(VertexIterator v(*cell); !v.end(); ++v, ii++) 
       {
-	//if (!mesh().distdata().is_ghost(v->index(), 0)) 
-	//{
-	XX_block[jj] = v->x()[i];
-	id[jj++] = idx[ii];
-	//}
+	if (!mesh().distdata().is_ghost(v->index(), 0)) 
+	{
+	  XX_block[jj] = v->x()[i];
+	  id[jj++] = idx[ii];
+	}
 	//else
 	//{
 	//}
@@ -881,6 +881,8 @@ void NSESolver::computeX(Function& XX)
     XX.vector().set(XX_block, jj, id);
   }
   XX.vector().apply();
+
+  X.sync_ghosts();
   
   delete[] XX_block;
   delete[] idx;
