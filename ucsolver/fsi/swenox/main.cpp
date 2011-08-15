@@ -543,7 +543,7 @@ int main(int argc, char* argv[])
   transform(mesh);
 
   mesh.refine();
-  //mesh.refine();
+  mesh.refine();
 
   for(int i = 0; i < 0; i++)
   {
