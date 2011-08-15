@@ -619,7 +619,10 @@ void NSESolver::smoothMesh()
 
   if(true || smooth_counter < 5)
   {
-    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, true);
+    bool reset_lsmoother = false;
+    if(t == 0.0)
+      reset_lsmoother = true;
+    lsmoother->smooth(smoothed, solid_vertices, h0, &Wx, motionx, reset_lsmoother);
     
     Xtmp.vector() = motionx;
     Xtmp.vector() *= k;
