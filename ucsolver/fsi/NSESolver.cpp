@@ -118,7 +118,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   GetMinimumCellSize(mesh, hmin);  
 
   // Take very conservative time-step for startup
-  k = 4.0*hmin/ubar;
+  k = 2.0*hmin/ubar;
   message("nu: %f",nu);
   message("ubar: %f",ubar);
   message("hmin: %f",hmin);
@@ -587,7 +587,7 @@ bool NSESolver::update(real t, bool end)
   //wfile << W;
 
 
-  message("FSISolver timer smoother: %g", time()- timer0);
+  //message("FSISolver timer smoother: %g", time()- timer0);
 
   message("FSISolver timer step: %g", time()- timer1);
 
@@ -954,10 +954,10 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real C1 = 0.5;
-  real C2 = 1.0;
+  real C1 = 1.0;
+  real C2 = 2.0;
 
-  real kk = 0.1 * hmin / ubar;
+  real kk = 0.2 * hmin / ubar;
   //real kk = k;
 
   UFC ufc(form.form(), mesh, form.dofMaps());
