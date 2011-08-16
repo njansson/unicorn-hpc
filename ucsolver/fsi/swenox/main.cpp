@@ -80,7 +80,7 @@ namespace Geo
     // return false && (((0.5 - bmarg) < r[0] && r[0] < (0.5 + 0.00625 / 1.0 + bmarg)) &&
     // 	    ((0.0 - bmarg) < r[1] && r[1] < (0.2 + bmarg)) &&
     // 	    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)));
-    return true;
+    return false;
   }
 }
 
@@ -147,7 +147,7 @@ class FixBoundary : public SubDomain
 public:
   bool inside(const real* r, bool on_boundary) const
   {
-    return on_boundary &&
+    return on_boundary && false &&
       ((r[0] > 0.32 - bmarg) &&
        (r[0] < 0.33 + bmarg) &&
        (r[1] > 0.045 - bmarg) &&
@@ -438,7 +438,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
        }			
      }
      
-     solid_cells.set(cell, bfnd);
+     solid_cells.set(cell, bfnd && false);
      
    }
    else
@@ -485,7 +485,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 		break;
 	      }			
 	    }
-	    solid_vertices.set(vertex, bfnd);
+	    solid_vertices.set(vertex, bfnd && false);
 	  }
 	}
       }
