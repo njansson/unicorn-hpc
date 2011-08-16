@@ -617,7 +617,7 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(false && smooth_counter < 5)
+  if(true || smooth_counter < 5)
   {
     bool reset_lsmoother = false;
     if(t == 0.0)
@@ -641,7 +641,7 @@ void NSESolver::smoothMesh()
     
   }
 
-  if(false && smooth_counter == 5)
+  if(true || smooth_counter == 5)
   {
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");
@@ -868,10 +868,10 @@ void NSESolver::computeX(Function& XX)
 void NSESolver::computeXinc()
 {
   Xinc.vector() = U.vector();
-  //Xinc.vector() += W0.vector();
+  Xinc.vector() += W0.vector();
   
-  //Xinc.vector() *= 0.5*k;
-  Xinc.vector() *= k;
+  Xinc.vector() *= 0.5*k;
+  //Xinc.vector() *= k;
   Xinc.vector() += X0.vector();
   Xinc.vector().apply();
 }
