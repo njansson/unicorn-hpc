@@ -34,7 +34,7 @@ using namespace dolfin;
 using namespace dolfin::unicorn;
 
 real bmarg = 1.0e-5 + DOLFIN_EPS;
-real gmarg = 1.0e-4 + DOLFIN_EPS;
+real gmarg = 1.0e-5 + DOLFIN_EPS;
 
 namespace Geo
 {
