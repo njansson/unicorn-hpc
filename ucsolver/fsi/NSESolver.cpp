@@ -641,7 +641,7 @@ void NSESolver::smoothMesh()
     
   }
 
-  if(true || smooth_counter == 5)
+  if(false && smooth_counter == 5)
   {
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");
