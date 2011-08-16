@@ -483,7 +483,7 @@ void NSESolver::preparestep()
   cout << "FSISolver mu_min before: " << mqual->mu_min << endl;
 
   timer0 = time();//.restart();
-  smoothMesh();
+  //smoothMesh();
 
   mqual->meshQuality();
   cout << "FSISolver mu_min after: " << mqual->mu_min << endl;
@@ -617,7 +617,7 @@ void NSESolver::smoothMesh()
 
   bool did_smoothing = true;
 
-  if(true || smooth_counter < 5)
+  if(false && smooth_counter < 5)
   {
     bool reset_lsmoother = false;
     if(t == 0.0)
@@ -641,7 +641,7 @@ void NSESolver::smoothMesh()
     
   }
 
-  if(true || smooth_counter == 5)
+  if(false && smooth_counter == 5)
   {
     int ode_max_it = dolfin_get("ODE maximum iterations");
     real ode_tol_save = dolfin_get("ODE discrete tolerance");

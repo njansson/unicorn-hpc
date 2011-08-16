@@ -80,7 +80,7 @@ namespace Geo
     // return false && (((0.5 - bmarg) < r[0] && r[0] < (0.5 + 0.00625 / 1.0 + bmarg)) &&
     // 	    ((0.0 - bmarg) < r[1] && r[1] < (0.2 + bmarg)) &&
     // 	    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)));
-    return false;
+    return true;
   }
 }
 
@@ -438,7 +438,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
        }			
      }
      
-     solid_cells.set(cell, bfnd && false);
+     solid_cells.set(cell, bfnd);
      
    }
    else
@@ -485,7 +485,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 		break;
 	      }			
 	    }
-	    solid_vertices.set(vertex, bfnd && false);
+	    solid_vertices.set(vertex, bfnd);
 	  }
 	}
       }
@@ -543,10 +543,10 @@ int main(int argc, char* argv[])
 
   transform(mesh);
 
-  mesh.refine();
-  mesh.refine();
+  //mesh.refine();
+  //mesh.refine();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 2; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
@@ -555,25 +555,17 @@ int main(int argc, char* argv[])
     {
       Point tp(0.2, 0.045, 0.045);
       Point r = c->midpoint();
-      if(i < 7)
+
+      if(((0.2 - bmarg) < r[0] && r[0] < (0.5 + bmarg)) &&
+	 ((0.0 - bmarg) < r[1] && r[1] < (0.09 + bmarg)) &&
+	 ((0.0 - bmarg) < r[2] && r[2] < (0.09 + bmarg)) &&
+	 c->diameter() > 0.004)
       {
-	if(c->midpoint().distance(tp) < 0.3)
-	  cell_refinement_marker.set(c->index(), true);
-	else
-	  cell_refinement_marker.set(c->index(), false);
+	cell_refinement_marker.set(c->index(), true);
       }
       else
       {
-	if(((0.5 - bmarg) < r[0] && r[0] < (0.5125 + bmarg)) &&
-	   ((0.0 - bmarg) < r[1] && r[1] < (0.25 + bmarg)) &&
-	   ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)))
-	{
-	  cell_refinement_marker.set(c->index(), true);
-	}
-	else
-	{
-	  cell_refinement_marker.set(c->index(), false);
-	}
+	cell_refinement_marker.set(c->index(), false);
       }
     }
     
