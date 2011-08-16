@@ -147,7 +147,7 @@ class FixBoundary : public SubDomain
 public:
   bool inside(const real* r, bool on_boundary) const
   {
-    return on_boundary && false &&
+    return on_boundary &&
       ((r[0] > 0.32 - bmarg) &&
        (r[0] < 0.33 + bmarg) &&
        (r[1] > 0.045 - bmarg) &&
@@ -384,8 +384,8 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
   DirichletBC p_bcfix(bcf_mom, mesh, fixboundary);
   DirichletBC p_bcout(bcf_con, mesh, oboundary);
   DirichletBC p_bcdensity(density_function, mesh, iboundary);
-  //SlipBC slip_bc(mesh, slipboundary, node_normal);
-  DirichletBC slip_bc(bcf_mom, mesh, slipboundary);
+  SlipBC slip_bc(mesh, slipboundary, node_normal);
+  //DirichletBC slip_bc(bcf_mom, mesh, slipboundary);
   
   //dolfin_set("PDE slip alpha max", DOLFIN_PI / 1.9);
   Array <BoundaryCondition*> p_bc_momentum;
