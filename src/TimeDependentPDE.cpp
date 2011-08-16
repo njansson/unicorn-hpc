@@ -351,7 +351,7 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 
   assembler = new Assembler(mesh());
 
-  ksolver = new KrylovSolver(gmres, jacobi);
+  ksolver = new KrylovSolver(bicgstab, jacobi);
 
 //  lusolver = new LUSolver;
 
