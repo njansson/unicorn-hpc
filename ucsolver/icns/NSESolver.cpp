@@ -515,6 +515,7 @@ void NSESolver::solve()
 
     // Set current velocity to velocity at previous time step 
     x0vel = xvel;
+    u0.sync_ghosts();
 
     // Initialize residual 
     residual = 2*rtol;
@@ -526,6 +527,7 @@ void NSESolver::solve()
 
       // Set linearized velocity to current velocity 
       xcvel = xvel;
+      uc.sync_ghosts();
 
       // Compute stabilization parameters
       tic();
