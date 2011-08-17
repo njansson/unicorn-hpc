@@ -147,7 +147,7 @@ class FixBoundary : public SubDomain
 public:
   bool inside(const real* r, bool on_boundary) const
   {
-    return on_boundary && false &&
+    return on_boundary &&
       ((r[0] > 0.32 - bmarg) &&
        (r[0] < 0.33 + bmarg) &&
        (r[1] > 0.045 - bmarg) &&
