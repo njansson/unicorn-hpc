@@ -541,12 +541,12 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  transform(mesh);
+  //transform(mesh);
 
-  mesh.refine();
+  //mesh.refine();
   //mesh.refine();
 
-  for(int i = 0; i < 2; i++)
+  for(int i = 0; i < 0; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
@@ -619,6 +619,9 @@ int main(int argc, char* argv[])
     dolfin_set("output destination","silent"); 
   }
 
+  std::vector<Function *>func;
+  std::vector<Vector *> vec;
+  chkp.write("primal", false, 0.0, mesh, func, vec); // FIXME +k (^-^)
   transform(*structure_mesh);
   unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
