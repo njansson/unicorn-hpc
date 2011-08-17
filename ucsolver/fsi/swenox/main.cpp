@@ -541,24 +541,23 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  //transform(mesh);
+  transform(mesh);
 
   //mesh.refine();
   //mesh.refine();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 4; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
     
     for (CellIterator c(mesh); !c.end(); ++c)
     {
-      Point tp(0.2, 0.045, 0.045);
       Point r = c->midpoint();
+      Point tp(r[0], 0.045, 0.045);
 
-      if(((0.2 - bmarg) < r[0] && r[0] < (0.5 + bmarg)) &&
-	 ((0.0 - bmarg) < r[1] && r[1] < (0.09 + bmarg)) &&
-	 ((0.0 - bmarg) < r[2] && r[2] < (0.09 + bmarg)) &&
+      if((0.2 - bmarg) < r[0] && r[0] < (0.5 + bmarg) &&
+	 r.distance(tp) < 0.04 &&
 	 c->diameter() > 0.004)
       {
 	cell_refinement_marker.set(c->index(), true);
