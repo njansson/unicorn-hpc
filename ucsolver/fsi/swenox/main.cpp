@@ -148,12 +148,12 @@ public:
   bool inside(const real* r, bool on_boundary) const
   {
     return on_boundary &&
-      ((r[0] > 0.32 - bmarg) &&
-       (r[0] < 0.33 + bmarg) &&
-       (r[1] > 0.045 - bmarg) &&
-       (r[1] < 2.0 + bmarg) &&
-       (r[2] > 0.03- bmarg) &&
-       (r[2] < 0.06 + bmarg));
+      ((r[0] > 0.3075 - bmarg) &&
+       (r[0] < 0.3425 + bmarg) &&
+       (r[1] > 0.09 - bmarg) &&
+       (r[1] < 0.05 + bmarg) &&
+       (r[2] > 0.00- bmarg) &&
+       (r[2] < 0.09 + bmarg));
   }
 };
 
