@@ -6,7 +6,7 @@ AM_MAINTAINER_MODE
 AC_LANG(C++)
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT([disable-shared])
-PKG_CHECK_MODULES([DOLFIN], [dolfin = 0.8.1-hpc])
+PKG_CHECK_MODULES([DOLFIN], [dolfin = 0.8.2-hpc])
 CXXFLAGS="$CXXFLAGS $DOLFIN_CFLAGS"
 AC_PROG_CXX(`pkg-config --variable=compiler dolfin`)
 AC_PROG_CPP
