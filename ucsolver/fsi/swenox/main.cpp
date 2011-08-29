@@ -150,8 +150,8 @@ public:
     return on_boundary &&
       ((r[0] > 0.3075 - bmarg) &&
        (r[0] < 0.3425 + bmarg) &&
-       (r[1] > 0.09 - bmarg) &&
-       (r[1] < 0.05 + bmarg) &&
+       (r[1] > 0.05 - bmarg) &&
+       (r[1] < 0.09 + bmarg) &&
        (r[2] > 0.00- bmarg) &&
        (r[2] < 0.09 + bmarg));
   }
@@ -514,7 +514,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
   dolfin_set("Adaptive refinement percentage", 5.0);
   dolfin_set("ODE discrete tolerance", 1.0e-4);
   dolfin_set("ODE maximum iterations", 30);
-  dolfin_set("PDE number of samples", 100);  
+  dolfin_set("PDE number of samples", 1000);  
 
   psolver.solve(U, U0);
   

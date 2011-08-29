@@ -378,7 +378,8 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     int vidx = v->index();
     Point p = v->point();
 
-    Point pvout(0.6, 0.21, 0);
+    //Point pvout(0.6, 0.21, 0);
+    Point pvout(0.412, 0.035, 045);
 
     if(p.distance(pvout) < 1.0e-4)
     {
