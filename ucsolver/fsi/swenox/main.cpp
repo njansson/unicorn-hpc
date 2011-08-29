@@ -148,12 +148,12 @@ public:
   bool inside(const real* r, bool on_boundary) const
   {
     return on_boundary &&
-      ((r[0] > 0.32 - bmarg) &&
-       (r[0] < 0.33 + bmarg) &&
-       (r[1] > 0.045 - bmarg) &&
-       (r[1] < 2.0 + bmarg) &&
-       (r[2] > 0.03- bmarg) &&
-       (r[2] < 0.06 + bmarg));
+      ((r[0] > 0.3075 - bmarg) &&
+       (r[0] < 0.3425 + bmarg) &&
+       (r[1] > 0.05 - bmarg) &&
+       (r[1] < 0.09 + bmarg) &&
+       (r[2] > 0.00- bmarg) &&
+       (r[2] < 0.09 + bmarg));
   }
 };
 
@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  //transform(mesh);
+  transform(mesh);
 
   //mesh.refine();
   //mesh.refine();
@@ -590,7 +590,7 @@ int main(int argc, char* argv[])
   
   //mesh.refine();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 1; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
