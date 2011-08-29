@@ -148,12 +148,12 @@ public:
   bool inside(const real* r, bool on_boundary) const
   {
     return on_boundary &&
-      ((r[0] > 0.32 - bmarg) &&
-       (r[0] < 0.33 + bmarg) &&
-       (r[1] > 0.045 - bmarg) &&
-       (r[1] < 2.0 + bmarg) &&
-       (r[2] > 0.03- bmarg) &&
-       (r[2] < 0.06 + bmarg));
+      ((r[0] > 0.3075 - bmarg) &&
+       (r[0] < 0.3425 + bmarg) &&
+       (r[1] > 0.05 - bmarg) &&
+       (r[1] < 0.09 + bmarg) &&
+       (r[2] > 0.00- bmarg) &&
+       (r[2] < 0.09 + bmarg));
   }
 };
 
@@ -514,7 +514,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
   dolfin_set("Adaptive refinement percentage", 5.0);
   dolfin_set("ODE discrete tolerance", 1.0e-4);
   dolfin_set("ODE maximum iterations", 30);
-  dolfin_set("PDE number of samples", 100);  
+  dolfin_set("PDE number of samples", 1000);  
 
   psolver.solve(U, U0);
   
@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  //transform(mesh);
+  transform(mesh);
 
   //mesh.refine();
   //mesh.refine();

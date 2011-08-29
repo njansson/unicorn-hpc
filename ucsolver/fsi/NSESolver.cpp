@@ -378,9 +378,10 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     int vidx = v->index();
     Point p = v->point();
 
-    Point pvout(0.6, 0.21, 0);
+    //Point pvout(0.6, 0.21, 0);
+    Point pvout(0.41, 0.0364, 0.044);
 
-    if(p.distance(pvout) < 1.0e-4)
+    if(p.distance(pvout) < 1.0e-3)
     {
       std::cout << "has_output true" << std::endl;
       v_output = vidx;
@@ -593,6 +594,9 @@ bool NSESolver::update(real t, bool end)
 
 //   if(t > 200*k)
 //     mu = 1.0e9;
+
+  if(t > 0.05)
+    this->bb = 0.0;
 
   return true;
 }
