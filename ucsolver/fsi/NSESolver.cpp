@@ -963,8 +963,8 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real C1 = 4.0;
-  real C2 = 2.0;
+  real C1 = 0.5;
+  real C2 = 1.0;
 
   real kk = 0.2 * hmin / ubar;
   //real kk = k;
