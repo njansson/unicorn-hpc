@@ -595,7 +595,7 @@ bool NSESolver::update(real t, bool end)
 //   if(t > 200*k)
 //     mu = 1.0e9;
 
-  if(t > 0.05)
+  if(t > 0.1)
     this->bb = 0.0;
 
   return true;
