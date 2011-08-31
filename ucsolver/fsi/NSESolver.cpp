@@ -118,7 +118,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   GetMinimumCellSize(mesh, hmin);  
 
   // Take very conservative time-step for startup
-  k = 2.0*hmin/ubar;
+  k = 8.0*hmin/ubar;
   message("nu: %f",nu);
   message("ubar: %f",ubar);
   message("hmin: %f",hmin);
@@ -735,6 +735,8 @@ void NSESolver::computeP()
 
   incr += relincr;
   //incr += Presidual.norm(linf);
+
+  cout << "pressure increment: " << relincr << endl;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::computeRho()
@@ -823,7 +825,10 @@ void NSESolver::computeS()
 
   incr += relincr;
   //incr += Sresidual.norm(linf);
+
+  cout << "stress increment: " << relincr << endl;
 }
+
 //-----------------------------------------------------------------------------
 void NSESolver::computeX(Function& XX)
 {
