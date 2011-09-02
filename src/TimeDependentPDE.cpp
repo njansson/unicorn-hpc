@@ -154,20 +154,18 @@ void TimeDependentPDE::step()
 
   cout << "TimeDependentPDE::step" << endl;
 
-  incr = 0;
-  real incr0 = 0;
   real res0 = 0;
   int maxit = dolfin_get("ODE maximum iterations");
   for(int it = 0; it < maxit; it++)
   {
-    incr0 = incr;
+    incr = 0;
     res0 = res;
     res = 0;
     local2_timer = time(); //.start();
     prepareiteration();
     cout << "TPDE prepareiteration timer: " << time() - local2_timer << endl;
     cout << "maxit: " << maxit << endl;
-    incr = iter();
+    incr += iter();
     itercounter++;
     postiteration();
 
@@ -270,6 +268,8 @@ real TimeDependentPDE::iter()
 
   cout << "TPDE total iter timer: " << time() - iter_timer << endl;
 
+  cout << "u increment: " << relincr << endl;
+
   return relincr;
   //return dx->norm(linf);
   //return dx->norm(linf);
@@ -351,7 +351,7 @@ void TimeDependentPDE::init(Function& U, Function& U0)
 
   assembler = new Assembler(mesh());
 
-  ksolver = new KrylovSolver(gmres, jacobi);
+  ksolver = new KrylovSolver(bicgstab, sor);
 
 //  lusolver = new LUSolver;
 

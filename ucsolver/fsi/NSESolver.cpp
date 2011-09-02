@@ -595,7 +595,7 @@ bool NSESolver::update(real t, bool end)
 //   if(t > 200*k)
 //     mu = 1.0e9;
 
-  if(t > 0.05)
+  if(t > 0.1)
     this->bb = 0.0;
 
   return true;
@@ -735,6 +735,8 @@ void NSESolver::computeP()
 
   incr += relincr;
   //incr += Presidual.norm(linf);
+
+  cout << "pressure increment: " << relincr << endl;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::computeRho()
@@ -823,7 +825,10 @@ void NSESolver::computeS()
 
   incr += relincr;
   //incr += Sresidual.norm(linf);
+
+  cout << "stress increment: " << relincr << endl;
 }
+
 //-----------------------------------------------------------------------------
 void NSESolver::computeX(Function& XX)
 {
@@ -958,10 +963,10 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real C1 = 4.0;
-  real C2 = 2.0;
+  real C1 = 0.5;
+  real C2 = 1.0;
 
-  real kk = 0.5 * hmin / ubar;
+  real kk = 0.2 * hmin / ubar;
   //real kk = k;
 
   UFC ufc(form.form(), mesh, form.dofMaps());
