@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  transform(mesh);
+  //transform(mesh);
 
   //mesh.refine();
   //mesh.refine();
@@ -585,7 +585,7 @@ int main(int argc, char* argv[])
       dolfin_set("output destination","terminal");
     message("cells after: %d", mesh.distdata().global_numCells());
     message("vertices after: %d", mesh.distdata().global_numVertices());
-    dolfin_set("output destination","silent"); 
+    dolfin_set("output destination","silent");
   }
   
   //mesh.refine();
