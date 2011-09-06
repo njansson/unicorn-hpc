@@ -147,6 +147,7 @@ namespace dolfin {
       real T;
       real nu;
       real ubar;
+      real hmin;
 
       Checkpoint& chkp;
       long& w_limit;
@@ -162,6 +163,18 @@ namespace dolfin {
 
     };
     
+    class TimeStepFunction : public Function
+    {
+    public:
+    TimeStepFunction(Mesh& mesh) : Function(mesh) {}
+      void eval(real* values, const real* p) const
+      {
+	values[0] = *k;
+      }
+      
+      real* k;
+    };
+
   }}
 
 #endif
