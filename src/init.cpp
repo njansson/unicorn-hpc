@@ -23,7 +23,8 @@ using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,
-			   Checkpoint& chkp, long& w_limit, int& iter, Mesh*& structure_mesh)
+			   Checkpoint& chkp, long& w_limit, int& iter, 
+			   Mesh*& structure_mesh)
 {
   dolfin_set("output destination","silent");
   if(dolfin::MPI::processNumber() == 0)
@@ -49,7 +50,6 @@ void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,
       // Read in structure geometry (represented as a mesh of manageable size) in serial
       dolfin_set("Mesh read in serial",true);
       structure_mesh = new Mesh(optarg);
-      std::cout << "got structure mesh" << std::endl;
       dolfin_set("Mesh read in serial",readInSerial);
     case 'p': 
       UniParameters::parse_parameters(optarg);

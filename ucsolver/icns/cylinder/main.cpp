@@ -35,7 +35,7 @@ using namespace dolfin::unicorn;
 real bmarg = 1.0e-3 + DOLFIN_EPS;
 
 real xmin = 0.0;
-real xmax = 1.0;
+real xmax = 2.1;
 real ymin = 0.0;
 real ymax = 1.4;
 real zmin = 0.0;
@@ -50,7 +50,7 @@ class OutflowBoundary : public SubDomain
 public:
   bool inside(const real* p, bool on_boundary) const
   {
-    return on_boundary && false && (p[0] > (xmax - bmarg));
+    return on_boundary && (p[0] > (xmax - bmarg));
   }
 };
 
@@ -60,7 +60,7 @@ class InflowTopBottomBoundary3D : public SubDomain
 public:
   bool inside(const real* p, bool on_boundary) const
   {
-    return on_boundary && (p[0] < xmin + bmarg || p[0] > xmax - bmarg);
+    return on_boundary && p[0] < xmin + bmarg ;
   }
 };
 
@@ -111,7 +111,7 @@ public:
   BC_Momentum_3D(Mesh& mesh) : Function(mesh) {}
   void eval(real* values, const real* x) const
   {
-    if(x[0] < xmin + bmarg || x[0] > xmax - bmarg) {
+    if(x[0] < xmin + bmarg) {
       values[0] = 1.0;
       values[1] = 0.0;
       values[2] = 0.0;
@@ -201,7 +201,8 @@ public:
   }
 };
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* structure_mesh)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, 
+	   timeval& s_time, Mesh* structure_mesh)
 {
   
   real T = dolfin_get("T");
@@ -312,23 +313,6 @@ void smooth(Mesh& mesh)
   }
 }
 
-void transform(Mesh& mesh)
-{
-  // Define the area that the pin occupies
-  for(VertexIterator v(mesh); !v.end(); ++v)
-  {
-    Vertex& vertex = *v;
-    
-    Point r = vertex.point();
-
-    MeshGeometry& geometry = mesh.geometry();
-
-    geometry.x(vertex.index(), 0) *= 1.0e-3;
-    geometry.x(vertex.index(), 1) *= 1.0e-3;
-    geometry.x(vertex.index(), 2) *= 1.0e-3;
-  }
-}
-
 int main(int argc, char* argv[])
 {
   timeval s_time;
@@ -342,7 +326,6 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  transform(mesh);
 
   unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, &smooth, &solve);
 
