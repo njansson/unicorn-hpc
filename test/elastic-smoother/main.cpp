@@ -12,68 +12,6 @@ using namespace dolfin::unicorn;
 
 real bmarg = 1.0e-3 + DOLFIN_EPS;
 
-namespace Geo
-{
-  
-  // Geometry details /////////////////////////////////////////////////
-  real cont_L = 3.0;
-  real cont_H = 2.0;
-  real cont_W = 2.0;
-  
-  real pin_l = 0.3;
-  real pin_h = 0.005;
-  real pin_w = 0.1;
-  
-  real circ_cx = 1.0;
-  real circ_cy = 1.0;
-  real circ_cz = 1.0;
-  
-  real pin_r = 0.05;
-  
-  //real pin_start_x = circ_cx;  
-  real pin_start_x = circ_cx + pin_r;  
-  real pin_end_x   = pin_start_x + pin_l;
-  
-  //real pin_start_y = circ_cy - (0.5 * pin_h);
-  real pin_start_y = circ_cy + 0.045;
-  real pin_end_y   = pin_start_y + pin_h;
-
-  real pin_start_z = 0.95;
-  real pin_end_z   = pin_start_z + pin_w;
-  
-  real xmin = 0.0; real xmax = cont_L;
-  real ymin = 0.0; real ymax = cont_H;
-  real zmin = 0.0; real zmax = cont_W;
-  
-  real pi = M_PI;
-  
-  real margin = DOLFIN_EPS + 1e-9;
-  
-  
-  bool isStructure(Point r)
-  {
-    // Define the area that the pin occupies
-    return (((pin_start_x - bmarg) < r[0] && r[0] < (pin_end_x + bmarg)) &&
-	    ((pin_start_y - bmarg) < r[1] && r[1] < (pin_end_y + bmarg)) &&
-	    ((pin_start_z - bmarg) < r[2] && r[2] < (pin_end_z + bmarg)));
-  }
-}
-
-
-void transform(Mesh& mesh)
-{
-  for (VertexIterator n(mesh); !n.end(); ++n)
-  {
-    Vertex& vertex = *n;
-    Point p = vertex.point();
-      
-    MeshGeometry& geometry = mesh.geometry();
-      
-    geometry.x(vertex.index(), 0) *= 0.01;
-    geometry.x(vertex.index(), 1) *= 0.01;
-    geometry.x(vertex.index(), 2) *= 0.01;
-  }
-}
 
 
 int main(int argc, char* argv[])
@@ -82,11 +20,9 @@ int main(int argc, char* argv[])
 
   Mesh mesh("wedge.xml");
 
-  //transform(mesh);
-
   mesh.renumber();
 
-  for(int i = 0; i < 0; i++)
+  for(int i = 0; i < 1; i++)
   {
     
     MeshFunction<bool> cell_refinement_marker(mesh);
@@ -119,24 +55,7 @@ int main(int argc, char* argv[])
     h0.set(cell, MeshQuality::myDiameter(cell));
   }
 
-  for (CellIterator c(mesh); !c.end(); ++c)
-  {
-    Cell& cell = *c;
-    Point mp = cell.midpoint();
-
-    masked.set(cell, Geo::isStructure(mp));
-  }
-
   MeshGeometry& geometry = mesh.geometry();
-
-  for (VertexIterator v(mesh); !v.end(); ++v)
-  {
-    Vertex& vertex = *v;
-    Point p = vertex.point();
-
-    if(Geo::isStructure(p))
-      geometry.x(vertex.index(), 1) += -0.003;
-  }
 
   if(dolfin::MPI::processNumber() == 0)
     dolfin_set("output destination", "terminal");
