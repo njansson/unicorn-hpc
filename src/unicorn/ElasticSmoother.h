@@ -12,8 +12,8 @@
 
 #if HAVE_SUNPERF_H
 #include <sunperf.h>
-#elif HAVE_SCSL_CBLAS_H
-#include <cmplrs/cblas.h>
+#elif HAVE_SCSL_BLAS_H
+#include <scsl_blas.h>
 #elif HAVE_GSL_CBLAS_H
 extern "C" {
 #include <gsl_cblas.h>
@@ -171,7 +171,7 @@ namespace dolfin { namespace unicorn
 
 	//int d = cell().dim();
 
-	real p = 2.0;
+	real p = 4.0;
 	//real p = 1.0;
 
 	real val = 1.0;
@@ -454,7 +454,7 @@ namespace dolfin { namespace unicorn
       
       void preparestep()
       {
-	//	MPI::startTimer(timer0);
+	//timer0.restart();
 // 	int d = mesh().topology().dim();
 // 	int N = mesh().numVertices();
 // 	int M = mesh().numCells();
@@ -528,6 +528,7 @@ namespace dolfin { namespace unicorn
       
       void save(Function& U, real t)
       {
+	//solutionfile << U;
 	/*
 	cout << "Saving at t: " << t << endl;
 	//     Function U_0 = U[0];
@@ -572,7 +573,7 @@ namespace dolfin { namespace unicorn
 
       void u0(GenericVector& x)
       {
-	// MPI::startTimer(timer2);
+	//timer2.restart();
 	int d = mesh().topology().dim();
 	int N = mesh().numVertices();
 	if(MPI::numProcesses() > 1)
@@ -650,7 +651,7 @@ namespace dolfin { namespace unicorn
 
 	U.vector().zero();
 
-	//message("ElasticSmoother timer u0: %g", MPI::stopTimer(timer2));
+	//message("ElasticSmoother timer u0: %g", timer2.elapsed());
       }
 
       void revert()
@@ -707,7 +708,7 @@ namespace dolfin { namespace unicorn
 
 	cout << "hhmin: " << hhmin << endl;
 
-        k = 1.0 / 8.0 * hhmin * qual->mu_min / (xnorm + hhmin);
+        k = 1.0 / 2.0 * hhmin * qual->mu_min / (xnorm + hhmin);
 	//k *= 4.0;
 	//k = 0.01;
 	//	k = 1.0e-3;
@@ -724,7 +725,7 @@ namespace dolfin { namespace unicorn
 	num_steps++;
 	korig = k;
 
-	//message("ElasticSmoother timer step: %g", MPI::stopTimer(timer0));
+	//message("ElasticSmoother timer step: %g", timer0.elapsed());
 
 
 	if(num_steps >= max_steps)
@@ -771,9 +772,9 @@ namespace dolfin { namespace unicorn
       int max_steps;
       int min_steps;
 
-//       real timer0;
-//       real timer1;
-//       real timer2;
+//       boost::timer timer0;
+//       boost::timer timer1;
+//       boost::timer timer2;
     };
   };
 //-----------------------------------------------------------------------------

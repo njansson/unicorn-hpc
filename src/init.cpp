@@ -23,7 +23,7 @@ using namespace dolfin::unicorn;
 
 //-----------------------------------------------------------------------------
 void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,
-			   Checkpoint& chkp, long& w_limit, int& iter)
+			   Checkpoint& chkp, long& w_limit, int& iter, Mesh*& structure_mesh)
 {
   dolfin_set("output destination","silent");
   if(dolfin::MPI::processNumber() == 0)
@@ -33,17 +33,24 @@ void unicorn::unicorn_init(int& argc, char* argv[], Mesh& mesh,
 
   if( argc < 5 ) 
     {
-      message("Usage: -p <parameters> [-m <mesh> -c <checkpoint>] [-i iteration] [-l <wall clock limit>] [-o <petsc arguments>] ");      
+      message("Usage: -p <parameters> [-m <mesh> -c <checkpoint>] [-i iteration] [-l <wall clock limit>] [-o <petsc arguments>][-s <structure mesh>] ");
       dolfin_finalize();
       exit(1);    
     }
   message("Running on %d %s", dolfin::MPI::numProcesses(), 
 	  (dolfin::MPI::numProcesses() > 1 ? "nodes" : "node"));
   int c;
-  while( -1 != (c = getopt(argc,argv,"p:m:c:i:l:o:")))
+  bool readInSerial = dolfin_get("Mesh read in serial");
+  while( -1 != (c = getopt(argc,argv,"p:m:c:i:l:o:s:")))
   {
     switch(c)
     {
+    case 's':
+      // Read in structure geometry (represented as a mesh of manageable size) in serial
+      dolfin_set("Mesh read in serial",true);
+      structure_mesh = new Mesh(optarg);
+      std::cout << "got structure mesh" << std::endl;
+      dolfin_set("Mesh read in serial",readInSerial);
     case 'p': 
       UniParameters::parse_parameters(optarg);
       break;
