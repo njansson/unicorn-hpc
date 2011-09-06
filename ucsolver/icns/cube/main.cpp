@@ -266,7 +266,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
   }
 
   NSESolver dsolver(mesh, node_normal, f, beta, aero_f, dual_bc_mom,
-		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, td, "dual");
+  		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, td, "dual");
   dsolver.solve();
     
   if (w_limit) {
@@ -287,6 +287,8 @@ int main(int argc, char* argv[])
   int iter = 0;
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
+
+  mesh.refine();
 
   unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
