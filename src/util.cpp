@@ -22,7 +22,8 @@ using namespace dolfin::unicorn;
 void unicorn::unicorn_solve(Mesh& mesh, Checkpoint& chkp, 
 			    long& w_limit, timeval& s_time, int& iter,
 			    void (*pre)(Mesh&), void (*post)(Mesh&),
-			    void (*solver)(Mesh&, Checkpoint&, long&, timeval&))
+			    void (*solver)(Mesh&, Checkpoint&, long&, timeval&, Mesh*),
+			    Mesh* structure_mesh)
 {
   char itername[80];
   for(int i = iter; i < (int) dolfin_get("adapt_iter") ; i++) 
@@ -45,7 +46,7 @@ void unicorn::unicorn_solve(Mesh& mesh, Checkpoint& chkp,
       if (pre)
       	(*pre)(mesh);
 	  
-      (*solver)(mesh, chkp, w_limit, s_time);
+      (*solver)(mesh, chkp, w_limit, s_time, structure_mesh);
 
       if (post)
       	(*post)(mesh);
