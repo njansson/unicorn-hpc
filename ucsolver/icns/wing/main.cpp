@@ -231,7 +231,8 @@ public:
 
 };
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, 
+	   timeval& s_time, Mesh* structure_mesh)
 {
   
   real T = dolfin_get("T");
@@ -308,11 +309,11 @@ int main(int argc, char* argv[])
 {
   timeval s_time;
   gettimeofday(&s_time, NULL);
-  Mesh mesh;  
+  Mesh mesh, *structure_mesh;  
   long w_limit = 0;
   Checkpoint chkp;
   int iter = 0;
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
   real T = dolfin_get("T");
   real alpha = dolfin_get("alpha");

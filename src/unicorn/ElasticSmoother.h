@@ -12,8 +12,8 @@
 
 #if HAVE_SUNPERF_H
 #include <sunperf.h>
-#elif HAVE_SCSL_BLAS_H
-#include <scsl_blas.h>
+#elif HAVE_SCSL_CBLAS_H
+#include <cmplrs/cblas.h>
 #elif HAVE_GSL_CBLAS_H
 extern "C" {
 #include <gsl_cblas.h>
@@ -454,7 +454,7 @@ namespace dolfin { namespace unicorn
       
       void preparestep()
       {
-	//timer0.restart();
+	//	MPI::startTimer(timer0);
 // 	int d = mesh().topology().dim();
 // 	int N = mesh().numVertices();
 // 	int M = mesh().numCells();
@@ -573,7 +573,7 @@ namespace dolfin { namespace unicorn
 
       void u0(GenericVector& x)
       {
-	//timer2.restart();
+	// MPI::startTimer(timer2);
 	int d = mesh().topology().dim();
 	int N = mesh().numVertices();
 	if(MPI::numProcesses() > 1)
@@ -651,7 +651,7 @@ namespace dolfin { namespace unicorn
 
 	U.vector().zero();
 
-	//message("ElasticSmoother timer u0: %g", timer2.elapsed());
+	//message("ElasticSmoother timer u0: %g", MPI::stopTimer(timer2));
       }
 
       void revert()
@@ -725,7 +725,7 @@ namespace dolfin { namespace unicorn
 	num_steps++;
 	korig = k;
 
-	//message("ElasticSmoother timer step: %g", timer0.elapsed());
+	//message("ElasticSmoother timer step: %g", MPI::stopTimer(timer0));
 
 
 	if(num_steps >= max_steps)
@@ -772,9 +772,9 @@ namespace dolfin { namespace unicorn
       int max_steps;
       int min_steps;
 
-//       boost::timer timer0;
-//       boost::timer timer1;
-//       boost::timer timer2;
+//       real timer0;
+//       real timer1;
+//       real timer2;
     };
   };
 //-----------------------------------------------------------------------------

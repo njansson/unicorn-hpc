@@ -120,10 +120,10 @@ void SlipBC::apply(GenericMatrix& A, GenericVector& b, const DofMap& dof_map,
 		   const Form& form)
 {
   
-  // if(MPI::processNumber() == 0)
-  //   dolfin_set("output destination", "terminal");
+  if(MPI::processNumber() == 0)
+    dolfin_set("output destination", "terminal");
   message("Applying SlipBC boundary conditions to linear system.");
-  // dolfin_set("output destination", "silent");
+  dolfin_set("output destination", "silent");
   
   UFC ufc(form.form(), mesh, form.dofMaps());
 
