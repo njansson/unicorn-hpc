@@ -21,6 +21,7 @@
 #include <dolfin/fem/UFC.h>
 
 #include "unicorn/Drag3D.h"
+#include "unicorn/Drag3D_Int.h"
 #include "unicorn/NSESolver.h"
 #include "unicorn/NSEMomentum3D.h"
 #include "unicorn/NSEContinuity3D.h"
@@ -160,16 +161,16 @@ void NSESolver::solve()
   real k = 0.15*hmin/ubar; 
 
   schur = true;
-
- if(dolfin::MPI::processNumber() == 0)
-   dolfin_set("output destination","terminal");
- message("beta: %f", (real) dolfin_get("beta"));
- message("nu: %f", nu);
- message("ubar: %f",ubar);
- message("hmin: %f",hmin);
- message("k: %f",k);
- dolfin_set("output destination","silent");
- 
+  
+  if(dolfin::MPI::processNumber() == 0)
+    dolfin_set("output destination","terminal");
+  message("beta: %f", (real) dolfin_get("beta"));
+  message("nu: %f", nu);
+  message("ubar: %f",ubar);
+  message("hmin: %f",hmin);
+  message("k: %f",k);
+  dolfin_set("output destination","silent");
+  
   Function u; // velocity
   Function up; // primal velocity
   Function upm; // Cell mean primal velocity
@@ -207,6 +208,7 @@ void NSESolver::solve()
   Form* Lres_m = 0;
   Form* LG = 0;
   Form** MF = new Form*[aero_f.size()];
+  Form** MF_Int = new Form*[aero_f.size()];
   
   if ( nsd == 3 )
   {
@@ -217,8 +219,10 @@ void NSESolver::solve()
       acon = new NSEContinuity3DBilinearForm(delta1, *fk);
       Lcon = new NSEContinuity3DLinearForm(uc, delta1, p0, *fk);
 
-      for(uint i = 0; i < aero_f.size(); i++)
+      for(uint i = 0; i < aero_f.size(); i++) {
 	MF[i] = new Drag3DFunctional(*aero_f[i], dtu, u, um, p, fnu, delta1, delta2, f);
+	MF_Int[i] = new Drag3D_IntFunctional(normal, *aero_f[i], p);
+      }
 
     }
     else if(solver_type == "dual")
@@ -285,6 +289,7 @@ void NSESolver::solve()
   func.push_back(&uc);
   func.push_back(&um);
   func.push_back(&p);
+  func.push_back(&p0);
   func.push_back(&delta1);
   func.push_back(&delta2);
 
@@ -571,6 +576,7 @@ void NSESolver::solve()
       xcvel = xvel;
       x0pre = xpre;
       uc.sync_ghosts();
+      u0.sync_ghosts();
 
       // Compute stabilization parameters
       tic();
@@ -703,6 +709,12 @@ void NSESolver::solve()
 	if( MPI::processNumber() == 0) 
 	  forceFile << force  << "\t";
       }	
+      for (uint i = 0; i < aero_f.size(); i++)
+      {
+	force = assembler.assemble(*MF_Int[i]);
+	if( MPI::processNumber() == 0) 
+	  forceFile << force  << "\t";
+      }	
       if( MPI::processNumber() == 0)  {
 	forceFile << "\n"; 
 	forceFile.flush();     
@@ -810,6 +822,7 @@ void NSESolver::solve()
   
   if(solver_type == "primal") {
     delete[] MF;
+    delete[] MF_Int;
   }
   else if(solver_type == "dual") {
     delete Up;
@@ -857,34 +870,7 @@ void NSESolver::solve()
     else
       AdaptiveRefinement::refine(mesh, cell_marker);
   }
-
-
-
   
-}
-//-----------------------------------------------------------------------------
-void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
-{  
-  //real* harr = hvector.down_cast<PETScVector>().array();
-  real *h = new real[mesh.numCells()];
-  uint *rows = new uint[mesh.numCells()];
-
-  // Compute cell size h
-  hvector.init(mesh.numCells());	
-  for (CellIterator cell(mesh); !cell.end(); ++cell)
-  {
-    h[(*cell).index()] = (*cell).diameter();
-    if (MPI::numProcesses() > 1)
-      rows[(*cell).index()] = mesh.distdata().get_cell_global(cell->index());
-    else
-      rows[(*cell).index()] = (*cell).diameter();
-  }
-
-  hvector.set(h, mesh.numCells(), rows);
-  hvector.apply();
-
-  delete[] h;
-  delete[] rows;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::GetMinimumCellSize(Mesh& mesh, real& hmin)
