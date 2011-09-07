@@ -289,6 +289,7 @@ void NSESolver::solve()
   func.push_back(&uc);
   func.push_back(&um);
   func.push_back(&p);
+  func.push_back(&p0);
   func.push_back(&delta1);
   func.push_back(&delta2);
 
