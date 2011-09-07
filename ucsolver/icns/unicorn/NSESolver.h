@@ -148,6 +148,7 @@ namespace dolfin {
       real nu;
       real ubar;
       real hmin;
+      bool schur;
 
       Checkpoint& chkp;
       long& w_limit;
