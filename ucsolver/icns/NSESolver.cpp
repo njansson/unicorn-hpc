@@ -159,6 +159,8 @@ void NSESolver::solve()
 
   real k = 0.15*hmin/ubar; 
 
+  schur = true;
+
  if(dolfin::MPI::processNumber() == 0)
    dolfin_set("output destination","terminal");
  message("beta: %f", (real) dolfin_get("beta"));
@@ -186,6 +188,13 @@ void NSESolver::solve()
   //Function fk(mesh, k);
   TimeStepFunction *fk = new TimeStepFunction(mesh);
   fk->k = &k;
+
+  TimeStepFunction *fk_con = new TimeStepFunction(mesh);
+  fk_con->k = &k;
+  real zero = 0.0;
+  if(!schur)
+    fk_con->k = &zero;
+
   Function fnu(mesh, nu);
 
   Function tau_1, tau_2, normal;
@@ -460,6 +469,8 @@ void NSESolver::solve()
   int iteration;
   int max_iteration = 10;  
 
+  if(!schur)
+    rtol = 1e6;
 
   // Represent primal in space-time
   SpaceTimeFunction* Up = 0;
@@ -539,6 +550,7 @@ void NSESolver::solve()
     residual = 2*rtol;
     residual2 = 2*rtol2;
     iteration = 0;
+
 
     MPI::startTimer(iter_time);
     // Fix-point iteration for non-linear problem 
@@ -906,8 +918,14 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
 
   real kk = 0.25*hmin/ubar; 
 
-  real C1 = 1.0;   
-  real C2 = 1.0;   
+  real C1 = 4.0;   
+  real C2 = 2.0;   
+
+  if(schur)
+  {
+    C1 = 1.0;
+    C2 = 1.0;
+  }
 
   UFC ufc(form.form(), mesh, form.dofMaps());
   real normw; 
