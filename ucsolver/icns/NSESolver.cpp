@@ -161,16 +161,16 @@ void NSESolver::solve()
   real k = 0.15*hmin/ubar; 
 
   schur = true;
-
- if(dolfin::MPI::processNumber() == 0)
-   dolfin_set("output destination","terminal");
- message("beta: %f", (real) dolfin_get("beta"));
- message("nu: %f", nu);
- message("ubar: %f",ubar);
- message("hmin: %f",hmin);
- message("k: %f",k);
- dolfin_set("output destination","silent");
- 
+  
+  if(dolfin::MPI::processNumber() == 0)
+    dolfin_set("output destination","terminal");
+  message("beta: %f", (real) dolfin_get("beta"));
+  message("nu: %f", nu);
+  message("ubar: %f",ubar);
+  message("hmin: %f",hmin);
+  message("k: %f",k);
+  dolfin_set("output destination","silent");
+  
   Function u; // velocity
   Function up; // primal velocity
   Function upm; // Cell mean primal velocity
@@ -575,6 +575,7 @@ void NSESolver::solve()
       xcvel = xvel;
       x0pre = xpre;
       uc.sync_ghosts();
+      u0.sync_ghosts();
 
       // Compute stabilization parameters
       tic();
@@ -868,34 +869,7 @@ void NSESolver::solve()
     else
       AdaptiveRefinement::refine(mesh, cell_marker);
   }
-
-
-
   
-}
-//-----------------------------------------------------------------------------
-void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
-{  
-  //real* harr = hvector.down_cast<PETScVector>().array();
-  real *h = new real[mesh.numCells()];
-  uint *rows = new uint[mesh.numCells()];
-
-  // Compute cell size h
-  hvector.init(mesh.numCells());	
-  for (CellIterator cell(mesh); !cell.end(); ++cell)
-  {
-    h[(*cell).index()] = (*cell).diameter();
-    if (MPI::numProcesses() > 1)
-      rows[(*cell).index()] = mesh.distdata().get_cell_global(cell->index());
-    else
-      rows[(*cell).index()] = (*cell).diameter();
-  }
-
-  hvector.set(h, mesh.numCells(), rows);
-  hvector.apply();
-
-  delete[] h;
-  delete[] rows;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::GetMinimumCellSize(Mesh& mesh, real& hmin)

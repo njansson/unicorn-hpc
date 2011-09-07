@@ -47,8 +47,6 @@ namespace dolfin {
       // Cleanup
       void clear();
       
-      // Compute cell diameter
-      static void ComputeCellSize(Mesh& mesh, Vector& hvector);
       
       // Get minimum cell diameter
       static void GetMinimumCellSize(Mesh& mesh, real& hmin);
