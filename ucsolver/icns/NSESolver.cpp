@@ -525,11 +525,14 @@ void NSESolver::solve()
     // Increase time-step after a startup phase
     if(time_step > 40)
     {
-      k = 1.0*hmin/ubar;
+      if (time_step < 50 && !chkp.restart())
+	k = (0.0065*(time_step - 40) + 0.15) * hmin/ubar;
+      else
+	k = 0.8*hmin/ubar;
       max_iteration = 20;
       if(solver_type == "dual")
       {
-	k = 1.0*hmin/ubar;
+	k = 0.8*hmin/ubar;
       }
     }
 
@@ -902,7 +905,9 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real kk = 0.25*hmin/ubar; 
+  // FIXME: we should use k iff CFL < 1
+  //  real kk = 0.25*hmin/ubar; 
+  real kk = k;
 
   real C1 = 4.0;   
   real C2 = 2.0;   
