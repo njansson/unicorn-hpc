@@ -184,7 +184,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
 					 *fnu, delta1, delta2, f, *fk,
 				       rho, theta, S, *muf, *lmbdaf, W, Wm);
       aC = new NSEContinuity2DBilinearForm(delta1, *fk);
-      LC = new NSEContinuity2DLinearForm(P0, U, *fk);
+      LC = new NSEContinuity2DLinearForm(P0, U, delta1, *fk);
 
       aR = new NSEDensity2DBilinearForm(U, Um, *fk, delta1);
       LR = new NSEDensity2DLinearForm(rho0, U, Um, *fk, delta1);

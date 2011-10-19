@@ -45,5 +45,5 @@ eps = 0.0
 alpha = 2*k
 
 a = (eps*P*q + delta1*dot(grad(q), grad(P)) + alpha*dot(grad(q), grad(P)))*dx
-L = (-q*div(uc))*dx + alpha*dot(grad(q), grad(P0))*dx + \
+L = (-q*div(uc))*dx + alpha*dot(grad(q), grad(P0))*dx - mult(delta1, dot( ugradu(uc, uc), grad(q)))*dx + \
     0.0*delta1*dot(mult(rho, f), grad(q))*dx
