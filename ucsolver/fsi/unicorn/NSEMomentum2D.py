@@ -86,7 +86,7 @@ Um_ALE = Um - Wm
 def f(u, v):
     return -dot(mult(rho, ugradu(UP_ALE, Uc)), v) + \
         dot(S, grad(v)) + \
-	-mult(d1, dot(mult(rho, ugradu(Um_ALE, Uc)),
+	-mult(d1, dot(mult(rho, ugradu(Um_ALE, Uc)) + grad(P),
                       mult(rho, ugradu(Um_ALE, v)))) + \
 	-mult(d2, dot(div(u), div(v))) + \
         dot(mult(1.0 - theta, ff), v)
@@ -111,4 +111,4 @@ def dFdu(u, u0, k, v):
 a = (dFdu(U1, U0, k, v)) * dx
 L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
 
-compile([a, L, M, element], "NSEMomentum2D", {'language': 'dolfin', 'blas': False, 'form_postfix': True, 'precision': '15', 'cpp optimize': False, 'split_implementation': True, 'quadrature_points': False, 'output_dir': '.', 'representation': 'quadrature', 'cache_dir': None, 'optimize': False})
+compile([a, L, M, element], "NSEMomentum2D", {'language': 'dolfin', 'blas': False, 'form_postfix': True, 'precision': '15', 'cpp optimize': False, 'split_implementation': False, 'quadrature_points': False, 'output_dir': '.', 'representation': 'tensor', 'cache_dir': None, 'optimize': False})

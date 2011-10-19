@@ -53,7 +53,7 @@ eps = 0.0
 alpha = 2*k
 
 a = (eps*P*q + delta1*dot(grad(q), grad(P)) + alpha*dot(grad(q), grad(P)))*dx
-L = (-q*div(uc))*dx + alpha*dot(grad(q), grad(P0))*dx + \
+L = (-q*div(uc))*dx + alpha*dot(grad(q), grad(P0))*dx - mult(delta1, dot( ugradu(uc, uc), grad(q)))*dx + \
     0.0*delta1*dot(mult(rho, f), grad(q))*dx
 
 compile([a, L, M, element], "NSEContinuity2D", {'language': 'dolfin', 'blas': False, 'form_postfix': True, 'precision': '15', 'cpp optimize': False, 'split_implementation': True, 'quadrature_points': False, 'output_dir': '.', 'representation': 'quadrature', 'cache_dir': None, 'optimize': False})
