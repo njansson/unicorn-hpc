@@ -160,7 +160,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
 					 *fnu, delta1, delta2, f, *fk,
 				       rho, theta, S, *muf, *lmbdaf, W, Wm, *bf, *frho_s);
       aC = new NSEContinuity3DBilinearForm(delta1, *fk);
-      LC = new NSEContinuity3DLinearForm(P0, U, *fk);
+      LC = new NSEContinuity3DLinearForm(P0, U, delta1, *fk);
 
       aR = new NSEDensity3DBilinearForm(U, Um, *fk, delta1);
       LR = new NSEDensity3DLinearForm(rho0, U, Um, *fk, delta1);
@@ -177,12 +177,12 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   {
     if(solver_type == "primal")
     {
-      aM = new NSEMomentum2DBilinearForm(U, Um, *fnu, delta1, delta2, *fk,
+      aM = new NSEMomentum2DBilinearForm(Uc, Um, *fnu, delta1, delta2, *fk,
 					 rho, theta, *muf, *lmbdaf, W, Wm,
-					 *bf);
+					 *bf, *frho_s);
       LM = new NSEMomentum2DLinearForm(U, U0, Uc, Um, P, 
 					 *fnu, delta1, delta2, f, *fk,
-				       rho, theta, S, *muf, *lmbdaf, W, Wm);
+				       rho, theta, S, *muf, *lmbdaf, W, Wm, *bf, *frho_s);
       aC = new NSEContinuity2DBilinearForm(delta1, *fk);
       LC = new NSEContinuity2DLinearForm(P0, U, delta1, *fk);
 
@@ -191,6 +191,20 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
 
       aS = new NavierStokesStress2DBilinearForm;
       LS = new NavierStokesStress2DLinearForm(S, U, *muf, vol_inv);
+      // aM = new NSEMomentum2DBilinearForm(U, Um, *fnu, delta1, delta2, *fk,
+      // 					 rho, theta, *muf, *lmbdaf, W, Wm,
+      // 					 *bf);
+      // LM = new NSEMomentum2DLinearForm(U, U0, Uc, Um, P, 
+      // 					 *fnu, delta1, delta2, f, *fk,
+      // 				       rho, theta, S, *muf, *lmbdaf, W, Wm);
+      // aC = new NSEContinuity2DBilinearForm(delta1, *fk);
+      // LC = new NSEContinuity2DLinearForm(P0, U, delta1, *fk);
+
+      // aR = new NSEDensity2DBilinearForm(U, Um, *fk, delta1);
+      // LR = new NSEDensity2DLinearForm(rho0, U, Um, *fk, delta1);
+
+      // aS = new NavierStokesStress2DBilinearForm;
+      // LS = new NavierStokesStress2DLinearForm(S, U, *muf, vol_inv);
     }
     else if(solver_type == "dual")
     {
