@@ -44,7 +44,7 @@ ff = Function(K)
 fc = Function(K)  # coriolis force
 k = Function(K3)
 
-rho = Function(K2)
+rho_f = Function(K2)
 theta = Function(K3)
 sigma = Function(K5)
 
@@ -55,6 +55,11 @@ WP = Function(K)
 Wm = Function(K4)
 
 b = Function(K3)
+
+rho_s = Function(K3)
+
+rho = mult(theta, rho_f) + mult(1.0 - theta, rho_s)
+
 
 def tomatrix(q):
     return [ [q[d * i + j] for i in range(d)] for j in range(d) ]
@@ -74,25 +79,25 @@ def epsilon(u):
 #def S(u, P):
 #    return mult(P, Identity(d)) - mult(theta*nu, grad(u))
 
-beps = mult(b, epsilon(0.5*UP))
+beps = mult(b, epsilon(0.5*Uc))
 
-Sf = mult(P, Identity(d)) - mult(nu, grad(UP))
+Sf = mult(P, Identity(d)) - mult(nu, grad(Uc))
 Ss = mult(P, Identity(d)) - mult(1.0, sigmaM) - beps
 S = mult(theta, Sf) + mult(1.0 - theta, Ss)
 
-UP_ALE = UP - WP
+Uc_ALE = Uc - WP
 Um_ALE = Um - Wm
 
 def f(u, v):
-    return -dot(mult(rho, ugradu(UP_ALE, Uc)), v) + \
+    return -dot(mult(rho_f, ugradu(Uc_ALE, Uc)), v) + \
         dot(S, grad(v)) + \
-	-mult(d1, dot(mult(rho, ugradu(Um_ALE, Uc)) + grad(P),
-                      mult(rho, ugradu(Um_ALE, v)))) + \
+	-mult(d1, dot(mult(rho_f, ugradu(Um_ALE, Uc)) + grad(P),
+                      mult(rho_f, ugradu(Um_ALE, v)))) + \
 	-mult(d2, dot(div(u), div(v))) + \
         dot(mult(1.0 - theta, ff), v)
     
 def dfdu(u, k, v):
-    return -dot(mult(rho, ugradu(UP_ALE, u)), v) + \
+    return -dot(mult(rho_f, ugradu(Uc_ALE, u)), v) + \
     	-mult(1 - theta, mult(k, dot(E(epsilon(u), mu, lmbda), grad(v)))) + \
     	-mult(1 - theta, mult(b, dot(epsilon(u), grad(v)))) + \
         -dot(mult(theta*nu, grad(u)), grad(v)) + \
@@ -111,4 +116,4 @@ def dFdu(u, u0, k, v):
 a = (dFdu(U1, U0, k, v)) * dx
 L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
 
-compile([a, L, M, element], "NSEMomentum2D", {'language': 'dolfin', 'blas': False, 'form_postfix': True, 'precision': '15', 'cpp optimize': False, 'split_implementation': False, 'quadrature_points': False, 'output_dir': '.', 'representation': 'tensor', 'cache_dir': None, 'optimize': False})
+compile([a, L, M, element], "NSEMomentum2D", {'language': 'dolfin', 'blas': False, 'form_postfix': True, 'precision': '15', 'cpp optimize': False, 'split_implementation': True, 'quadrature_points': False, 'output_dir': '.', 'representation': 'quadrature', 'cache_dir': None, 'optimize': False})
