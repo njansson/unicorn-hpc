@@ -90,7 +90,7 @@ void LaplacianSmoother::smooth(MeshFunction<bool>& smoothed_cells,
   bc0.apply(A, b, *a);
   bc1.apply(A, b, *a);
 
-  KrylovSolver ksolver(bicgstab, jacobi);
+  KrylovSolver ksolver(bicgstab, sor);
   ksolver.solve(A, motionx, b);
 
   //Compute solution

@@ -78,7 +78,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
     wfile("meshvel.pvd"),
     thetafile("theta.pvd"),
     td(td),
-    pressure_solver(bicgstab, jacobi),
+    pressure_solver(bicgstab, sor),
     ksp_pressure(0),
     startup(true), indices(0), c_indices(0),
     solid_cells(solid_cells), solid_vertices(solid_vertices),
@@ -122,7 +122,7 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   real cfl = dolfin_get("PDE CFL number");
 
   // Take very conservative time-step for startup
-  k = 1.0*hmin/ubar;
+  k = 2.0*hmin/ubar;
   message("nu: %f",nu);
   message("ubar: %f",ubar);
   message("hmin: %f",hmin);
@@ -978,7 +978,7 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
-  real C1 = 0.5;
+  real C1 = 1.0;
   real C2 = 1.0;
 
   real kk = 0.2 * hmin / ubar;
