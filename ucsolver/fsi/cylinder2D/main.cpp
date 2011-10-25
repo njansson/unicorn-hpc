@@ -474,7 +474,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
 //   dolfin_set("Krylov relative tolerance", 1.0e-12);
 //   dolfin_set("Krylov absolute tolerance", 1.0e-20);
 
-  NSESolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
+  UCSolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
 		    p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
                     ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
@@ -499,8 +499,7 @@ int main(int argc, char* argv[])
 
   unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  //mesh.refine();
-  //mesh.refine();
+  mesh.refine();
 
   unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 

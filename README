@@ -62,7 +62,7 @@ chapter "Turbulent Flow and Fluid-Structure Interaction" and section
 To verify correct installation and functionality of Unicorn, follow
 these steps:
 
-1. $ source local.sh (Configure and setup environment variables)
+1. source local.sh (Configure and setup environment variables)
 2. make install (Compile and install)
 3. cd ucsolver/icns/cube
 4. make
@@ -81,7 +81,7 @@ section "High Re turbulent flow", let the iteration run, producing
 several iter_x directories. Inside these directories, a file
 "aero_f.dat" is generated. The output quantity in "aero_f.dat" is a
 time series of the drag force F (second column). The drag coefficient
-is Cd = 2F. The mean value (of the time series) of the drag
+is Cd = 2F/0.2^2. The mean value (of the time series) of the drag
 coefficient is what is plotted in figure 1, and should converge to the
 reference value Cd ~ 1.25 +- 5% as given in figure 1 and in
 section "High Re turbulent flow".

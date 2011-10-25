@@ -91,7 +91,7 @@ Um_ALE = Um - Wm
 def f(u, v):
     return -dot(mult(rho_f, ugradu(Uc_ALE, Uc)), v) + \
         dot(S, grad(v)) + \
-	-mult(d1, dot(mult(rho_f, ugradu(Um_ALE, Uc)),
+	-mult(d1, dot(mult(rho_f, ugradu(Um_ALE, Uc)) + grad(P),
                       mult(rho_f, ugradu(Um_ALE, v)))) + \
 	-mult(d2, dot(div(u), div(v))) + \
         dot(mult(1.0 - theta, ff), v)

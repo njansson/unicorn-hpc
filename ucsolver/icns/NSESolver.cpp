@@ -525,14 +525,11 @@ void NSESolver::solve()
     // Increase time-step after a startup phase
     if(time_step > 40)
     {
-      if (time_step < 50 && !chkp.restart())
-	k = (0.0065*(time_step - 40) + 0.15) * hmin/ubar;
-      else
-	k = 0.8*hmin/ubar;
+      k = 0.5*hmin/ubar;
       max_iteration = 20;
       if(solver_type == "dual")
       {
-	k = 0.8*hmin/ubar;
+	k = 0.5*hmin/ubar;
       }
     }
 
@@ -914,8 +911,9 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
 
   if(schur)
   {
-    C1 = 1.0;
-    C2 = 1.0;
+    // Use conservative stabilization parameters for the release
+    C1 = 4.0;
+    C2 = 2.0;
   }
 
   UFC ufc(form.form(), mesh, form.dofMaps());
