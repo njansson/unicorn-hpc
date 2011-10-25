@@ -205,7 +205,7 @@ public:
   }
 };
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* structure_mesh)
 {
   
   real T = dolfin_get("T");
@@ -266,7 +266,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
   }
 
   NSESolver dsolver(mesh, node_normal, f, beta, aero_f, dual_bc_mom,
-		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, td, "dual");
+  		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, td, "dual");
   dsolver.solve();
     
   if (w_limit) {
@@ -281,13 +281,16 @@ int main(int argc, char* argv[])
   timeval s_time;
   gettimeofday(&s_time, NULL);
   Mesh mesh;  
+  Mesh* structure_mesh = 0;
   long w_limit = 0;
   Checkpoint chkp;
   int iter = 0;
 
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
+  mesh.refine();
+
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
   dolfin_finalize();
   return 0;

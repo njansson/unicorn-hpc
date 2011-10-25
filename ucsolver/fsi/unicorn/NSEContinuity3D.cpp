@@ -6889,6 +6889,468 @@ ufc::finite_element* UFC_NSEContinuity3DLinearForm_finite_element_3::create_sub_
     return new UFC_NSEContinuity3DLinearForm_finite_element_3();
 }
 
+
+/// Constructor
+UFC_NSEContinuity3DLinearForm_finite_element_4::UFC_NSEContinuity3DLinearForm_finite_element_4() : ufc::finite_element()
+{
+    // Do nothing
+}
+
+/// Destructor
+UFC_NSEContinuity3DLinearForm_finite_element_4::~UFC_NSEContinuity3DLinearForm_finite_element_4()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the finite element
+const char* UFC_NSEContinuity3DLinearForm_finite_element_4::signature() const
+{
+    return "Discontinuous Lagrange finite element of degree 0 on a tetrahedron";
+}
+
+/// Return the cell shape
+ufc::shape UFC_NSEContinuity3DLinearForm_finite_element_4::cell_shape() const
+{
+    return ufc::tetrahedron;
+}
+
+/// Return the dimension of the finite element function space
+unsigned int UFC_NSEContinuity3DLinearForm_finite_element_4::space_dimension() const
+{
+    return 1;
+}
+
+/// Return the rank of the value space
+unsigned int UFC_NSEContinuity3DLinearForm_finite_element_4::value_rank() const
+{
+    return 0;
+}
+
+/// Return the dimension of the value space for axis i
+unsigned int UFC_NSEContinuity3DLinearForm_finite_element_4::value_dimension(unsigned int i) const
+{
+    return 1;
+}
+
+/// Evaluate basis function i at given point in cell
+void UFC_NSEContinuity3DLinearForm_finite_element_4::evaluate_basis(unsigned int i,
+                                   double* values,
+                                   const double* coordinates,
+                                   const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_02 = element_coordinates[3][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+    const double J_12 = element_coordinates[3][1] - element_coordinates[0][1];
+    const double J_20 = element_coordinates[1][2] - element_coordinates[0][2];
+    const double J_21 = element_coordinates[2][2] - element_coordinates[0][2];
+    const double J_22 = element_coordinates[3][2] - element_coordinates[0][2];
+      
+    // Compute sub determinants
+    const double d00 = J_11*J_22 - J_12*J_21;
+    const double d01 = J_12*J_20 - J_10*J_22;
+    const double d02 = J_10*J_21 - J_11*J_20;
+    
+    const double d10 = J_02*J_21 - J_01*J_22;
+    const double d11 = J_00*J_22 - J_02*J_20;
+    const double d12 = J_01*J_20 - J_00*J_21;
+    
+    const double d20 = J_01*J_12 - J_02*J_11;
+    const double d21 = J_02*J_10 - J_00*J_12;
+    const double d22 = J_00*J_11 - J_01*J_10;
+      
+    // Compute determinant of Jacobian
+    double detJ = J_00*d00 + J_10*d10 + J_20*d20;
+    
+    // Compute inverse of Jacobian
+    
+    // Compute constants
+    const double C0 = d00*(element_coordinates[0][0] - element_coordinates[2][0] - element_coordinates[3][0]) \
+                    + d10*(element_coordinates[0][1] - element_coordinates[2][1] - element_coordinates[3][1]) \
+                    + d20*(element_coordinates[0][2] - element_coordinates[2][2] - element_coordinates[3][2]);
+    
+    const double C1 = d01*(element_coordinates[0][0] - element_coordinates[1][0] - element_coordinates[3][0]) \
+                    + d11*(element_coordinates[0][1] - element_coordinates[1][1] - element_coordinates[3][1]) \
+                    + d21*(element_coordinates[0][2] - element_coordinates[1][2] - element_coordinates[3][2]);
+    
+    const double C2 = d02*(element_coordinates[0][0] - element_coordinates[1][0] - element_coordinates[2][0]) \
+                    + d12*(element_coordinates[0][1] - element_coordinates[1][1] - element_coordinates[2][1]) \
+                    + d22*(element_coordinates[0][2] - element_coordinates[1][2] - element_coordinates[2][2]);
+    
+    // Get coordinates and map to the UFC reference element
+    double x = (C0 + d00*coordinates[0] + d10*coordinates[1] + d20*coordinates[2]) / detJ;
+    double y = (C1 + d01*coordinates[0] + d11*coordinates[1] + d21*coordinates[2]) / detJ;
+    double z = (C2 + d02*coordinates[0] + d12*coordinates[1] + d22*coordinates[2]) / detJ;
+    
+    // Map coordinates to the reference cube
+    if (std::abs(y + z - 1.0) < 1e-14)
+      x = 1.0;
+    else
+      x = -2.0 * x/(y + z - 1.0) - 1.0;
+    if (std::abs(z - 1.0) < 1e-14)
+      y = -1.0;
+    else
+      y = 2.0 * y/(1.0 - z) - 1.0;
+    z = 2.0 * z - 1.0;
+    
+    // Reset values
+    *values = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    const double scalings_z_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute psitilde_cs
+    const double psitilde_cs_00_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.866025403784439*psitilde_a_0*scalings_y_0*psitilde_bs_0_0*scalings_z_0*psitilde_cs_00_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.15470053837925}};
+    
+    // Extract relevant coefficients
+    const double coeff0_0 = coefficients0[dof][0];
+    
+    // Compute value(s)
+    *values = coeff0_0*basisvalue0;
+}
+
+/// Evaluate all basis functions at given point in cell
+void UFC_NSEContinuity3DLinearForm_finite_element_4::evaluate_basis_all(double* values,
+                                       const double* coordinates,
+                                       const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis() is not yet implemented.");
+}
+
+/// Evaluate order n derivatives of basis function i at given point in cell
+void UFC_NSEContinuity3DLinearForm_finite_element_4::evaluate_basis_derivatives(unsigned int i,
+                                               unsigned int n,
+                                               double* values,
+                                               const double* coordinates,
+                                               const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_02 = element_coordinates[3][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+    const double J_12 = element_coordinates[3][1] - element_coordinates[0][1];
+    const double J_20 = element_coordinates[1][2] - element_coordinates[0][2];
+    const double J_21 = element_coordinates[2][2] - element_coordinates[0][2];
+    const double J_22 = element_coordinates[3][2] - element_coordinates[0][2];
+      
+    // Compute sub determinants
+    const double d00 = J_11*J_22 - J_12*J_21;
+    const double d01 = J_12*J_20 - J_10*J_22;
+    const double d02 = J_10*J_21 - J_11*J_20;
+    
+    const double d10 = J_02*J_21 - J_01*J_22;
+    const double d11 = J_00*J_22 - J_02*J_20;
+    const double d12 = J_01*J_20 - J_00*J_21;
+    
+    const double d20 = J_01*J_12 - J_02*J_11;
+    const double d21 = J_02*J_10 - J_00*J_12;
+    const double d22 = J_00*J_11 - J_01*J_10;
+      
+    // Compute determinant of Jacobian
+    double detJ = J_00*d00 + J_10*d10 + J_20*d20;
+    
+    // Compute inverse of Jacobian
+    
+    // Compute constants
+    const double C0 = d00*(element_coordinates[0][0] - element_coordinates[2][0] - element_coordinates[3][0]) \
+                    + d10*(element_coordinates[0][1] - element_coordinates[2][1] - element_coordinates[3][1]) \
+                    + d20*(element_coordinates[0][2] - element_coordinates[2][2] - element_coordinates[3][2]);
+    
+    const double C1 = d01*(element_coordinates[0][0] - element_coordinates[1][0] - element_coordinates[3][0]) \
+                    + d11*(element_coordinates[0][1] - element_coordinates[1][1] - element_coordinates[3][1]) \
+                    + d21*(element_coordinates[0][2] - element_coordinates[1][2] - element_coordinates[3][2]);
+    
+    const double C2 = d02*(element_coordinates[0][0] - element_coordinates[1][0] - element_coordinates[2][0]) \
+                    + d12*(element_coordinates[0][1] - element_coordinates[1][1] - element_coordinates[2][1]) \
+                    + d22*(element_coordinates[0][2] - element_coordinates[1][2] - element_coordinates[2][2]);
+    
+    // Get coordinates and map to the UFC reference element
+    double x = (C0 + d00*coordinates[0] + d10*coordinates[1] + d20*coordinates[2]) / detJ;
+    double y = (C1 + d01*coordinates[0] + d11*coordinates[1] + d21*coordinates[2]) / detJ;
+    double z = (C2 + d02*coordinates[0] + d12*coordinates[1] + d22*coordinates[2]) / detJ;
+    
+    // Map coordinates to the reference cube
+    if (std::abs(y + z - 1.0) < 1e-14)
+      x = 1.0;
+    else
+      x = -2.0 * x/(y + z - 1.0) - 1.0;
+    if (std::abs(z - 1.0) < 1e-14)
+      y = -1.0;
+    else
+      y = 2.0 * y/(1.0 - z) - 1.0;
+    z = 2.0 * z - 1.0;
+    
+    // Compute number of derivatives
+    unsigned int num_derivatives = 1;
+    
+    for (unsigned int j = 0; j < n; j++)
+      num_derivatives *= 3;
+    
+    
+    // Declare pointer to two dimensional array that holds combinations of derivatives and initialise
+    unsigned int **combinations = new unsigned int *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      combinations[j] = new unsigned int [n];
+      for (unsigned int k = 0; k < n; k++)
+        combinations[j][k] = 0;
+    }
+        
+    // Generate combinations of derivatives
+    for (unsigned int row = 1; row < num_derivatives; row++)
+    {
+      for (unsigned int num = 0; num < row; num++)
+      {
+        for (unsigned int col = n-1; col+1 > 0; col--)
+        {
+          if (combinations[row][col] + 1 > 2)
+            combinations[row][col] = 0;
+          else
+          {
+            combinations[row][col] += 1;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Compute inverse of Jacobian
+    const double Jinv[3][3] ={{d00 / detJ, d10 / detJ, d20 / detJ}, {d01 / detJ, d11 / detJ, d21 / detJ}, {d02 / detJ, d12 / detJ, d22 / detJ}};
+    
+    // Declare transformation matrix
+    // Declare pointer to two dimensional array and initialise
+    double **transform = new double *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      transform[j] = new double [num_derivatives];
+      for (unsigned int k = 0; k < num_derivatives; k++)
+        transform[j][k] = 1;
+    }
+    
+    // Construct transformation matrix
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        for (unsigned int k = 0; k < n; k++)
+          transform[row][col] *= Jinv[combinations[col][k]][combinations[row][k]];
+      }
+    }
+    
+    // Reset values
+    for (unsigned int j = 0; j < 1*num_derivatives; j++)
+      values[j] = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    const double scalings_z_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute psitilde_cs
+    const double psitilde_cs_00_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.866025403784439*psitilde_a_0*scalings_y_0*psitilde_bs_0_0*scalings_z_0*psitilde_cs_00_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.15470053837925}};
+    
+    // Interesting (new) part
+    // Tables of derivatives of the polynomial base (transpose)
+    const static double dmats0[1][1] = \
+    {{0}};
+    
+    const static double dmats1[1][1] = \
+    {{0}};
+    
+    const static double dmats2[1][1] = \
+    {{0}};
+    
+    // Compute reference derivatives
+    // Declare pointer to array of derivatives on FIAT element
+    double *derivatives = new double [num_derivatives];
+    
+    // Declare coefficients
+    double coeff0_0 = 0;
+    
+    // Declare new coefficients
+    double new_coeff0_0 = 0;
+    
+    // Loop possible derivatives
+    for (unsigned int deriv_num = 0; deriv_num < num_derivatives; deriv_num++)
+    {
+      // Get values from coefficients array
+      new_coeff0_0 = coefficients0[dof][0];
+    
+      // Loop derivative order
+      for (unsigned int j = 0; j < n; j++)
+      {
+        // Update old coefficients
+        coeff0_0 = new_coeff0_0;
+    
+        if(combinations[deriv_num][j] == 0)
+        {
+          new_coeff0_0 = coeff0_0*dmats0[0][0];
+        }
+        if(combinations[deriv_num][j] == 1)
+        {
+          new_coeff0_0 = coeff0_0*dmats1[0][0];
+        }
+        if(combinations[deriv_num][j] == 2)
+        {
+          new_coeff0_0 = coeff0_0*dmats2[0][0];
+        }
+    
+      }
+      // Compute derivatives on reference element as dot product of coefficients and basisvalues
+      derivatives[deriv_num] = new_coeff0_0*basisvalue0;
+    }
+    
+    // Transform derivatives back to physical element
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        values[row] += transform[row][col]*derivatives[col];
+      }
+    }
+    // Delete pointer to array of derivatives on FIAT element
+    delete [] derivatives;
+    
+    // Delete pointer to array of combinations of derivatives and transform
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      delete [] combinations[row];
+      delete [] transform[row];
+    }
+    
+    delete [] combinations;
+    delete [] transform;
+}
+
+/// Evaluate order n derivatives of all basis functions at given point in cell
+void UFC_NSEContinuity3DLinearForm_finite_element_4::evaluate_basis_derivatives_all(unsigned int n,
+                                                   double* values,
+                                                   const double* coordinates,
+                                                   const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis_derivatives() is not yet implemented.");
+}
+
+/// Evaluate linear functional for dof i on the function f
+double UFC_NSEContinuity3DLinearForm_finite_element_4::evaluate_dof(unsigned int i,
+                                   const ufc::function& f,
+                                   const ufc::cell& c) const
+{
+    // The reference points, direction and weights:
+    const static double X[1][1][3] = {{{0.25, 0.25, 0.25}}};
+    const static double W[1][1] = {{1}};
+    const static double D[1][1][1] = {{{1}}};
+    
+    const double * const * x = c.coordinates;
+    double result = 0.0;
+    // Iterate over the points:
+    // Evaluate basis functions for affine mapping
+    const double w0 = 1.0 - X[i][0][0] - X[i][0][1] - X[i][0][2];
+    const double w1 = X[i][0][0];
+    const double w2 = X[i][0][1];
+    const double w3 = X[i][0][2];
+    
+    // Compute affine mapping y = F(X)
+    double y[3];
+    y[0] = w0*x[0][0] + w1*x[1][0] + w2*x[2][0] + w3*x[3][0];
+    y[1] = w0*x[0][1] + w1*x[1][1] + w2*x[2][1] + w3*x[3][1];
+    y[2] = w0*x[0][2] + w1*x[1][2] + w2*x[2][2] + w3*x[3][2];
+    
+    // Evaluate function at physical points
+    double values[1];
+    f.evaluate(values, y, c);
+    
+    // Map function values using appropriate mapping
+    // Affine map: Do nothing
+    
+    // Note that we do not map the weights (yet).
+    
+    // Take directional components
+    for(int k = 0; k < 1; k++)
+      result += values[k]*D[i][0][k];
+    // Multiply by weights 
+    result *= W[i][0];
+    
+    return result;
+}
+
+/// Evaluate linear functionals for all dofs on the function f
+void UFC_NSEContinuity3DLinearForm_finite_element_4::evaluate_dofs(double* values,
+                                  const ufc::function& f,
+                                  const ufc::cell& c) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Interpolate vertex values from dof values
+void UFC_NSEContinuity3DLinearForm_finite_element_4::interpolate_vertex_values(double* vertex_values,
+                                              const double* dof_values,
+                                              const ufc::cell& c) const
+{
+    // Evaluate at vertices and use affine mapping
+    vertex_values[0] = dof_values[0];
+    vertex_values[1] = dof_values[0];
+    vertex_values[2] = dof_values[0];
+    vertex_values[3] = dof_values[0];
+}
+
+/// Return the number of sub elements (for a mixed element)
+unsigned int UFC_NSEContinuity3DLinearForm_finite_element_4::num_sub_elements() const
+{
+    return 1;
+}
+
+/// Create a new finite element for sub element i (for a mixed element)
+ufc::finite_element* UFC_NSEContinuity3DLinearForm_finite_element_4::create_sub_element(unsigned int i) const
+{
+    return new UFC_NSEContinuity3DLinearForm_finite_element_4();
+}
+
 /// Constructor
 UFC_NSEContinuity3DLinearForm_dof_map_0::UFC_NSEContinuity3DLinearForm_dof_map_0() : ufc::dof_map()
 {
@@ -8116,6 +8578,154 @@ ufc::dof_map* UFC_NSEContinuity3DLinearForm_dof_map_3::create_sub_dof_map(unsign
 
 
 /// Constructor
+UFC_NSEContinuity3DLinearForm_dof_map_4::UFC_NSEContinuity3DLinearForm_dof_map_4() : ufc::dof_map()
+{
+    __global_dimension = 0;
+}
+
+/// Destructor
+UFC_NSEContinuity3DLinearForm_dof_map_4::~UFC_NSEContinuity3DLinearForm_dof_map_4()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the dof map
+const char* UFC_NSEContinuity3DLinearForm_dof_map_4::signature() const
+{
+    return "FFC dof map for Discontinuous Lagrange finite element of degree 0 on a tetrahedron";
+}
+
+/// Return true iff mesh entities of topological dimension d are needed
+bool UFC_NSEContinuity3DLinearForm_dof_map_4::needs_mesh_entities(unsigned int d) const
+{
+    switch ( d )
+    {
+    case 0:
+      return false;
+      break;
+    case 1:
+      return false;
+      break;
+    case 2:
+      return false;
+      break;
+    case 3:
+      return true;
+      break;
+    }
+    return false;
+}
+
+/// Initialize dof map for mesh (return true iff init_cell() is needed)
+bool UFC_NSEContinuity3DLinearForm_dof_map_4::init_mesh(const ufc::mesh& m)
+{
+    __global_dimension = m.num_entities[3];
+    return false;
+}
+
+/// Initialize dof map for given cell
+void UFC_NSEContinuity3DLinearForm_dof_map_4::init_cell(const ufc::mesh& m,
+                              const ufc::cell& c)
+{
+    // Do nothing
+}
+
+/// Finish initialization of dof map for cells
+void UFC_NSEContinuity3DLinearForm_dof_map_4::init_cell_finalize()
+{
+    // Do nothing
+}
+
+/// Return the dimension of the global finite element function space
+unsigned int UFC_NSEContinuity3DLinearForm_dof_map_4::global_dimension() const
+{
+    return __global_dimension;
+}
+
+/// Return the dimension of the local finite element function space
+unsigned int UFC_NSEContinuity3DLinearForm_dof_map_4::local_dimension() const
+{
+    return 1;
+}
+
+// Return the geometric dimension of the coordinates this dof map provides
+unsigned int UFC_NSEContinuity3DLinearForm_dof_map_4::geometric_dimension() const
+{
+    return 3;
+}
+
+/// Return the number of dofs on each cell facet
+unsigned int UFC_NSEContinuity3DLinearForm_dof_map_4::num_facet_dofs() const
+{
+    return 0;
+}
+
+/// Return the number of dofs associated with each cell entity of dimension d
+unsigned int UFC_NSEContinuity3DLinearForm_dof_map_4::num_entity_dofs(unsigned int d) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the local-to-global mapping of dofs on a cell
+void UFC_NSEContinuity3DLinearForm_dof_map_4::tabulate_dofs(unsigned int* dofs,
+                                  const ufc::mesh& m,
+                                  const ufc::cell& c) const
+{
+    dofs[0] = c.entity_indices[3][0];
+}
+
+/// Tabulate the local-to-local mapping from facet dofs to cell dofs
+void UFC_NSEContinuity3DLinearForm_dof_map_4::tabulate_facet_dofs(unsigned int* dofs,
+                                        unsigned int facet) const
+{
+    switch ( facet )
+    {
+    case 0:
+      
+      break;
+    case 1:
+      
+      break;
+    case 2:
+      
+      break;
+    case 3:
+      
+      break;
+    }
+}
+
+/// Tabulate the local-to-local mapping of dofs on entity (d, i)
+void UFC_NSEContinuity3DLinearForm_dof_map_4::tabulate_entity_dofs(unsigned int* dofs,
+                                  unsigned int d, unsigned int i) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the coordinates of all dofs on a cell
+void UFC_NSEContinuity3DLinearForm_dof_map_4::tabulate_coordinates(double** coordinates,
+                                         const ufc::cell& c) const
+{
+    const double * const * x = c.coordinates;
+    coordinates[0][0] = 0.25*x[0][0] + 0.25*x[1][0] + 0.25*x[2][0] + 0.25*x[3][0];
+    coordinates[0][1] = 0.25*x[0][1] + 0.25*x[1][1] + 0.25*x[2][1] + 0.25*x[3][1];
+    coordinates[0][2] = 0.25*x[0][2] + 0.25*x[1][2] + 0.25*x[2][2] + 0.25*x[3][2];
+}
+
+/// Return the number of sub dof maps (for a mixed element)
+unsigned int UFC_NSEContinuity3DLinearForm_dof_map_4::num_sub_dof_maps() const
+{
+    return 1;
+}
+
+/// Create a new dof_map for sub dof map i (for a mixed element)
+ufc::dof_map* UFC_NSEContinuity3DLinearForm_dof_map_4::create_sub_dof_map(unsigned int i) const
+{
+    return new UFC_NSEContinuity3DLinearForm_dof_map_4();
+}
+
+
+/// Constructor
 UFC_NSEContinuity3DLinearForm_cell_integral_0::UFC_NSEContinuity3DLinearForm_cell_integral_0() : ufc::cell_integral()
 {
     // Do nothing
@@ -8178,7 +8788,7 @@ void UFC_NSEContinuity3DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     
     
     // Compute element tensor (using quadrature representation, optimisation level 2)
-    // Total number of operations to compute element tensor (from this point): 208
+    // Total number of operations to compute element tensor (from this point): 619
     
     // Reset values of the element tensor block
     for (unsigned int j = 0; j < 4; j++)
@@ -8186,42 +8796,48 @@ void UFC_NSEContinuity3DLinearForm_cell_integral_0::tabulate_tensor(double* A,
       A[j] = 0;
     }// end loop over 'j'
     
-    // Array of quadrature weights (tensor/monomial term 0)
+    // Array of quadrature weights (tensor/monomial terms (0, 2))
     const static double W0 = -0.166666666666666;
     // Array of quadrature weights (tensor/monomial term 1)
     const static double W1 = 0.333333333333333;
     
-    const static double P_t1_p0_s0[1][2] = \
+    const static double P_t2_s2_s2_s0[1][2] = \
     {{-1, 1}};
     // Array of non-zero columns
-    static const unsigned int nzc7[2] = {0, 1};
+    static const unsigned int nzc9[2] = {0, 3};
     // Array of non-zero columns
-    static const unsigned int nzc0[2] = {0, 1};
+    static const unsigned int nzc0[2] = {8, 9};
     // Array of non-zero columns
-    static const unsigned int nzc10[2] = {4, 5};
+    static const unsigned int nzc3[2] = {8, 10};
     // Array of non-zero columns
-    static const unsigned int nzc3[2] = {8, 9};
+    static const unsigned int nzc4[2] = {8, 11};
     // Array of non-zero columns
-    static const unsigned int nzc4[2] = {8, 10};
+    static const unsigned int nzc5[2] = {4, 6};
     // Array of non-zero columns
-    static const unsigned int nzc5[2] = {8, 11};
+    static const unsigned int nzc6[2] = {4, 5};
     // Array of non-zero columns
-    static const unsigned int nzc8[2] = {0, 2};
+    static const unsigned int nzc7[2] = {4, 7};
     // Array of non-zero columns
-    static const unsigned int nzc6[2] = {0, 3};
+    static const unsigned int nzc8[2] = {0, 1};
     // Array of non-zero columns
-    static const unsigned int nzc2[2] = {0, 3};
+    static const unsigned int nzc10[2] = {0, 2};
     // Array of non-zero columns
-    static const unsigned int nzc1[2] = {0, 2};
+    static const unsigned int nzc12[2] = {0, 2};
     // Array of non-zero columns
-    static const unsigned int nzc11[2] = {4, 7};
+    static const unsigned int nzc13[2] = {0, 3};
     // Array of non-zero columns
-    static const unsigned int nzc9[2] = {4, 6};
+    static const unsigned int nzc14[2] = {0, 1};
     
-    const static double P_t0_p0[1][4] = \
+    const static double P_t2_s1_s1[1][4] = \
     {{0.25, 0.25, 0.25, 0.25}};
+    // Array of non-zero columns
+    static const unsigned int nzc1[4] = {4, 5, 6, 7};
+    // Array of non-zero columns
+    static const unsigned int nzc2[4] = {8, 9, 10, 11};
+    // Array of non-zero columns
+    static const unsigned int nzc11[4] = {0, 1, 2, 3};
     
-    // Number of operations to compute geometry constants = 90
+    // Number of operations to compute geometry constants = 270
     const double G0 = Jinv_00*W0*det;
     const double G1 = Jinv_01*W0*det;
     const double G2 = Jinv_02*W0*det;
@@ -8231,27 +8847,72 @@ void UFC_NSEContinuity3DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     const double G6 = Jinv_20*W0*det;
     const double G7 = Jinv_21*W0*det;
     const double G8 = Jinv_22*W0*det;
-    const double G9 = Jinv_00*Jinv_10*W1*det*w[2][0];
-    const double G10 = Jinv_01*Jinv_11*W1*det*w[2][0];
-    const double G11 = Jinv_02*Jinv_12*W1*det*w[2][0];
-    const double G12 = Jinv_10*Jinv_10*W1*det*w[2][0];
-    const double G13 = Jinv_10*Jinv_20*W1*det*w[2][0];
-    const double G14 = Jinv_11*Jinv_11*W1*det*w[2][0];
-    const double G15 = Jinv_11*Jinv_21*W1*det*w[2][0];
-    const double G16 = Jinv_12*Jinv_12*W1*det*w[2][0];
-    const double G17 = Jinv_12*Jinv_22*W1*det*w[2][0];
-    const double G18 = Jinv_00*Jinv_00*W1*det*w[2][0];
-    const double G19 = Jinv_00*Jinv_20*W1*det*w[2][0];
-    const double G20 = Jinv_01*Jinv_01*W1*det*w[2][0];
-    const double G21 = Jinv_01*Jinv_21*W1*det*w[2][0];
-    const double G22 = Jinv_02*Jinv_02*W1*det*w[2][0];
-    const double G23 = Jinv_02*Jinv_22*W1*det*w[2][0];
-    const double G24 = Jinv_20*Jinv_20*W1*det*w[2][0];
-    const double G25 = Jinv_21*Jinv_21*W1*det*w[2][0];
-    const double G26 = Jinv_22*Jinv_22*W1*det*w[2][0];
+    const double G9 = Jinv_00*Jinv_10*W0*det*w[2][0];
+    const double G10 = Jinv_00*Jinv_11*W0*det*w[2][0];
+    const double G11 = Jinv_00*Jinv_12*W0*det*w[2][0];
+    const double G12 = Jinv_01*Jinv_10*W0*det*w[2][0];
+    const double G13 = Jinv_01*Jinv_11*W0*det*w[2][0];
+    const double G14 = Jinv_01*Jinv_12*W0*det*w[2][0];
+    const double G15 = Jinv_02*Jinv_10*W0*det*w[2][0];
+    const double G16 = Jinv_02*Jinv_11*W0*det*w[2][0];
+    const double G17 = Jinv_02*Jinv_12*W0*det*w[2][0];
+    const double G18 = Jinv_10*Jinv_10*W0*det*w[2][0];
+    const double G19 = Jinv_10*Jinv_11*W0*det*w[2][0];
+    const double G20 = Jinv_10*Jinv_12*W0*det*w[2][0];
+    const double G21 = Jinv_10*Jinv_20*W0*det*w[2][0];
+    const double G22 = Jinv_10*Jinv_21*W0*det*w[2][0];
+    const double G23 = Jinv_10*Jinv_22*W0*det*w[2][0];
+    const double G24 = Jinv_11*Jinv_11*W0*det*w[2][0];
+    const double G25 = Jinv_11*Jinv_12*W0*det*w[2][0];
+    const double G26 = Jinv_11*Jinv_20*W0*det*w[2][0];
+    const double G27 = Jinv_11*Jinv_21*W0*det*w[2][0];
+    const double G28 = Jinv_11*Jinv_22*W0*det*w[2][0];
+    const double G29 = Jinv_12*Jinv_12*W0*det*w[2][0];
+    const double G30 = Jinv_12*Jinv_20*W0*det*w[2][0];
+    const double G31 = Jinv_12*Jinv_21*W0*det*w[2][0];
+    const double G32 = Jinv_12*Jinv_22*W0*det*w[2][0];
+    const double G33 = Jinv_00*Jinv_20*W0*det*w[2][0];
+    const double G34 = Jinv_00*Jinv_21*W0*det*w[2][0];
+    const double G35 = Jinv_00*Jinv_22*W0*det*w[2][0];
+    const double G36 = Jinv_01*Jinv_20*W0*det*w[2][0];
+    const double G37 = Jinv_01*Jinv_21*W0*det*w[2][0];
+    const double G38 = Jinv_01*Jinv_22*W0*det*w[2][0];
+    const double G39 = Jinv_02*Jinv_20*W0*det*w[2][0];
+    const double G40 = Jinv_02*Jinv_21*W0*det*w[2][0];
+    const double G41 = Jinv_02*Jinv_22*W0*det*w[2][0];
+    const double G42 = Jinv_20*Jinv_20*W0*det*w[2][0];
+    const double G43 = Jinv_20*Jinv_21*W0*det*w[2][0];
+    const double G44 = Jinv_20*Jinv_22*W0*det*w[2][0];
+    const double G45 = Jinv_21*Jinv_21*W0*det*w[2][0];
+    const double G46 = Jinv_21*Jinv_22*W0*det*w[2][0];
+    const double G47 = Jinv_22*Jinv_22*W0*det*w[2][0];
+    const double G48 = Jinv_00*Jinv_00*W0*det*w[2][0];
+    const double G49 = Jinv_00*Jinv_01*W0*det*w[2][0];
+    const double G50 = Jinv_00*Jinv_02*W0*det*w[2][0];
+    const double G51 = Jinv_01*Jinv_01*W0*det*w[2][0];
+    const double G52 = Jinv_01*Jinv_02*W0*det*w[2][0];
+    const double G53 = Jinv_02*Jinv_02*W0*det*w[2][0];
+    const double G54 = Jinv_00*Jinv_10*W1*det*w[3][0];
+    const double G55 = Jinv_01*Jinv_11*W1*det*w[3][0];
+    const double G56 = Jinv_02*Jinv_12*W1*det*w[3][0];
+    const double G57 = Jinv_10*Jinv_10*W1*det*w[3][0];
+    const double G58 = Jinv_10*Jinv_20*W1*det*w[3][0];
+    const double G59 = Jinv_11*Jinv_11*W1*det*w[3][0];
+    const double G60 = Jinv_11*Jinv_21*W1*det*w[3][0];
+    const double G61 = Jinv_12*Jinv_12*W1*det*w[3][0];
+    const double G62 = Jinv_12*Jinv_22*W1*det*w[3][0];
+    const double G63 = Jinv_00*Jinv_20*W1*det*w[3][0];
+    const double G64 = Jinv_01*Jinv_21*W1*det*w[3][0];
+    const double G65 = Jinv_02*Jinv_22*W1*det*w[3][0];
+    const double G66 = Jinv_20*Jinv_20*W1*det*w[3][0];
+    const double G67 = Jinv_21*Jinv_21*W1*det*w[3][0];
+    const double G68 = Jinv_22*Jinv_22*W1*det*w[3][0];
+    const double G69 = Jinv_00*Jinv_00*W1*det*w[3][0];
+    const double G70 = Jinv_01*Jinv_01*W1*det*w[3][0];
+    const double G71 = Jinv_02*Jinv_02*W1*det*w[3][0];
     
-    // Loop quadrature points (tensor/monomial terms (0, 1))
-    // Number of operations to compute element tensor for following IP loop = 118
+    // Loop quadrature points (tensor/monomial terms (0, 1, 2))
+    // Number of operations to compute element tensor for following IP loop = 349
     // Only 1 integration point, omitting IP loop.
     
     // Declare function values.
@@ -8267,29 +8928,61 @@ void UFC_NSEContinuity3DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     double F9 = 0;
     double F10 = 0;
     double F11 = 0;
+    double F12 = 0;
+    double F13 = 0;
+    double F14 = 0;
+    double F15 = 0;
+    double F16 = 0;
+    double F17 = 0;
+    double F18 = 0;
+    double F19 = 0;
+    double F20 = 0;
+    double F21 = 0;
+    double F22 = 0;
+    double F23 = 0;
     
     // Compute function values.
     // Number of operations to compute values = 48
     for (unsigned int r = 0; r < 2; r++)
     {
-      F0 += P_t1_p0_s0[0][r]*w[1][nzc7[r]];
-      F1 += P_t1_p0_s0[0][r]*w[1][nzc10[r]];
-      F2 += P_t1_p0_s0[0][r]*w[1][nzc3[r]];
-      F3 += P_t1_p0_s0[0][r]*w[1][nzc8[r]];
-      F4 += P_t1_p0_s0[0][r]*w[1][nzc9[r]];
-      F5 += P_t1_p0_s0[0][r]*w[1][nzc4[r]];
-      F6 += P_t1_p0_s0[0][r]*w[1][nzc6[r]];
-      F7 += P_t1_p0_s0[0][r]*w[1][nzc11[r]];
-      F8 += P_t1_p0_s0[0][r]*w[1][nzc5[r]];
-      F9 += P_t1_p0_s0[0][r]*w[0][nzc0[r]];
-      F10 += P_t1_p0_s0[0][r]*w[0][nzc1[r]];
-      F11 += P_t1_p0_s0[0][r]*w[0][nzc2[r]];
+      F0 += P_t2_s2_s2_s0[0][r]*w[1][nzc14[r]];
+      F1 += P_t2_s2_s2_s0[0][r]*w[1][nzc6[r]];
+      F2 += P_t2_s2_s2_s0[0][r]*w[1][nzc0[r]];
+      F3 += P_t2_s2_s2_s0[0][r]*w[1][nzc12[r]];
+      F4 += P_t2_s2_s2_s0[0][r]*w[1][nzc5[r]];
+      F5 += P_t2_s2_s2_s0[0][r]*w[1][nzc3[r]];
+      F6 += P_t2_s2_s2_s0[0][r]*w[1][nzc13[r]];
+      F7 += P_t2_s2_s2_s0[0][r]*w[1][nzc7[r]];
+      F8 += P_t2_s2_s2_s0[0][r]*w[1][nzc4[r]];
+      F23 += P_t2_s2_s2_s0[0][r]*w[0][nzc9[r]];
+      F22 += P_t2_s2_s2_s0[0][r]*w[0][nzc10[r]];
+      F21 += P_t2_s2_s2_s0[0][r]*w[0][nzc8[r]];
+    }// end loop over 'r'
+    // Number of operations to compute values = 36
+    for (unsigned int s = 0; s < 2; s++)
+    {
+      F18 += P_t2_s2_s2_s0[0][s]*w[1][nzc3[s]];
+      F20 += P_t2_s2_s2_s0[0][s]*w[1][nzc4[s]];
+      F19 += P_t2_s2_s2_s0[0][s]*w[1][nzc7[s]];
+      F12 += P_t2_s2_s2_s0[0][s]*w[1][nzc14[s]];
+      F13 += P_t2_s2_s2_s0[0][s]*w[1][nzc6[s]];
+      F16 += P_t2_s2_s2_s0[0][s]*w[1][nzc13[s]];
+      F17 += P_t2_s2_s2_s0[0][s]*w[1][nzc5[s]];
+      F14 += P_t2_s2_s2_s0[0][s]*w[1][nzc0[s]];
+      F15 += P_t2_s2_s2_s0[0][s]*w[1][nzc12[s]];
+    }// end loop over 's'
+    // Number of operations to compute values = 24
+    for (unsigned int r = 0; r < 4; r++)
+    {
+      F9 += P_t2_s1_s1[0][r]*w[1][nzc11[r]];
+      F10 += P_t2_s1_s1[0][r]*w[1][nzc1[r]];
+      F11 += P_t2_s1_s1[0][r]*w[1][nzc2[r]];
     }// end loop over 'r'
     
-    // Number of operations to compute declarations = 50
-    const double Gip0 = (G12 + G14 + G16)*F10 + (G10 + G11 + G9)*F9 + (G13 + G15 + G17)*F11;
-    const double Gip1 = (G19 + G21 + G23)*F11 + (G10 + G11 + G9)*F10 + (G18 + G20 + G22)*F9;
-    const double Gip2 = (G24 + G25 + G26)*F11 + (G13 + G15 + G17)*F10 + (G19 + G21 + G23)*F9;
+    // Number of operations to compute declarations = 221
+    const double Gip0 = (G69 + G70 + G71)*F21 + (G54 + G55 + G56)*F22 + (G63 + G64 + G65)*F23 + (F12*G48 + F13*G49 + F14*G50 + F15*G9 + F16*G33 + F17*G12 + F18*G15 + F19*G36 + F20*G39)*F9 + (F12*G50 + F13*G52 + F14*G53 + F15*G11 + F16*G35 + F17*G14 + F18*G17 + F19*G38 + F20*G41)*F11 + (F12*G49 + F13*G51 + F14*G52 + F15*G10 + F16*G34 + F17*G13 + F18*G16 + F19*G37 + F20*G40)*F10;
+    const double Gip1 = (G63 + G64 + G65)*F21 + (G58 + G60 + G62)*F22 + (G66 + G67 + G68)*F23 + (F12*G33 + F13*G34 + F14*G35 + F15*G21 + F16*G42 + F17*G22 + F18*G23 + F19*G43 + F20*G44)*F9 + (F12*G39 + F13*G40 + F14*G41 + F15*G30 + F16*G44 + F17*G31 + F18*G32 + F19*G46 + F20*G47)*F11 + (F12*G36 + F13*G37 + F14*G38 + F15*G26 + F16*G43 + F17*G27 + F18*G28 + F19*G45 + F20*G46)*F10;
+    const double Gip2 = (G54 + G55 + G56)*F21 + (G57 + G59 + G61)*F22 + (G58 + G60 + G62)*F23 + (F12*G9 + F13*G10 + F14*G11 + F15*G18 + F16*G21 + F17*G19 + F18*G20 + F19*G26 + F20*G30)*F9 + (F12*G15 + F13*G16 + F14*G17 + F15*G20 + F16*G23 + F17*G25 + F18*G29 + F19*G28 + F20*G32)*F11 + (F12*G12 + F13*G13 + F14*G14 + F15*G19 + F16*G22 + F17*G24 + F18*G25 + F19*G27 + F20*G31)*F10;
     const double Gip3 = F0*G0 + F1*G1 + F2*G2 + F3*G3 + F4*G4 + F5*G5 + F6*G6 + F7*G7 + F8*G8;
     
     // Loop primary indices.
@@ -8297,18 +8990,18 @@ void UFC_NSEContinuity3DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     for (unsigned int j = 0; j < 2; j++)
     {
       // Number of operations to compute entry = 2
-      A[nzc1[j]] += P_t1_p0_s0[0][j]*Gip0;
+      A[nzc8[j]] += P_t2_s2_s2_s0[0][j]*Gip0;
       // Number of operations to compute entry = 2
-      A[nzc0[j]] += P_t1_p0_s0[0][j]*Gip1;
+      A[nzc9[j]] += P_t2_s2_s2_s0[0][j]*Gip1;
       // Number of operations to compute entry = 2
-      A[nzc2[j]] += P_t1_p0_s0[0][j]*Gip2;
+      A[nzc10[j]] += P_t2_s2_s2_s0[0][j]*Gip2;
     }// end loop over 'j'
     
     // Number of operations for primary indices = 8
     for (unsigned int j = 0; j < 4; j++)
     {
       // Number of operations to compute entry = 2
-      A[j] += P_t0_p0[0][j]*Gip3;
+      A[j] += P_t2_s1_s1[0][j]*Gip3;
     }// end loop over 'j'
     
 }
@@ -8328,7 +9021,7 @@ UFC_NSEContinuity3DLinearForm::~UFC_NSEContinuity3DLinearForm()
 /// Return a string identifying the form
 const char* UFC_NSEContinuity3DLinearForm::signature() const
 {
-    return "-w1_a0[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11](dXa1[0, 1, 2]/dxa2[0, 1, 2]) | vi0[0, 1, 2, 3]*((d/dXa1[0, 1, 2])va0[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11][a2[0, 1, 2]])*dX(0) + 2.0w2_a0[0]w0_a1[0, 1, 2, 3](dXa2[0, 1, 2]/dxb0[0, 1, 2])(dXa3[0, 1, 2]/dxb0[0, 1, 2]) | va0[0]*((d/dXa2[0, 1, 2])vi0[0, 1, 2, 3])*((d/dXa3[0, 1, 2])va1[0, 1, 2, 3])*dX(0)";
+    return "-w1_a0[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11](dXa1[0, 1, 2]/dxa2[0, 1, 2]) | vi0[0, 1, 2, 3]*((d/dXa1[0, 1, 2])va0[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11][a2[0, 1, 2]])*dX(0) + 2.0w3_a0[0]w0_a1[0, 1, 2, 3](dXa2[0, 1, 2]/dxb0[0, 1, 2])(dXa3[0, 1, 2]/dxb0[0, 1, 2]) | va0[0]*((d/dXa2[0, 1, 2])vi0[0, 1, 2, 3])*((d/dXa3[0, 1, 2])va1[0, 1, 2, 3])*dX(0) + -w2_a0[0]w1_a1[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]w1_a2[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11](dXa3[0, 1, 2]/dxa5[0, 1, 2])(dXa4[0, 1, 2]/dxa6[0, 1, 2]) | va0[0]*va1[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11][a5[0, 1, 2]]*((d/dXa3[0, 1, 2])va2[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11][a6[0, 1, 2]])*((d/dXa4[0, 1, 2])vi0[0, 1, 2, 3])*dX(0)";
 }
 
 /// Return the rank of the global tensor (r)
@@ -8340,7 +9033,7 @@ unsigned int UFC_NSEContinuity3DLinearForm::rank() const
 /// Return the number of coefficients (n)
 unsigned int UFC_NSEContinuity3DLinearForm::num_coefficients() const
 {
-    return 3;
+    return 4;
 }
 
 /// Return the number of cell integrals
@@ -8378,6 +9071,9 @@ ufc::finite_element* UFC_NSEContinuity3DLinearForm::create_finite_element(unsign
     case 3:
       return new UFC_NSEContinuity3DLinearForm_finite_element_3();
       break;
+    case 4:
+      return new UFC_NSEContinuity3DLinearForm_finite_element_4();
+      break;
     }
     return 0;
 }
@@ -8398,6 +9094,9 @@ ufc::dof_map* UFC_NSEContinuity3DLinearForm::create_dof_map(unsigned int i) cons
       break;
     case 3:
       return new UFC_NSEContinuity3DLinearForm_dof_map_3();
+      break;
+    case 4:
+      return new UFC_NSEContinuity3DLinearForm_dof_map_4();
       break;
     }
     return 0;

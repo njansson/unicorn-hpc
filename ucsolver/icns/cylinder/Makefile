@@ -6,7 +6,7 @@ TARGET  = cylinder
 FORM_SRC = ../unicorn/NSEContinuity3D.cpp ../unicorn/NSEDualContinuity3D.cpp \
 	 ../unicorn/NSEDualGradient3D.cpp ../unicorn/NSEDualMomentum3D.cpp \
 	 ../unicorn/NSEMomentum3D.cpp ../unicorn/NSEResContinuity3D.cpp  \
-	../unicorn/NSEResMomentum3D.cpp ../unicorn/Drag3D.cpp	
+	../unicorn/NSEResMomentum3D.cpp ../unicorn/Drag3D.cpp ../unicorn/Drag3D_Int.cpp
 SRC	 = ../NSESolver.cpp
 
 FORM_OBJ = ${FORM_SRC:.cpp=.o}
