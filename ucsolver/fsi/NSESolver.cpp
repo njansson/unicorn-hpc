@@ -57,7 +57,7 @@
 using namespace dolfin;
 using namespace unicorn;
 //-----------------------------------------------------------------------------
-NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
+UCSolver::UCSolver(Mesh& mesh, Function& U, Function& U0,
 		     Function& f, Function& fc,
 		     Function& phi, Function& beta,
 		     Array<BoundaryCondition*>& bc_mom, 
@@ -422,11 +422,11 @@ NSESolver::NSESolver(Mesh& mesh, Function& U, Function& U0,
   init(U, U0);
 }
 //-----------------------------------------------------------------------------
-NSESolver::~NSESolver()
+UCSolver::~UCSolver()
 {
 }
 //-----------------------------------------------------------------------------
-void NSESolver::save(Function& U, real t)
+void UCSolver::save(Function& U, real t)
 {
   int nsamples = dolfin_get("PDE number of samples");
 
@@ -476,7 +476,7 @@ void NSESolver::save(Function& U, real t)
    }
 }
 //-----------------------------------------------------------------------------
-void NSESolver::preparestep()
+void UCSolver::preparestep()
 {
   if(dolfin::MPI::processNumber() == 0)
     dolfin_set("output destination", "terminal");
@@ -508,7 +508,7 @@ void NSESolver::preparestep()
   message("FSISolver timer smoother: %g", time()- timer0);
 }
 //-----------------------------------------------------------------------------
-void NSESolver::prepareiteration()
+void UCSolver::prepareiteration()
 {
   // computeX(X);
   // computeW(true);
@@ -557,11 +557,11 @@ void NSESolver::prepareiteration()
 
 }
 //-----------------------------------------------------------------------------
-void NSESolver::postiteration()
+void UCSolver::postiteration()
 {
 }
 //-----------------------------------------------------------------------------
-bool NSESolver::update(real t, bool end)
+bool UCSolver::update(real t, bool end)
 {
   cout << "FSISolver::update: " << "t: " << t << " k: " << k << endl;
 
@@ -616,7 +616,7 @@ bool NSESolver::update(real t, bool end)
   return true;
 }
 //-----------------------------------------------------------------------------
-void NSESolver::smoothMesh()
+void UCSolver::smoothMesh()
 {
   // Store mesh coordinates before smoothing
   //Xtmp.vector() = X0.vector();
@@ -714,11 +714,11 @@ void NSESolver::smoothMesh()
   // }
 }
 //-----------------------------------------------------------------------------
-void NSESolver::solve_old()
+void UCSolver::solve_old()
 {
 }
 //-----------------------------------------------------------------------------
-void NSESolver::computeP()
+void UCSolver::computeP()
 {
 
 
@@ -754,7 +754,7 @@ void NSESolver::computeP()
   cout << "pressure increment: " << relincr << endl;
 }
 //-----------------------------------------------------------------------------
-void NSESolver::computeRho()
+void UCSolver::computeRho()
 {
   KrylovSolver ksolver_density(bicgstab, jacobi);
 
@@ -768,7 +768,7 @@ void NSESolver::computeRho()
   ksolver_density.solve(RhoM, rhox, Rhob);
 }
 //-----------------------------------------------------------------------------
-void NSESolver::computeS()
+void UCSolver::computeS()
 {
   tic();
   Sresidual = S.vector();
@@ -845,7 +845,7 @@ void NSESolver::computeS()
 }
 
 //-----------------------------------------------------------------------------
-void NSESolver::computeX(Function& XX)
+void UCSolver::computeX(Function& XX)
 {
   // Copy mesh coordinates into X array/function
 
@@ -889,7 +889,7 @@ void NSESolver::computeX(Function& XX)
   delete[] id;
 }
 //-----------------------------------------------------------------------------
-void NSESolver::computeXinc()
+void UCSolver::computeXinc()
 {
   Xinc.vector() = U.vector();
   Xinc.vector() += W0.vector();
@@ -900,7 +900,7 @@ void NSESolver::computeXinc()
   Xinc.vector().apply();
 }
 //-----------------------------------------------------------------------------
-void NSESolver::computeW(bool solid)
+void UCSolver::computeW(bool solid)
 {
   if(true || !solid)
   {
@@ -929,7 +929,7 @@ void NSESolver::computeW(bool solid)
     
 }
 //-----------------------------------------------------------------------------
-void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
+void UCSolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
 {
   real *h = new real[mesh.numCells()];
   uint *rows = new uint[mesh.numCells()];
@@ -952,7 +952,7 @@ void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
   delete[] rows;
 }
 //-----------------------------------------------------------------------------
-void NSESolver::GetMinimumCellSize(Mesh& mesh, real& hmin)
+void UCSolver::GetMinimumCellSize(Mesh& mesh, real& hmin)
 {
   // Get minimum cell diameter
   hmin = 1.0e6;
@@ -965,7 +965,7 @@ void NSESolver::GetMinimumCellSize(Mesh& mesh, real& hmin)
   MPI_Allreduce(&hmin_tmp, &hmin, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 }
 //-----------------------------------------------------------------------------
-void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k, 
+void UCSolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k, 
 				     Vector& d1vector, Vector& d2vector,
 				     Vector& d1invvector, Form& form)
 {
@@ -1059,7 +1059,7 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   delete[] w_block;
 }
 //-----------------------------------------------------------------------------
-void NSESolver::ComputeMean(Mesh& mesh, Function& vc,
+void UCSolver::ComputeMean(Mesh& mesh, Function& vc,
 			    Function& vm, Function& v, Function& v0, 
 			    Form& form, Form& form2)
 {
@@ -1125,7 +1125,7 @@ void NSESolver::ComputeMean(Mesh& mesh, Function& vc,
 
 }
 //-----------------------------------------------------------------------------
-void NSESolver::SetInitialVelocity(Vector& xvel)
+void UCSolver::SetInitialVelocity(Vector& xvel)
 {
 //   // Function for setting initial velocity, 
 //   // given as a function of the coordinates (x,y,z).
@@ -1157,7 +1157,7 @@ void NSESolver::SetInitialVelocity(Vector& xvel)
 //   xvel.vec().restore(xvelarr);
 }
 //-----------------------------------------------------------------------------                                              
-void NSESolver::ComputeVolInv(Vector& vol_invx)
+void UCSolver::ComputeVolInv(Vector& vol_invx)
 {
   vol_invx.init(mesh().numCells());
 
@@ -1173,7 +1173,7 @@ void NSESolver::ComputeVolInv(Vector& vol_invx)
   delete[] icvarr;
 }
 //-----------------------------------------------------------------------------
-void NSESolver::ComputeTimeDerivative(Mesh& mesh, Function& w, Function& w0,
+void UCSolver::ComputeTimeDerivative(Mesh& mesh, Function& w, Function& w0,
 				      real k, Function& dtw)
 {
   dtw.vector() = w.vector();
@@ -1184,7 +1184,7 @@ void NSESolver::ComputeTimeDerivative(Mesh& mesh, Function& w, Function& w0,
   dtw.sync_ghosts();
 }
 //-----------------------------------------------------------------------------
-void NSESolver::deform(Function& XX)
+void UCSolver::deform(Function& XX)
 {
   MeshGeometry& geometry = mesh().geometry();
   
@@ -1231,7 +1231,7 @@ void NSESolver::deform(Function& XX)
   MPI_Barrier(dolfin::MPI::DOLFIN_COMM);
 }
 //-----------------------------------------------------------------------------
-void NSESolver::deform_solid(Function& XX)
+void UCSolver::deform_solid(Function& XX)
 {
   MeshGeometry& geometry = mesh().geometry();
   
