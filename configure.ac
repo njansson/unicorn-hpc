@@ -1,5 +1,5 @@
  
-AC_INIT([unicorn],[0.1.2-hpc])
+AC_INIT([unicorn],[0.1.3-hpc])
 AC_DEFINE_UNQUOTED(UNICORN_VERSION,["${PACKAGE_VERSION}"],[Version of Unicorn])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -31,7 +31,7 @@ if test $have_blas = no; then
       AC_CHECK_LIB(cblas, cblas_sgemm, [have_blas=yes, LIBS="-lcblas -latlas -lm $LIBS"],[have_blas=no],[-latlas -lm])
    fi
    
-   # Fallback to FORTAN BLAS
+   # Fallback to FORTRAN BLAS
    if test $have_blas = no; then
       AC_SEARCH_LIBS([sgemm_], [sunperf scs_mp scs blas sci],have_blas=yes, have_blas=no)
       if test $have_blas = yes; then
