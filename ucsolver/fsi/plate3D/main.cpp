@@ -487,9 +487,9 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* s
   // submeshfile << sub;
   // submeshfile2 << sub;
 
-  NSESolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
-		    p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
-                    ubar, td, "primal"); 
+  UCSolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
+		   p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
+		   ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
   dolfin_set("ODE discrete tolerance", 1.0e-2);
   dolfin_set("ODE maximum iterations", 30);
