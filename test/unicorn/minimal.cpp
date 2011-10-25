@@ -11,14 +11,14 @@ void pre(Mesh& mesh) {
 void post(Mesh& mesh) {
 }
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time) {
-
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, 
+	   timeval& s_time, Mesh* structure_mesh) {
 }
 
 int main(int argc, char *argv[]) {
   timeval s_time;
   gettimeofday(&s_time, NULL);
-  Mesh mesh;  
+  Mesh mesh, *structure_mesh;
   long w_limit = 0;
   Checkpoint chkp;
   int iter = 0;  
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
   /*
    * Initialize unicorn, load mesh, parse parameters etc
    */
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
   dolfin_set("output destination", "silent");
 
   /*

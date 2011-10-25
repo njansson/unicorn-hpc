@@ -2010,6 +2010,80 @@ public:
 
 };
 
+/// This class defines the interface for a finite element.
+
+class UFC_NSEMomentum2DBilinearForm_finite_element_15: public ufc::finite_element
+{
+public:
+
+  /// Constructor
+  UFC_NSEMomentum2DBilinearForm_finite_element_15();
+
+  /// Destructor
+  virtual ~UFC_NSEMomentum2DBilinearForm_finite_element_15();
+
+  /// Return a string identifying the finite element
+  virtual const char* signature() const;
+
+  /// Return the cell shape
+  virtual ufc::shape cell_shape() const;
+
+  /// Return the dimension of the finite element function space
+  virtual unsigned int space_dimension() const;
+
+  /// Return the rank of the value space
+  virtual unsigned int value_rank() const;
+
+  /// Return the dimension of the value space for axis i
+  virtual unsigned int value_dimension(unsigned int i) const;
+
+  /// Evaluate basis function i at given point in cell
+  virtual void evaluate_basis(unsigned int i,
+                              double* values,
+                              const double* coordinates,
+                              const ufc::cell& c) const;
+
+  /// Evaluate all basis functions at given point in cell
+  virtual void evaluate_basis_all(double* values,
+                                  const double* coordinates,
+                                  const ufc::cell& c) const;
+
+  /// Evaluate order n derivatives of basis function i at given point in cell
+  virtual void evaluate_basis_derivatives(unsigned int i,
+                                          unsigned int n,
+                                          double* values,
+                                          const double* coordinates,
+                                          const ufc::cell& c) const;
+  
+  /// Evaluate order n derivatives of all basis functions at given point in cell
+  virtual void evaluate_basis_derivatives_all(unsigned int n,
+                                              double* values,
+                                              const double* coordinates,
+                                              const ufc::cell& c) const;
+
+  /// Evaluate linear functional for dof i on the function f
+  virtual double evaluate_dof(unsigned int i,
+                              const ufc::function& f,
+                              const ufc::cell& c) const;
+
+  /// Evaluate linear functionals for all dofs on the function f
+  virtual void evaluate_dofs(double* values,
+                             const ufc::function& f,
+                             const ufc::cell& c) const;
+
+  /// Interpolate vertex values from dof values
+  virtual void interpolate_vertex_values(double* vertex_values,
+                                         const double* dof_values,
+                                         const ufc::cell& c) const;
+
+  /// Return the number of sub elements (for a mixed element)
+  virtual unsigned int num_sub_elements() const;
+
+  /// Create a new finite element for sub element i (for a mixed element)
+  virtual ufc::finite_element* create_sub_element(unsigned int i) const;
+
+};
+
 /// This class defines the interface for a local-to-global mapping of
 /// degrees of freedom (dofs).
 
@@ -3924,6 +3998,79 @@ public:
 
   /// Destructor
   virtual ~UFC_NSEMomentum2DBilinearForm_dof_map_14();
+
+  /// Return a string identifying the dof map
+  virtual const char* signature() const;
+
+  /// Return true iff mesh entities of topological dimension d are needed
+  virtual bool needs_mesh_entities(unsigned int d) const;
+
+  /// Initialize dof map for mesh (return true iff init_cell() is needed)
+  virtual bool init_mesh(const ufc::mesh& m);
+
+  /// Initialize dof map for given cell
+  virtual void init_cell(const ufc::mesh& m,
+                         const ufc::cell& c);
+
+  /// Finish initialization of dof map for cells
+  virtual void init_cell_finalize();
+
+  /// Return the dimension of the global finite element function space
+  virtual unsigned int global_dimension() const;
+
+  /// Return the dimension of the local finite element function space
+  virtual unsigned int local_dimension() const;
+
+  // Return the geometric dimension of the coordinates this dof map provides
+  virtual unsigned int geometric_dimension() const;
+
+  /// Return the number of dofs on each cell facet
+  virtual unsigned int num_facet_dofs() const;
+
+  /// Return the number of dofs associated with each cell entity of dimension d
+  virtual unsigned int num_entity_dofs(unsigned int d) const;
+
+  /// Tabulate the local-to-global mapping of dofs on a cell
+  virtual void tabulate_dofs(unsigned int* dofs,
+                             const ufc::mesh& m,
+                             const ufc::cell& c) const;
+
+  /// Tabulate the local-to-local mapping from facet dofs to cell dofs
+  virtual void tabulate_facet_dofs(unsigned int* dofs,
+                                   unsigned int facet) const;
+
+  /// Tabulate the local-to-local mapping of dofs on entity (d, i)
+  virtual void tabulate_entity_dofs(unsigned int* dofs,
+                                    unsigned int d, unsigned int i) const;
+
+  /// Tabulate the coordinates of all dofs on a cell
+  virtual void tabulate_coordinates(double** coordinates,
+                                    const ufc::cell& c) const;
+
+  /// Return the number of sub dof maps (for a mixed element)
+  virtual unsigned int num_sub_dof_maps() const;
+
+  /// Create a new dof_map for sub dof map i (for a mixed element)
+  virtual ufc::dof_map* create_sub_dof_map(unsigned int i) const;
+
+};
+
+/// This class defines the interface for a local-to-global mapping of
+/// degrees of freedom (dofs).
+
+class UFC_NSEMomentum2DBilinearForm_dof_map_15: public ufc::dof_map
+{
+private:
+
+  unsigned int __global_dimension;
+
+public:
+
+  /// Constructor
+  UFC_NSEMomentum2DBilinearForm_dof_map_15();
+
+  /// Destructor
+  virtual ~UFC_NSEMomentum2DBilinearForm_dof_map_15();
 
   /// Return a string identifying the dof map
   virtual const char* signature() const;
@@ -6874,6 +7021,154 @@ public:
 
 };
 
+/// This class defines the interface for a finite element.
+
+class UFC_NSEMomentum2DLinearForm_finite_element_18: public ufc::finite_element
+{
+public:
+
+  /// Constructor
+  UFC_NSEMomentum2DLinearForm_finite_element_18();
+
+  /// Destructor
+  virtual ~UFC_NSEMomentum2DLinearForm_finite_element_18();
+
+  /// Return a string identifying the finite element
+  virtual const char* signature() const;
+
+  /// Return the cell shape
+  virtual ufc::shape cell_shape() const;
+
+  /// Return the dimension of the finite element function space
+  virtual unsigned int space_dimension() const;
+
+  /// Return the rank of the value space
+  virtual unsigned int value_rank() const;
+
+  /// Return the dimension of the value space for axis i
+  virtual unsigned int value_dimension(unsigned int i) const;
+
+  /// Evaluate basis function i at given point in cell
+  virtual void evaluate_basis(unsigned int i,
+                              double* values,
+                              const double* coordinates,
+                              const ufc::cell& c) const;
+
+  /// Evaluate all basis functions at given point in cell
+  virtual void evaluate_basis_all(double* values,
+                                  const double* coordinates,
+                                  const ufc::cell& c) const;
+
+  /// Evaluate order n derivatives of basis function i at given point in cell
+  virtual void evaluate_basis_derivatives(unsigned int i,
+                                          unsigned int n,
+                                          double* values,
+                                          const double* coordinates,
+                                          const ufc::cell& c) const;
+  
+  /// Evaluate order n derivatives of all basis functions at given point in cell
+  virtual void evaluate_basis_derivatives_all(unsigned int n,
+                                              double* values,
+                                              const double* coordinates,
+                                              const ufc::cell& c) const;
+
+  /// Evaluate linear functional for dof i on the function f
+  virtual double evaluate_dof(unsigned int i,
+                              const ufc::function& f,
+                              const ufc::cell& c) const;
+
+  /// Evaluate linear functionals for all dofs on the function f
+  virtual void evaluate_dofs(double* values,
+                             const ufc::function& f,
+                             const ufc::cell& c) const;
+
+  /// Interpolate vertex values from dof values
+  virtual void interpolate_vertex_values(double* vertex_values,
+                                         const double* dof_values,
+                                         const ufc::cell& c) const;
+
+  /// Return the number of sub elements (for a mixed element)
+  virtual unsigned int num_sub_elements() const;
+
+  /// Create a new finite element for sub element i (for a mixed element)
+  virtual ufc::finite_element* create_sub_element(unsigned int i) const;
+
+};
+
+/// This class defines the interface for a finite element.
+
+class UFC_NSEMomentum2DLinearForm_finite_element_19: public ufc::finite_element
+{
+public:
+
+  /// Constructor
+  UFC_NSEMomentum2DLinearForm_finite_element_19();
+
+  /// Destructor
+  virtual ~UFC_NSEMomentum2DLinearForm_finite_element_19();
+
+  /// Return a string identifying the finite element
+  virtual const char* signature() const;
+
+  /// Return the cell shape
+  virtual ufc::shape cell_shape() const;
+
+  /// Return the dimension of the finite element function space
+  virtual unsigned int space_dimension() const;
+
+  /// Return the rank of the value space
+  virtual unsigned int value_rank() const;
+
+  /// Return the dimension of the value space for axis i
+  virtual unsigned int value_dimension(unsigned int i) const;
+
+  /// Evaluate basis function i at given point in cell
+  virtual void evaluate_basis(unsigned int i,
+                              double* values,
+                              const double* coordinates,
+                              const ufc::cell& c) const;
+
+  /// Evaluate all basis functions at given point in cell
+  virtual void evaluate_basis_all(double* values,
+                                  const double* coordinates,
+                                  const ufc::cell& c) const;
+
+  /// Evaluate order n derivatives of basis function i at given point in cell
+  virtual void evaluate_basis_derivatives(unsigned int i,
+                                          unsigned int n,
+                                          double* values,
+                                          const double* coordinates,
+                                          const ufc::cell& c) const;
+  
+  /// Evaluate order n derivatives of all basis functions at given point in cell
+  virtual void evaluate_basis_derivatives_all(unsigned int n,
+                                              double* values,
+                                              const double* coordinates,
+                                              const ufc::cell& c) const;
+
+  /// Evaluate linear functional for dof i on the function f
+  virtual double evaluate_dof(unsigned int i,
+                              const ufc::function& f,
+                              const ufc::cell& c) const;
+
+  /// Evaluate linear functionals for all dofs on the function f
+  virtual void evaluate_dofs(double* values,
+                             const ufc::function& f,
+                             const ufc::cell& c) const;
+
+  /// Interpolate vertex values from dof values
+  virtual void interpolate_vertex_values(double* vertex_values,
+                                         const double* dof_values,
+                                         const ufc::cell& c) const;
+
+  /// Return the number of sub elements (for a mixed element)
+  virtual unsigned int num_sub_elements() const;
+
+  /// Create a new finite element for sub element i (for a mixed element)
+  virtual ufc::finite_element* create_sub_element(unsigned int i) const;
+
+};
+
 /// This class defines the interface for a local-to-global mapping of
 /// degrees of freedom (dofs).
 
@@ -9648,6 +9943,152 @@ public:
 
 };
 
+/// This class defines the interface for a local-to-global mapping of
+/// degrees of freedom (dofs).
+
+class UFC_NSEMomentum2DLinearForm_dof_map_18: public ufc::dof_map
+{
+private:
+
+  unsigned int __global_dimension;
+
+public:
+
+  /// Constructor
+  UFC_NSEMomentum2DLinearForm_dof_map_18();
+
+  /// Destructor
+  virtual ~UFC_NSEMomentum2DLinearForm_dof_map_18();
+
+  /// Return a string identifying the dof map
+  virtual const char* signature() const;
+
+  /// Return true iff mesh entities of topological dimension d are needed
+  virtual bool needs_mesh_entities(unsigned int d) const;
+
+  /// Initialize dof map for mesh (return true iff init_cell() is needed)
+  virtual bool init_mesh(const ufc::mesh& m);
+
+  /// Initialize dof map for given cell
+  virtual void init_cell(const ufc::mesh& m,
+                         const ufc::cell& c);
+
+  /// Finish initialization of dof map for cells
+  virtual void init_cell_finalize();
+
+  /// Return the dimension of the global finite element function space
+  virtual unsigned int global_dimension() const;
+
+  /// Return the dimension of the local finite element function space
+  virtual unsigned int local_dimension() const;
+
+  // Return the geometric dimension of the coordinates this dof map provides
+  virtual unsigned int geometric_dimension() const;
+
+  /// Return the number of dofs on each cell facet
+  virtual unsigned int num_facet_dofs() const;
+
+  /// Return the number of dofs associated with each cell entity of dimension d
+  virtual unsigned int num_entity_dofs(unsigned int d) const;
+
+  /// Tabulate the local-to-global mapping of dofs on a cell
+  virtual void tabulate_dofs(unsigned int* dofs,
+                             const ufc::mesh& m,
+                             const ufc::cell& c) const;
+
+  /// Tabulate the local-to-local mapping from facet dofs to cell dofs
+  virtual void tabulate_facet_dofs(unsigned int* dofs,
+                                   unsigned int facet) const;
+
+  /// Tabulate the local-to-local mapping of dofs on entity (d, i)
+  virtual void tabulate_entity_dofs(unsigned int* dofs,
+                                    unsigned int d, unsigned int i) const;
+
+  /// Tabulate the coordinates of all dofs on a cell
+  virtual void tabulate_coordinates(double** coordinates,
+                                    const ufc::cell& c) const;
+
+  /// Return the number of sub dof maps (for a mixed element)
+  virtual unsigned int num_sub_dof_maps() const;
+
+  /// Create a new dof_map for sub dof map i (for a mixed element)
+  virtual ufc::dof_map* create_sub_dof_map(unsigned int i) const;
+
+};
+
+/// This class defines the interface for a local-to-global mapping of
+/// degrees of freedom (dofs).
+
+class UFC_NSEMomentum2DLinearForm_dof_map_19: public ufc::dof_map
+{
+private:
+
+  unsigned int __global_dimension;
+
+public:
+
+  /// Constructor
+  UFC_NSEMomentum2DLinearForm_dof_map_19();
+
+  /// Destructor
+  virtual ~UFC_NSEMomentum2DLinearForm_dof_map_19();
+
+  /// Return a string identifying the dof map
+  virtual const char* signature() const;
+
+  /// Return true iff mesh entities of topological dimension d are needed
+  virtual bool needs_mesh_entities(unsigned int d) const;
+
+  /// Initialize dof map for mesh (return true iff init_cell() is needed)
+  virtual bool init_mesh(const ufc::mesh& m);
+
+  /// Initialize dof map for given cell
+  virtual void init_cell(const ufc::mesh& m,
+                         const ufc::cell& c);
+
+  /// Finish initialization of dof map for cells
+  virtual void init_cell_finalize();
+
+  /// Return the dimension of the global finite element function space
+  virtual unsigned int global_dimension() const;
+
+  /// Return the dimension of the local finite element function space
+  virtual unsigned int local_dimension() const;
+
+  // Return the geometric dimension of the coordinates this dof map provides
+  virtual unsigned int geometric_dimension() const;
+
+  /// Return the number of dofs on each cell facet
+  virtual unsigned int num_facet_dofs() const;
+
+  /// Return the number of dofs associated with each cell entity of dimension d
+  virtual unsigned int num_entity_dofs(unsigned int d) const;
+
+  /// Tabulate the local-to-global mapping of dofs on a cell
+  virtual void tabulate_dofs(unsigned int* dofs,
+                             const ufc::mesh& m,
+                             const ufc::cell& c) const;
+
+  /// Tabulate the local-to-local mapping from facet dofs to cell dofs
+  virtual void tabulate_facet_dofs(unsigned int* dofs,
+                                   unsigned int facet) const;
+
+  /// Tabulate the local-to-local mapping of dofs on entity (d, i)
+  virtual void tabulate_entity_dofs(unsigned int* dofs,
+                                    unsigned int d, unsigned int i) const;
+
+  /// Tabulate the coordinates of all dofs on a cell
+  virtual void tabulate_coordinates(double** coordinates,
+                                    const ufc::cell& c) const;
+
+  /// Return the number of sub dof maps (for a mixed element)
+  virtual unsigned int num_sub_dof_maps() const;
+
+  /// Create a new dof_map for sub dof map i (for a mixed element)
+  virtual ufc::dof_map* create_sub_dof_map(unsigned int i) const;
+
+};
+
 /// This class defines the interface for the tabulation of the cell
 /// tensor corresponding to the local contribution to a form from
 /// the integral over a cell.
@@ -9737,7 +10178,7 @@ class NSEMomentum2DBilinearForm : public dolfin::Form
 {
 public:
 
-  NSEMomentum2DBilinearForm(dolfin::Function& w0, dolfin::Function& w1, dolfin::Function& w2, dolfin::Function& w3, dolfin::Function& w4, dolfin::Function& w5, dolfin::Function& w6, dolfin::Function& w7, dolfin::Function& w8, dolfin::Function& w9, dolfin::Function& w10, dolfin::Function& w11, dolfin::Function& w12) : dolfin::Form()
+  NSEMomentum2DBilinearForm(dolfin::Function& w0, dolfin::Function& w1, dolfin::Function& w2, dolfin::Function& w3, dolfin::Function& w4, dolfin::Function& w5, dolfin::Function& w6, dolfin::Function& w7, dolfin::Function& w8, dolfin::Function& w9, dolfin::Function& w10, dolfin::Function& w11, dolfin::Function& w12, dolfin::Function& w13) : dolfin::Form()
   {
     __coefficients.push_back(&w0);
     __coefficients.push_back(&w1);
@@ -9752,6 +10193,7 @@ public:
     __coefficients.push_back(&w10);
     __coefficients.push_back(&w11);
     __coefficients.push_back(&w12);
+    __coefficients.push_back(&w13);
   }
 
   /// Return UFC form
@@ -9780,7 +10222,7 @@ class NSEMomentum2DLinearForm : public dolfin::Form
 {
 public:
 
-  NSEMomentum2DLinearForm(dolfin::Function& w0, dolfin::Function& w1, dolfin::Function& w2, dolfin::Function& w3, dolfin::Function& w4, dolfin::Function& w5, dolfin::Function& w6, dolfin::Function& w7, dolfin::Function& w8, dolfin::Function& w9, dolfin::Function& w10, dolfin::Function& w11, dolfin::Function& w12, dolfin::Function& w13, dolfin::Function& w14, dolfin::Function& w15, dolfin::Function& w16) : dolfin::Form()
+  NSEMomentum2DLinearForm(dolfin::Function& w0, dolfin::Function& w1, dolfin::Function& w2, dolfin::Function& w3, dolfin::Function& w4, dolfin::Function& w5, dolfin::Function& w6, dolfin::Function& w7, dolfin::Function& w8, dolfin::Function& w9, dolfin::Function& w10, dolfin::Function& w11, dolfin::Function& w12, dolfin::Function& w13, dolfin::Function& w14, dolfin::Function& w15, dolfin::Function& w16, dolfin::Function& w17, dolfin::Function& w18) : dolfin::Form()
   {
     __coefficients.push_back(&w0);
     __coefficients.push_back(&w1);
@@ -9799,6 +10241,8 @@ public:
     __coefficients.push_back(&w14);
     __coefficients.push_back(&w15);
     __coefficients.push_back(&w16);
+    __coefficients.push_back(&w17);
+    __coefficients.push_back(&w18);
   }
 
   /// Return UFC form

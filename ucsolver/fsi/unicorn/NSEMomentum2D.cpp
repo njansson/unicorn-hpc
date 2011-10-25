@@ -11658,6 +11658,386 @@ ufc::finite_element* UFC_NSEMomentum2DBilinearForm_finite_element_14::create_sub
     return new UFC_NSEMomentum2DBilinearForm_finite_element_14();
 }
 
+
+/// Constructor
+UFC_NSEMomentum2DBilinearForm_finite_element_15::UFC_NSEMomentum2DBilinearForm_finite_element_15() : ufc::finite_element()
+{
+    // Do nothing
+}
+
+/// Destructor
+UFC_NSEMomentum2DBilinearForm_finite_element_15::~UFC_NSEMomentum2DBilinearForm_finite_element_15()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the finite element
+const char* UFC_NSEMomentum2DBilinearForm_finite_element_15::signature() const
+{
+    return "Discontinuous Lagrange finite element of degree 0 on a triangle";
+}
+
+/// Return the cell shape
+ufc::shape UFC_NSEMomentum2DBilinearForm_finite_element_15::cell_shape() const
+{
+    return ufc::triangle;
+}
+
+/// Return the dimension of the finite element function space
+unsigned int UFC_NSEMomentum2DBilinearForm_finite_element_15::space_dimension() const
+{
+    return 1;
+}
+
+/// Return the rank of the value space
+unsigned int UFC_NSEMomentum2DBilinearForm_finite_element_15::value_rank() const
+{
+    return 0;
+}
+
+/// Return the dimension of the value space for axis i
+unsigned int UFC_NSEMomentum2DBilinearForm_finite_element_15::value_dimension(unsigned int i) const
+{
+    return 1;
+}
+
+/// Evaluate basis function i at given point in cell
+void UFC_NSEMomentum2DBilinearForm_finite_element_15::evaluate_basis(unsigned int i,
+                                   double* values,
+                                   const double* coordinates,
+                                   const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+      
+    // Compute determinant of Jacobian
+    const double detJ = J_00*J_11 - J_01*J_10;
+    
+    // Compute inverse of Jacobian
+    
+    // Get coordinates and map to the reference (UFC) element
+    double x = (element_coordinates[0][1]*element_coordinates[2][0] -\
+                element_coordinates[0][0]*element_coordinates[2][1] +\
+                J_11*coordinates[0] - J_01*coordinates[1]) / detJ;
+    double y = (element_coordinates[1][1]*element_coordinates[0][0] -\
+                element_coordinates[1][0]*element_coordinates[0][1] -\
+                J_10*coordinates[0] + J_00*coordinates[1]) / detJ;
+    
+    // Map coordinates to the reference square
+    if (std::abs(y - 1.0) < 1e-14)
+      x = -1.0;
+    else
+      x = 2.0 *x/(1.0 - y) - 1.0;
+    y = 2.0*y - 1.0;
+    
+    // Reset values
+    *values = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.707106781186548*psitilde_a_0*scalings_y_0*psitilde_bs_0_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.41421356237309}};
+    
+    // Extract relevant coefficients
+    const double coeff0_0 = coefficients0[dof][0];
+    
+    // Compute value(s)
+    *values = coeff0_0*basisvalue0;
+}
+
+/// Evaluate all basis functions at given point in cell
+void UFC_NSEMomentum2DBilinearForm_finite_element_15::evaluate_basis_all(double* values,
+                                       const double* coordinates,
+                                       const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis() is not yet implemented.");
+}
+
+/// Evaluate order n derivatives of basis function i at given point in cell
+void UFC_NSEMomentum2DBilinearForm_finite_element_15::evaluate_basis_derivatives(unsigned int i,
+                                               unsigned int n,
+                                               double* values,
+                                               const double* coordinates,
+                                               const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+      
+    // Compute determinant of Jacobian
+    const double detJ = J_00*J_11 - J_01*J_10;
+    
+    // Compute inverse of Jacobian
+    
+    // Get coordinates and map to the reference (UFC) element
+    double x = (element_coordinates[0][1]*element_coordinates[2][0] -\
+                element_coordinates[0][0]*element_coordinates[2][1] +\
+                J_11*coordinates[0] - J_01*coordinates[1]) / detJ;
+    double y = (element_coordinates[1][1]*element_coordinates[0][0] -\
+                element_coordinates[1][0]*element_coordinates[0][1] -\
+                J_10*coordinates[0] + J_00*coordinates[1]) / detJ;
+    
+    // Map coordinates to the reference square
+    if (std::abs(y - 1.0) < 1e-14)
+      x = -1.0;
+    else
+      x = 2.0 *x/(1.0 - y) - 1.0;
+    y = 2.0*y - 1.0;
+    
+    // Compute number of derivatives
+    unsigned int num_derivatives = 1;
+    
+    for (unsigned int j = 0; j < n; j++)
+      num_derivatives *= 2;
+    
+    
+    // Declare pointer to two dimensional array that holds combinations of derivatives and initialise
+    unsigned int **combinations = new unsigned int *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      combinations[j] = new unsigned int [n];
+      for (unsigned int k = 0; k < n; k++)
+        combinations[j][k] = 0;
+    }
+        
+    // Generate combinations of derivatives
+    for (unsigned int row = 1; row < num_derivatives; row++)
+    {
+      for (unsigned int num = 0; num < row; num++)
+      {
+        for (unsigned int col = n-1; col+1 > 0; col--)
+        {
+          if (combinations[row][col] + 1 > 1)
+            combinations[row][col] = 0;
+          else
+          {
+            combinations[row][col] += 1;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Compute inverse of Jacobian
+    const double Jinv[2][2] =  {{J_11 / detJ, -J_01 / detJ}, {-J_10 / detJ, J_00 / detJ}};
+    
+    // Declare transformation matrix
+    // Declare pointer to two dimensional array and initialise
+    double **transform = new double *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      transform[j] = new double [num_derivatives];
+      for (unsigned int k = 0; k < num_derivatives; k++)
+        transform[j][k] = 1;
+    }
+    
+    // Construct transformation matrix
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        for (unsigned int k = 0; k < n; k++)
+          transform[row][col] *= Jinv[combinations[col][k]][combinations[row][k]];
+      }
+    }
+    
+    // Reset values
+    for (unsigned int j = 0; j < 1*num_derivatives; j++)
+      values[j] = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.707106781186548*psitilde_a_0*scalings_y_0*psitilde_bs_0_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.41421356237309}};
+    
+    // Interesting (new) part
+    // Tables of derivatives of the polynomial base (transpose)
+    const static double dmats0[1][1] = \
+    {{0}};
+    
+    const static double dmats1[1][1] = \
+    {{0}};
+    
+    // Compute reference derivatives
+    // Declare pointer to array of derivatives on FIAT element
+    double *derivatives = new double [num_derivatives];
+    
+    // Declare coefficients
+    double coeff0_0 = 0;
+    
+    // Declare new coefficients
+    double new_coeff0_0 = 0;
+    
+    // Loop possible derivatives
+    for (unsigned int deriv_num = 0; deriv_num < num_derivatives; deriv_num++)
+    {
+      // Get values from coefficients array
+      new_coeff0_0 = coefficients0[dof][0];
+    
+      // Loop derivative order
+      for (unsigned int j = 0; j < n; j++)
+      {
+        // Update old coefficients
+        coeff0_0 = new_coeff0_0;
+    
+        if(combinations[deriv_num][j] == 0)
+        {
+          new_coeff0_0 = coeff0_0*dmats0[0][0];
+        }
+        if(combinations[deriv_num][j] == 1)
+        {
+          new_coeff0_0 = coeff0_0*dmats1[0][0];
+        }
+    
+      }
+      // Compute derivatives on reference element as dot product of coefficients and basisvalues
+      derivatives[deriv_num] = new_coeff0_0*basisvalue0;
+    }
+    
+    // Transform derivatives back to physical element
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        values[row] += transform[row][col]*derivatives[col];
+      }
+    }
+    // Delete pointer to array of derivatives on FIAT element
+    delete [] derivatives;
+    
+    // Delete pointer to array of combinations of derivatives and transform
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      delete [] combinations[row];
+      delete [] transform[row];
+    }
+    
+    delete [] combinations;
+    delete [] transform;
+}
+
+/// Evaluate order n derivatives of all basis functions at given point in cell
+void UFC_NSEMomentum2DBilinearForm_finite_element_15::evaluate_basis_derivatives_all(unsigned int n,
+                                                   double* values,
+                                                   const double* coordinates,
+                                                   const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis_derivatives() is not yet implemented.");
+}
+
+/// Evaluate linear functional for dof i on the function f
+double UFC_NSEMomentum2DBilinearForm_finite_element_15::evaluate_dof(unsigned int i,
+                                   const ufc::function& f,
+                                   const ufc::cell& c) const
+{
+    // The reference points, direction and weights:
+    const static double X[1][1][2] = {{{0.333333333333333, 0.333333333333333}}};
+    const static double W[1][1] = {{1}};
+    const static double D[1][1][1] = {{{1}}};
+    
+    const double * const * x = c.coordinates;
+    double result = 0.0;
+    // Iterate over the points:
+    // Evaluate basis functions for affine mapping
+    const double w0 = 1.0 - X[i][0][0] - X[i][0][1];
+    const double w1 = X[i][0][0];
+    const double w2 = X[i][0][1];
+    
+    // Compute affine mapping y = F(X)
+    double y[2];
+    y[0] = w0*x[0][0] + w1*x[1][0] + w2*x[2][0];
+    y[1] = w0*x[0][1] + w1*x[1][1] + w2*x[2][1];
+    
+    // Evaluate function at physical points
+    double values[1];
+    f.evaluate(values, y, c);
+    
+    // Map function values using appropriate mapping
+    // Affine map: Do nothing
+    
+    // Note that we do not map the weights (yet).
+    
+    // Take directional components
+    for(int k = 0; k < 1; k++)
+      result += values[k]*D[i][0][k];
+    // Multiply by weights 
+    result *= W[i][0];
+    
+    return result;
+}
+
+/// Evaluate linear functionals for all dofs on the function f
+void UFC_NSEMomentum2DBilinearForm_finite_element_15::evaluate_dofs(double* values,
+                                  const ufc::function& f,
+                                  const ufc::cell& c) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Interpolate vertex values from dof values
+void UFC_NSEMomentum2DBilinearForm_finite_element_15::interpolate_vertex_values(double* vertex_values,
+                                              const double* dof_values,
+                                              const ufc::cell& c) const
+{
+    // Evaluate at vertices and use affine mapping
+    vertex_values[0] = dof_values[0];
+    vertex_values[1] = dof_values[0];
+    vertex_values[2] = dof_values[0];
+}
+
+/// Return the number of sub elements (for a mixed element)
+unsigned int UFC_NSEMomentum2DBilinearForm_finite_element_15::num_sub_elements() const
+{
+    return 1;
+}
+
+/// Create a new finite element for sub element i (for a mixed element)
+ufc::finite_element* UFC_NSEMomentum2DBilinearForm_finite_element_15::create_sub_element(unsigned int i) const
+{
+    return new UFC_NSEMomentum2DBilinearForm_finite_element_15();
+}
+
 /// Constructor
 UFC_NSEMomentum2DBilinearForm_dof_map_0_0::UFC_NSEMomentum2DBilinearForm_dof_map_0_0() : ufc::dof_map()
 {
@@ -15709,6 +16089,147 @@ ufc::dof_map* UFC_NSEMomentum2DBilinearForm_dof_map_14::create_sub_dof_map(unsig
 
 
 /// Constructor
+UFC_NSEMomentum2DBilinearForm_dof_map_15::UFC_NSEMomentum2DBilinearForm_dof_map_15() : ufc::dof_map()
+{
+    __global_dimension = 0;
+}
+
+/// Destructor
+UFC_NSEMomentum2DBilinearForm_dof_map_15::~UFC_NSEMomentum2DBilinearForm_dof_map_15()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the dof map
+const char* UFC_NSEMomentum2DBilinearForm_dof_map_15::signature() const
+{
+    return "FFC dof map for Discontinuous Lagrange finite element of degree 0 on a triangle";
+}
+
+/// Return true iff mesh entities of topological dimension d are needed
+bool UFC_NSEMomentum2DBilinearForm_dof_map_15::needs_mesh_entities(unsigned int d) const
+{
+    switch ( d )
+    {
+    case 0:
+      return false;
+      break;
+    case 1:
+      return false;
+      break;
+    case 2:
+      return true;
+      break;
+    }
+    return false;
+}
+
+/// Initialize dof map for mesh (return true iff init_cell() is needed)
+bool UFC_NSEMomentum2DBilinearForm_dof_map_15::init_mesh(const ufc::mesh& m)
+{
+    __global_dimension = m.num_entities[2];
+    return false;
+}
+
+/// Initialize dof map for given cell
+void UFC_NSEMomentum2DBilinearForm_dof_map_15::init_cell(const ufc::mesh& m,
+                              const ufc::cell& c)
+{
+    // Do nothing
+}
+
+/// Finish initialization of dof map for cells
+void UFC_NSEMomentum2DBilinearForm_dof_map_15::init_cell_finalize()
+{
+    // Do nothing
+}
+
+/// Return the dimension of the global finite element function space
+unsigned int UFC_NSEMomentum2DBilinearForm_dof_map_15::global_dimension() const
+{
+    return __global_dimension;
+}
+
+/// Return the dimension of the local finite element function space
+unsigned int UFC_NSEMomentum2DBilinearForm_dof_map_15::local_dimension() const
+{
+    return 1;
+}
+
+// Return the geometric dimension of the coordinates this dof map provides
+unsigned int UFC_NSEMomentum2DBilinearForm_dof_map_15::geometric_dimension() const
+{
+    return 2;
+}
+
+/// Return the number of dofs on each cell facet
+unsigned int UFC_NSEMomentum2DBilinearForm_dof_map_15::num_facet_dofs() const
+{
+    return 0;
+}
+
+/// Return the number of dofs associated with each cell entity of dimension d
+unsigned int UFC_NSEMomentum2DBilinearForm_dof_map_15::num_entity_dofs(unsigned int d) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the local-to-global mapping of dofs on a cell
+void UFC_NSEMomentum2DBilinearForm_dof_map_15::tabulate_dofs(unsigned int* dofs,
+                                  const ufc::mesh& m,
+                                  const ufc::cell& c) const
+{
+    dofs[0] = c.entity_indices[2][0];
+}
+
+/// Tabulate the local-to-local mapping from facet dofs to cell dofs
+void UFC_NSEMomentum2DBilinearForm_dof_map_15::tabulate_facet_dofs(unsigned int* dofs,
+                                        unsigned int facet) const
+{
+    switch ( facet )
+    {
+    case 0:
+      
+      break;
+    case 1:
+      
+      break;
+    case 2:
+      
+      break;
+    }
+}
+
+/// Tabulate the local-to-local mapping of dofs on entity (d, i)
+void UFC_NSEMomentum2DBilinearForm_dof_map_15::tabulate_entity_dofs(unsigned int* dofs,
+                                  unsigned int d, unsigned int i) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the coordinates of all dofs on a cell
+void UFC_NSEMomentum2DBilinearForm_dof_map_15::tabulate_coordinates(double** coordinates,
+                                         const ufc::cell& c) const
+{
+    const double * const * x = c.coordinates;
+    coordinates[0][0] = 0.333333333333333*x[0][0] + 0.333333333333333*x[1][0] + 0.333333333333333*x[2][0];
+    coordinates[0][1] = 0.333333333333333*x[0][1] + 0.333333333333333*x[1][1] + 0.333333333333333*x[2][1];
+}
+
+/// Return the number of sub dof maps (for a mixed element)
+unsigned int UFC_NSEMomentum2DBilinearForm_dof_map_15::num_sub_dof_maps() const
+{
+    return 1;
+}
+
+/// Create a new dof_map for sub dof map i (for a mixed element)
+ufc::dof_map* UFC_NSEMomentum2DBilinearForm_dof_map_15::create_sub_dof_map(unsigned int i) const
+{
+    return new UFC_NSEMomentum2DBilinearForm_dof_map_15();
+}
+
+
+/// Constructor
 UFC_NSEMomentum2DBilinearForm_cell_integral_0::UFC_NSEMomentum2DBilinearForm_cell_integral_0() : ufc::cell_integral()
 {
     // Do nothing
@@ -15748,7 +16269,7 @@ void UFC_NSEMomentum2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
     
     
     // Compute element tensor (using quadrature representation, optimisation level 2)
-    // Total number of operations to compute element tensor (from this point): 1952
+    // Total number of operations to compute element tensor (from this point): 1968
     
     // Reset values of the element tensor block
     for (unsigned int j = 0; j < 6; j++)
@@ -15759,211 +16280,216 @@ void UFC_NSEMomentum2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
       }// end loop over 'k'
     }// end loop over 'j'
     
-    // Array of quadrature weights (tensor/monomial term 0)
+    // Array of quadrature weights (tensor/monomial terms (0, 2))
     const static double W0[4] = {-0.159020690871988, -0.0909793091280113, -0.159020690871988, -0.0909793091280113};
     // Array of quadrature weights (tensor/monomial term 1)
-    const static double W1[4] = {-0.0795103454359941, -0.0454896545640056, -0.0795103454359941, -0.0454896545640056};
-    // Array of quadrature weights (tensor/monomial term 2)
-    const static double W2[4] = {0.0795103454359941, 0.0454896545640056, 0.0795103454359941, 0.0454896545640056};
-    // Array of quadrature weights (tensor/monomial terms (3, 4, 5, 15, 16))
-    const static double W3 = 0.25;
-    // Array of quadrature weights (tensor/monomial terms (6, 7, 8, 13, 14, 17, 18))
-    const static double W6 = -0.25;
-    // Array of quadrature weights (tensor/monomial terms (9, 10))
-    const static double W9 = 0.125;
+    const static double W1[4] = {0.159020690871988, 0.0909793091280113, 0.159020690871988, 0.0909793091280113};
+    // Array of quadrature weights (tensor/monomial term 3)
+    const static double W3[4] = {-0.0795103454359941, -0.0454896545640056, -0.0795103454359941, -0.0454896545640056};
+    // Array of quadrature weights (tensor/monomial term 4)
+    const static double W4[4] = {0.0795103454359941, 0.0454896545640056, 0.0795103454359941, 0.0454896545640056};
+    // Array of quadrature weights (tensor/monomial terms (5, 6, 7, 17, 18))
+    const static double W5 = 0.25;
+    // Array of quadrature weights (tensor/monomial terms (8, 9, 10, 15, 16, 19, 20))
+    const static double W8 = -0.25;
     // Array of quadrature weights (tensor/monomial terms (11, 12))
-    const static double W11 = -0.125;
+    const static double W11 = 0.125;
+    // Array of quadrature weights (tensor/monomial terms (13, 14))
+    const static double W13 = -0.125;
     
     const static double P_t11_p0_a0_s0[1][2] = \
     {{-1, 1}};
     // Array of non-zero columns
+    static const unsigned int nzc4[2] = {3, 4};
+    // Array of non-zero columns
     static const unsigned int nzc0[2] = {0, 1};
     // Array of non-zero columns
-    static const unsigned int nzc2[2] = {3, 4};
+    static const unsigned int nzc1[2] = {0, 2};
     // Array of non-zero columns
     static const unsigned int nzc3[2] = {3, 5};
-    // Array of non-zero columns
-    static const unsigned int nzc1[2] = {0, 2};
     
-    const static double P_t1_p1_a0_s1[4][2] = \
-    {{-1, 1},
-    {-1, 1},
-    {-1, 1},
-    {-1, 1}};
-    // Array of non-zero columns
-    static const unsigned int nzc4[2] = {0, 2};
-    // Array of non-zero columns
-    static const unsigned int nzc5[2] = {0, 1};
-    // Array of non-zero columns
-    static const unsigned int nzc10[2] = {3, 4};
-    // Array of non-zero columns
-    static const unsigned int nzc11[2] = {3, 5};
-    
-    const static double P_t2_s2_s1[4][3] = \
+    const static double P_t3_s2_s0[4][3] = \
     {{0.666390246014701, 0.178558728263616, 0.155051025721682},
     {0.280019915499074, 0.0750311102226082, 0.644948974278318},
     {0.178558728263616, 0.666390246014701, 0.155051025721682},
     {0.0750311102226081, 0.280019915499074, 0.644948974278318}};
     // Array of non-zero columns
-    static const unsigned int nzc7[3] = {3, 4, 5};
+    static const unsigned int nzc6[3] = {3, 4, 5};
     // Array of non-zero columns
-    static const unsigned int nzc9[3] = {0, 1, 2};
+    static const unsigned int nzc5[3] = {0, 1, 2};
     
-    // Number of operations to compute geometry constants = 884
-    const double G0 = 2*Jinv_00*Jinv_10*W11*det*w[12][0]*w[5][0];
-    const double G1 = 2*Jinv_00*Jinv_10*W3*det*w[11][0]*w[1][0]*w[3][0]*w[5][0];
-    const double G2 = 2*Jinv_00*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G3 = 2*Jinv_00*Jinv_10*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G4 = 2*Jinv_00*Jinv_10*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G5 = 2*Jinv_01*Jinv_11*W3*det*w[11][1]*w[1][1]*w[3][0]*w[5][0];
-    const double G6 = Jinv_00*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G7 = Jinv_00*Jinv_10*W6*det*w[11][0]*w[11][0]*w[3][0]*w[5][0];
-    const double G8 = Jinv_00*Jinv_10*W6*det*w[1][0]*w[1][0]*w[3][0]*w[5][0];
-    const double G9 = Jinv_00*Jinv_10*W6*det*w[2][0]*w[5][0]*w[7][0];
-    const double G10 = Jinv_00*Jinv_10*W6*det*w[4][0]*w[5][0];
-    const double G11 = Jinv_00*Jinv_10*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G12 = Jinv_00*Jinv_11*W3*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G13 = Jinv_00*Jinv_11*W3*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
-    const double G14 = Jinv_00*Jinv_11*W6*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
-    const double G15 = Jinv_00*Jinv_11*W6*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G16 = Jinv_01*Jinv_10*W3*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G17 = Jinv_01*Jinv_10*W3*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
-    const double G18 = Jinv_01*Jinv_10*W6*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
-    const double G19 = Jinv_01*Jinv_10*W6*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G20 = Jinv_01*Jinv_11*W11*det*w[12][0]*w[5][0];
-    const double G21 = Jinv_01*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G22 = Jinv_01*Jinv_11*W6*det*w[11][1]*w[11][1]*w[3][0]*w[5][0];
-    const double G23 = Jinv_01*Jinv_11*W6*det*w[1][1]*w[1][1]*w[3][0]*w[5][0];
-    const double G24 = Jinv_01*Jinv_11*W6*det*w[2][0]*w[5][0]*w[7][0];
-    const double G25 = Jinv_01*Jinv_11*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G26 = Jinv_01*Jinv_11*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G27 = 2*Jinv_01*Jinv_11*W11*det*w[12][0]*w[5][0];
-    const double G28 = 2*Jinv_01*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G29 = 2*Jinv_01*Jinv_11*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G30 = 2*Jinv_01*Jinv_11*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G31 = Jinv_00*Jinv_10*W11*det*w[12][0]*w[5][0];
-    const double G32 = Jinv_00*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G33 = Jinv_00*Jinv_10*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G34 = Jinv_00*Jinv_10*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G35 = Jinv_01*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G36 = Jinv_01*Jinv_11*W6*det*w[4][0]*w[5][0];
-    const double G37 = Jinv_01*Jinv_11*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G38 = 2*Jinv_00*Jinv_00*W3*det*w[11][0]*w[1][0]*w[3][0]*w[5][0];
-    const double G39 = 2*Jinv_00*Jinv_01*W3*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G40 = 2*Jinv_00*Jinv_01*W3*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
-    const double G41 = 2*Jinv_00*Jinv_01*W6*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
-    const double G42 = 2*Jinv_00*Jinv_01*W6*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G43 = 2*Jinv_01*Jinv_01*W11*det*w[12][0]*w[5][0];
-    const double G44 = 2*Jinv_01*Jinv_01*W3*det*w[11][1]*w[1][1]*w[3][0]*w[5][0];
-    const double G45 = 2*Jinv_01*Jinv_01*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G46 = 2*Jinv_01*Jinv_01*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G47 = 2*Jinv_01*Jinv_01*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G48 = Jinv_00*Jinv_00*W11*det*w[12][0]*w[5][0];
-    const double G49 = Jinv_00*Jinv_00*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G50 = Jinv_00*Jinv_00*W6*det*w[11][0]*w[11][0]*w[3][0]*w[5][0];
-    const double G51 = Jinv_00*Jinv_00*W6*det*w[1][0]*w[1][0]*w[3][0]*w[5][0];
-    const double G52 = Jinv_00*Jinv_00*W6*det*w[2][0]*w[5][0]*w[7][0];
-    const double G53 = Jinv_00*Jinv_00*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G54 = Jinv_00*Jinv_00*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G55 = Jinv_01*Jinv_01*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G56 = Jinv_01*Jinv_01*W6*det*w[11][1]*w[11][1]*w[3][0]*w[5][0];
-    const double G57 = Jinv_01*Jinv_01*W6*det*w[1][1]*w[1][1]*w[3][0]*w[5][0];
-    const double G58 = Jinv_01*Jinv_01*W6*det*w[2][0]*w[5][0]*w[7][0];
-    const double G59 = Jinv_01*Jinv_01*W6*det*w[4][0]*w[5][0];
-    const double G60 = Jinv_01*Jinv_01*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G61 = 2*Jinv_10*Jinv_10*W11*det*w[12][0]*w[5][0];
-    const double G62 = 2*Jinv_10*Jinv_10*W3*det*w[11][0]*w[1][0]*w[3][0]*w[5][0];
-    const double G63 = 2*Jinv_10*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G64 = 2*Jinv_10*Jinv_10*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G65 = 2*Jinv_10*Jinv_10*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G66 = 2*Jinv_10*Jinv_11*W3*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G67 = 2*Jinv_10*Jinv_11*W3*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
-    const double G68 = 2*Jinv_10*Jinv_11*W6*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
-    const double G69 = 2*Jinv_10*Jinv_11*W6*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
-    const double G70 = 2*Jinv_11*Jinv_11*W3*det*w[11][1]*w[1][1]*w[3][0]*w[5][0];
-    const double G71 = Jinv_10*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G72 = Jinv_10*Jinv_10*W6*det*w[11][0]*w[11][0]*w[3][0]*w[5][0];
-    const double G73 = Jinv_10*Jinv_10*W6*det*w[1][0]*w[1][0]*w[3][0]*w[5][0];
-    const double G74 = Jinv_10*Jinv_10*W6*det*w[2][0]*w[5][0]*w[7][0];
-    const double G75 = Jinv_10*Jinv_10*W6*det*w[4][0]*w[5][0];
-    const double G76 = Jinv_10*Jinv_10*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G77 = Jinv_11*Jinv_11*W11*det*w[12][0]*w[5][0];
-    const double G78 = Jinv_11*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G79 = Jinv_11*Jinv_11*W6*det*w[11][1]*w[11][1]*w[3][0]*w[5][0];
-    const double G80 = Jinv_11*Jinv_11*W6*det*w[1][1]*w[1][1]*w[3][0]*w[5][0];
-    const double G81 = Jinv_11*Jinv_11*W6*det*w[2][0]*w[5][0]*w[7][0];
-    const double G82 = Jinv_11*Jinv_11*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G83 = Jinv_11*Jinv_11*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G84 = 2*Jinv_00*Jinv_00*W11*det*w[12][0]*w[5][0];
-    const double G85 = 2*Jinv_00*Jinv_00*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G86 = 2*Jinv_00*Jinv_00*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G87 = 2*Jinv_00*Jinv_00*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G88 = Jinv_00*Jinv_00*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G89 = Jinv_00*Jinv_00*W6*det*w[4][0]*w[5][0];
-    const double G90 = Jinv_00*Jinv_00*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G91 = Jinv_01*Jinv_01*W11*det*w[12][0]*w[5][0];
-    const double G92 = Jinv_01*Jinv_01*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G93 = Jinv_01*Jinv_01*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G94 = Jinv_01*Jinv_01*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G95 = Jinv_00*Jinv_01*W11*det*w[12][0]*w[5][0];
-    const double G96 = Jinv_00*Jinv_01*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G97 = Jinv_00*Jinv_01*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G98 = Jinv_00*Jinv_01*W6*det*w[4][0]*w[5][0];
-    const double G99 = Jinv_00*Jinv_01*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G100 = Jinv_00*Jinv_01*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G101 = Jinv_00*Jinv_01*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G102 = 2*Jinv_11*Jinv_11*W11*det*w[12][0]*w[5][0];
-    const double G103 = 2*Jinv_11*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G104 = 2*Jinv_11*Jinv_11*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G105 = 2*Jinv_11*Jinv_11*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G106 = Jinv_10*Jinv_10*W11*det*w[12][0]*w[5][0];
-    const double G107 = Jinv_10*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G108 = Jinv_10*Jinv_10*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G109 = Jinv_10*Jinv_10*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G110 = Jinv_11*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G111 = Jinv_11*Jinv_11*W6*det*w[4][0]*w[5][0];
-    const double G112 = Jinv_11*Jinv_11*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G113 = Jinv_00*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G114 = Jinv_00*Jinv_11*W6*det*w[4][0]*w[5][0];
-    const double G115 = Jinv_00*Jinv_11*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G116 = Jinv_01*Jinv_10*W11*det*w[12][0]*w[5][0];
-    const double G117 = Jinv_01*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G118 = Jinv_01*Jinv_10*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G119 = Jinv_01*Jinv_10*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G120 = Jinv_10*Jinv_11*W11*det*w[12][0]*w[5][0];
-    const double G121 = Jinv_10*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G122 = Jinv_10*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G123 = Jinv_10*Jinv_11*W6*det*w[4][0]*w[5][0];
-    const double G124 = Jinv_10*Jinv_11*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G125 = Jinv_10*Jinv_11*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G126 = Jinv_10*Jinv_11*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G127 = Jinv_00*Jinv_11*W11*det*w[12][0]*w[5][0];
-    const double G128 = Jinv_00*Jinv_11*W3*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
-    const double G129 = Jinv_00*Jinv_11*W6*det*w[5][0]*w[5][0]*w[8][0];
-    const double G130 = Jinv_00*Jinv_11*W9*det*w[12][0]*w[5][0]*w[7][0];
-    const double G131 = Jinv_01*Jinv_10*W3*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
-    const double G132 = Jinv_01*Jinv_10*W6*det*w[4][0]*w[5][0];
-    const double G133 = Jinv_01*Jinv_10*W6*det*w[5][0]*w[5][0]*w[9][0];
-    const double G134 = Jinv_10*det*w[5][0];
-    const double G135 = Jinv_11*det*w[5][0];
+    const static double P_t3_p1_a0_s0[4][2] = \
+    {{-1, 1},
+    {-1, 1},
+    {-1, 1},
+    {-1, 1}};
+    // Array of non-zero columns
+    static const unsigned int nzc10[2] = {3, 5};
+    // Array of non-zero columns
+    static const unsigned int nzc9[2] = {3, 4};
+    // Array of non-zero columns
+    static const unsigned int nzc7[2] = {0, 1};
+    // Array of non-zero columns
+    static const unsigned int nzc11[2] = {0, 2};
+    
+    // Number of operations to compute geometry constants = 888
+    const double G0 = 2*Jinv_00*Jinv_10*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G1 = 2*Jinv_00*Jinv_10*W13*det*w[12][0]*w[5][0];
+    const double G2 = 2*Jinv_00*Jinv_10*W5*det*w[11][0]*w[1][0]*w[3][0]*w[5][0];
+    const double G3 = 2*Jinv_00*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G4 = 2*Jinv_00*Jinv_10*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G5 = 2*Jinv_01*Jinv_11*W5*det*w[11][1]*w[1][1]*w[3][0]*w[5][0];
+    const double G6 = Jinv_00*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G7 = Jinv_00*Jinv_10*W8*det*w[11][0]*w[11][0]*w[3][0]*w[5][0];
+    const double G8 = Jinv_00*Jinv_10*W8*det*w[1][0]*w[1][0]*w[3][0]*w[5][0];
+    const double G9 = Jinv_00*Jinv_10*W8*det*w[2][0]*w[5][0]*w[7][0];
+    const double G10 = Jinv_00*Jinv_10*W8*det*w[4][0]*w[5][0];
+    const double G11 = Jinv_00*Jinv_10*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G12 = Jinv_00*Jinv_11*W5*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G13 = Jinv_00*Jinv_11*W5*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
+    const double G14 = Jinv_00*Jinv_11*W8*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
+    const double G15 = Jinv_00*Jinv_11*W8*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G16 = Jinv_01*Jinv_10*W5*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G17 = Jinv_01*Jinv_10*W5*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
+    const double G18 = Jinv_01*Jinv_10*W8*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
+    const double G19 = Jinv_01*Jinv_10*W8*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G20 = Jinv_01*Jinv_11*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G21 = Jinv_01*Jinv_11*W13*det*w[12][0]*w[5][0];
+    const double G22 = Jinv_01*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G23 = Jinv_01*Jinv_11*W8*det*w[11][1]*w[11][1]*w[3][0]*w[5][0];
+    const double G24 = Jinv_01*Jinv_11*W8*det*w[1][1]*w[1][1]*w[3][0]*w[5][0];
+    const double G25 = Jinv_01*Jinv_11*W8*det*w[2][0]*w[5][0]*w[7][0];
+    const double G26 = Jinv_01*Jinv_11*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G27 = Jinv_00*Jinv_11*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G28 = Jinv_00*Jinv_11*W13*det*w[12][0]*w[5][0];
+    const double G29 = Jinv_00*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G30 = Jinv_00*Jinv_11*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G31 = Jinv_01*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G32 = Jinv_01*Jinv_10*W8*det*w[4][0]*w[5][0];
+    const double G33 = Jinv_01*Jinv_10*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G34 = 2*Jinv_00*Jinv_00*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G35 = 2*Jinv_00*Jinv_00*W13*det*w[12][0]*w[5][0];
+    const double G36 = 2*Jinv_00*Jinv_00*W5*det*w[11][0]*w[1][0]*w[3][0]*w[5][0];
+    const double G37 = 2*Jinv_00*Jinv_00*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G38 = 2*Jinv_00*Jinv_00*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G39 = 2*Jinv_00*Jinv_01*W5*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G40 = 2*Jinv_00*Jinv_01*W5*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
+    const double G41 = 2*Jinv_00*Jinv_01*W8*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
+    const double G42 = 2*Jinv_00*Jinv_01*W8*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G43 = 2*Jinv_01*Jinv_01*W5*det*w[11][1]*w[1][1]*w[3][0]*w[5][0];
+    const double G44 = Jinv_00*Jinv_00*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G45 = Jinv_00*Jinv_00*W8*det*w[11][0]*w[11][0]*w[3][0]*w[5][0];
+    const double G46 = Jinv_00*Jinv_00*W8*det*w[1][0]*w[1][0]*w[3][0]*w[5][0];
+    const double G47 = Jinv_00*Jinv_00*W8*det*w[2][0]*w[5][0]*w[7][0];
+    const double G48 = Jinv_00*Jinv_00*W8*det*w[4][0]*w[5][0];
+    const double G49 = Jinv_00*Jinv_00*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G50 = Jinv_01*Jinv_01*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G51 = Jinv_01*Jinv_01*W13*det*w[12][0]*w[5][0];
+    const double G52 = Jinv_01*Jinv_01*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G53 = Jinv_01*Jinv_01*W8*det*w[11][1]*w[11][1]*w[3][0]*w[5][0];
+    const double G54 = Jinv_01*Jinv_01*W8*det*w[1][1]*w[1][1]*w[3][0]*w[5][0];
+    const double G55 = Jinv_01*Jinv_01*W8*det*w[2][0]*w[5][0]*w[7][0];
+    const double G56 = Jinv_01*Jinv_01*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G57 = 2*Jinv_10*Jinv_10*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G58 = 2*Jinv_10*Jinv_10*W13*det*w[12][0]*w[5][0];
+    const double G59 = 2*Jinv_10*Jinv_10*W5*det*w[11][0]*w[1][0]*w[3][0]*w[5][0];
+    const double G60 = 2*Jinv_10*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G61 = 2*Jinv_10*Jinv_10*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G62 = 2*Jinv_10*Jinv_11*W5*det*w[11][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G63 = 2*Jinv_10*Jinv_11*W5*det*w[11][1]*w[1][0]*w[3][0]*w[5][0];
+    const double G64 = 2*Jinv_10*Jinv_11*W8*det*w[11][0]*w[11][1]*w[3][0]*w[5][0];
+    const double G65 = 2*Jinv_10*Jinv_11*W8*det*w[1][0]*w[1][1]*w[3][0]*w[5][0];
+    const double G66 = 2*Jinv_11*Jinv_11*W5*det*w[11][1]*w[1][1]*w[3][0]*w[5][0];
+    const double G67 = Jinv_10*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G68 = Jinv_10*Jinv_10*W8*det*w[11][0]*w[11][0]*w[3][0]*w[5][0];
+    const double G69 = Jinv_10*Jinv_10*W8*det*w[1][0]*w[1][0]*w[3][0]*w[5][0];
+    const double G70 = Jinv_10*Jinv_10*W8*det*w[2][0]*w[5][0]*w[7][0];
+    const double G71 = Jinv_10*Jinv_10*W8*det*w[4][0]*w[5][0];
+    const double G72 = Jinv_10*Jinv_10*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G73 = Jinv_11*Jinv_11*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G74 = Jinv_11*Jinv_11*W13*det*w[12][0]*w[5][0];
+    const double G75 = Jinv_11*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G76 = Jinv_11*Jinv_11*W8*det*w[11][1]*w[11][1]*w[3][0]*w[5][0];
+    const double G77 = Jinv_11*Jinv_11*W8*det*w[1][1]*w[1][1]*w[3][0]*w[5][0];
+    const double G78 = Jinv_11*Jinv_11*W8*det*w[2][0]*w[5][0]*w[7][0];
+    const double G79 = Jinv_11*Jinv_11*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G80 = 2*Jinv_01*Jinv_01*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G81 = 2*Jinv_01*Jinv_01*W13*det*w[12][0]*w[5][0];
+    const double G82 = 2*Jinv_01*Jinv_01*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G83 = 2*Jinv_01*Jinv_01*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G84 = Jinv_00*Jinv_00*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G85 = Jinv_00*Jinv_00*W13*det*w[12][0]*w[5][0];
+    const double G86 = Jinv_00*Jinv_00*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G87 = Jinv_00*Jinv_00*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G88 = Jinv_01*Jinv_01*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G89 = Jinv_01*Jinv_01*W8*det*w[4][0]*w[5][0];
+    const double G90 = Jinv_01*Jinv_01*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G91 = 2*Jinv_11*Jinv_11*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G92 = 2*Jinv_11*Jinv_11*W13*det*w[12][0]*w[5][0];
+    const double G93 = 2*Jinv_11*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G94 = 2*Jinv_11*Jinv_11*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G95 = Jinv_10*Jinv_10*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G96 = Jinv_10*Jinv_10*W13*det*w[12][0]*w[5][0];
+    const double G97 = Jinv_10*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G98 = Jinv_10*Jinv_10*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G99 = Jinv_11*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G100 = Jinv_11*Jinv_11*W8*det*w[4][0]*w[5][0];
+    const double G101 = Jinv_11*Jinv_11*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G102 = Jinv_10*Jinv_11*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G103 = Jinv_10*Jinv_11*W13*det*w[12][0]*w[5][0];
+    const double G104 = Jinv_10*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G105 = Jinv_10*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G106 = Jinv_10*Jinv_11*W8*det*w[4][0]*w[5][0];
+    const double G107 = Jinv_10*Jinv_11*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G108 = Jinv_10*Jinv_11*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G109 = Jinv_00*Jinv_01*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G110 = Jinv_00*Jinv_01*W13*det*w[12][0]*w[5][0];
+    const double G111 = Jinv_00*Jinv_01*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G112 = Jinv_00*Jinv_01*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G113 = Jinv_00*Jinv_01*W8*det*w[4][0]*w[5][0];
+    const double G114 = Jinv_00*Jinv_01*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G115 = Jinv_00*Jinv_01*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G116 = Jinv_00*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G117 = Jinv_00*Jinv_11*W8*det*w[4][0]*w[5][0];
+    const double G118 = Jinv_00*Jinv_11*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G119 = Jinv_01*Jinv_10*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G120 = Jinv_01*Jinv_10*W13*det*w[12][0]*w[5][0];
+    const double G121 = Jinv_01*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G122 = Jinv_01*Jinv_10*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G123 = 2*Jinv_01*Jinv_11*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G124 = 2*Jinv_01*Jinv_11*W13*det*w[12][0]*w[5][0];
+    const double G125 = 2*Jinv_01*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G126 = 2*Jinv_01*Jinv_11*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G127 = Jinv_00*Jinv_10*W11*det*w[12][0]*w[5][0]*w[7][0];
+    const double G128 = Jinv_00*Jinv_10*W13*det*w[12][0]*w[5][0];
+    const double G129 = Jinv_00*Jinv_10*W5*det*w[5][0]*w[5][0]*w[7][0]*w[8][0];
+    const double G130 = Jinv_00*Jinv_10*W8*det*w[5][0]*w[5][0]*w[8][0];
+    const double G131 = Jinv_01*Jinv_11*W5*det*w[5][0]*w[5][0]*w[7][0]*w[9][0];
+    const double G132 = Jinv_01*Jinv_11*W8*det*w[4][0]*w[5][0];
+    const double G133 = Jinv_01*Jinv_11*W8*det*w[5][0]*w[5][0]*w[9][0];
+    const double G134 = det*w[13][0];
+    const double G135 = det*w[13][0]*w[7][0];
     const double G136 = Jinv_00*det*w[5][0];
     const double G137 = Jinv_01*det*w[5][0];
+    const double G138 = Jinv_10*det*w[5][0];
+    const double G139 = Jinv_11*det*w[5][0];
+    const double G140 = det*w[7][0];
     
-    // Loop quadrature points (tensor/monomial terms (3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18))
+    // Loop quadrature points (tensor/monomial terms (5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20))
     // Number of operations to compute element tensor for following IP loop = 356
     // Only 1 integration point, omitting IP loop.
     
     // Number of operations to compute declarations = 164
     const double Gip0 = G0 + G1 + G10 + G11 + G12 + G13 + G14 + G15 + G16 + G17 + G18 + G19 + G2 + G20 + G21 + G22 + G23 + G24 + G25 + G26 + G3 + G4 + G5 + G6 + G7 + G8 + G9;
-    const double Gip1 = G1 + G12 + G13 + G14 + G15 + G16 + G17 + G18 + G19 + G22 + G23 + G24 + G27 + G28 + G29 + G30 + G31 + G32 + G33 + G34 + G35 + G36 + G37 + G5 + G7 + G8 + G9;
-    const double Gip2 = G38 + G39 + G40 + G41 + G42 + G44 + G50 + G51 + G52 + G56 + G57 + G58 + G84 + G85 + G86 + G87 + G88 + G89 + G90 + G91 + G92 + G93 + G94;
-    const double Gip3 = G61 + G62 + G63 + G64 + G65 + G66 + G67 + G68 + G69 + G70 + G71 + G72 + G73 + G74 + G75 + G76 + G77 + G78 + G79 + G80 + G81 + G82 + G83;
-    const double Gip4 = G113 + G114 + G115 + G116 + G117 + G118 + G119;
-    const double Gip5 = G38 + G39 + G40 + G41 + G42 + G43 + G44 + G45 + G46 + G47 + G48 + G49 + G50 + G51 + G52 + G53 + G54 + G55 + G56 + G57 + G58 + G59 + G60;
-    const double Gip6 = G100 + G101 + G95 + G96 + G97 + G98 + G99;
-    const double Gip7 = G102 + G103 + G104 + G105 + G106 + G107 + G108 + G109 + G110 + G111 + G112 + G62 + G66 + G67 + G68 + G69 + G70 + G72 + G73 + G74 + G79 + G80 + G81;
-    const double Gip8 = G127 + G128 + G129 + G130 + G131 + G132 + G133;
-    const double Gip9 = G120 + G121 + G122 + G123 + G124 + G125 + G126;
+    const double Gip1 = G27 + G28 + G29 + G30 + G31 + G32 + G33;
+    const double Gip2 = G36 + G39 + G40 + G41 + G42 + G43 + G45 + G46 + G47 + G53 + G54 + G55 + G80 + G81 + G82 + G83 + G84 + G85 + G86 + G87 + G88 + G89 + G90;
+    const double Gip3 = G57 + G58 + G59 + G60 + G61 + G62 + G63 + G64 + G65 + G66 + G67 + G68 + G69 + G70 + G71 + G72 + G73 + G74 + G75 + G76 + G77 + G78 + G79;
+    const double Gip4 = G34 + G35 + G36 + G37 + G38 + G39 + G40 + G41 + G42 + G43 + G44 + G45 + G46 + G47 + G48 + G49 + G50 + G51 + G52 + G53 + G54 + G55 + G56;
+    const double Gip5 = G100 + G101 + G59 + G62 + G63 + G64 + G65 + G66 + G68 + G69 + G70 + G76 + G77 + G78 + G91 + G92 + G93 + G94 + G95 + G96 + G97 + G98 + G99;
+    const double Gip6 = G109 + G110 + G111 + G112 + G113 + G114 + G115;
+    const double Gip7 = G12 + G123 + G124 + G125 + G126 + G127 + G128 + G129 + G13 + G130 + G131 + G132 + G133 + G14 + G15 + G16 + G17 + G18 + G19 + G2 + G23 + G24 + G25 + G5 + G7 + G8 + G9;
+    const double Gip8 = G102 + G103 + G104 + G105 + G106 + G107 + G108;
+    const double Gip9 = G116 + G117 + G118 + G119 + G120 + G121 + G122;
     
     // Loop primary indices.
     // Number of operations for primary indices = 192
@@ -15974,40 +16500,40 @@ void UFC_NSEMomentum2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
         // Number of operations to compute entry = 3
         A[nzc1[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip0;
         // Number of operations to compute entry = 3
-        A[nzc3[j]*6 + nzc2[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip1;
+        A[nzc4[j]*6 + nzc1[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip1;
         // Number of operations to compute entry = 3
-        A[nzc0[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip2;
+        A[nzc4[j]*6 + nzc4[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip2;
         // Number of operations to compute entry = 3
         A[nzc0[j]*6 + nzc1[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip0;
         // Number of operations to compute entry = 3
-        A[nzc2[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip1;
-        // Number of operations to compute entry = 3
         A[nzc1[j]*6 + nzc1[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip3;
         // Number of operations to compute entry = 3
-        A[nzc3[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip4;
+        A[nzc0[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip4;
         // Number of operations to compute entry = 3
-        A[nzc2[j]*6 + nzc2[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip5;
+        A[nzc3[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip5;
         // Number of operations to compute entry = 3
-        A[nzc2[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip6;
+        A[nzc1[j]*6 + nzc4[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip1;
         // Number of operations to compute entry = 3
-        A[nzc3[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip7;
+        A[nzc4[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip6;
         // Number of operations to compute entry = 3
-        A[nzc2[j]*6 + nzc1[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip8;
+        A[nzc3[j]*6 + nzc4[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip7;
         // Number of operations to compute entry = 3
-        A[nzc1[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip9;
+        A[nzc0[j]*6 + nzc4[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip6;
         // Number of operations to compute entry = 3
-        A[nzc3[j]*6 + nzc1[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip9;
+        A[nzc3[j]*6 + nzc1[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip8;
         // Number of operations to compute entry = 3
-        A[nzc0[j]*6 + nzc2[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip6;
+        A[nzc4[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip7;
         // Number of operations to compute entry = 3
-        A[nzc1[j]*6 + nzc2[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip8;
+        A[nzc3[j]*6 + nzc0[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip9;
         // Number of operations to compute entry = 3
-        A[nzc0[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip4;
+        A[nzc0[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip9;
+        // Number of operations to compute entry = 3
+        A[nzc1[j]*6 + nzc3[k]] += P_t11_p0_a0_s0[0][j]*P_t11_p0_a0_s0[0][k]*Gip8;
       }// end loop over 'k'
     }// end loop over 'j'
     
-    // Loop quadrature points (tensor/monomial terms (0, 1, 2))
-    // Number of operations to compute element tensor for following IP loop = 712
+    // Loop quadrature points (tensor/monomial terms (0, 1, 2, 3, 4))
+    // Number of operations to compute element tensor for following IP loop = 724
     for (unsigned int ip = 0; ip < 4; ip++)
     {
       
@@ -16022,21 +16548,21 @@ void UFC_NSEMomentum2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
       // Number of operations to compute values = 24
       for (unsigned int s = 0; s < 3; s++)
       {
-        F1 += P_t2_s2_s1[ip][s]*w[0][nzc9[s]];
-        F2 += P_t2_s2_s1[ip][s]*w[10][nzc9[s]];
-        F3 += P_t2_s2_s1[ip][s]*w[0][nzc7[s]];
-        F4 += P_t2_s2_s1[ip][s]*w[10][nzc7[s]];
+        F1 += P_t3_s2_s0[ip][s]*w[0][nzc5[s]];
+        F2 += P_t3_s2_s0[ip][s]*w[10][nzc5[s]];
+        F3 += P_t3_s2_s0[ip][s]*w[0][nzc6[s]];
+        F4 += P_t3_s2_s0[ip][s]*w[10][nzc6[s]];
       }// end loop over 's'
       // Number of operations to compute values = 6
       for (unsigned int r = 0; r < 3; r++)
       {
-        F0 += P_t2_s2_s1[ip][r]*w[6][r];
+        F0 += P_t3_s2_s0[ip][r]*w[6][r];
       }// end loop over 'r'
       
-      // Number of operations to compute declarations = 22
-      const double Gip0 = F0*W0[ip]*det;
-      const double Gip1 = ((F1*G136 + F3*G137)*W1[ip] + (F2*G136 + F4*G137)*W2[ip])*F0;
-      const double Gip2 = ((F1*G134 + F3*G135)*W1[ip] + (F2*G134 + F4*G135)*W2[ip])*F0;
+      // Number of operations to compute declarations = 25
+      const double Gip0 = G135*W1[ip] + (F0*G140 + G134)*W0[ip];
+      const double Gip1 = ((F1*W3[ip] + F2*W4[ip])*G136 + (F3*W3[ip] + F4*W4[ip])*G137)*F0;
+      const double Gip2 = ((F1*W3[ip] + F2*W4[ip])*G138 + (F3*W3[ip] + F4*W4[ip])*G139)*F0;
       
       // Loop primary indices.
       // Number of operations for primary indices = 54
@@ -16045,9 +16571,9 @@ void UFC_NSEMomentum2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
         for (unsigned int k = 0; k < 3; k++)
         {
           // Number of operations to compute entry = 3
-          A[nzc9[j]*6 + nzc9[k]] += P_t2_s2_s1[ip][j]*P_t2_s2_s1[ip][k]*Gip0;
+          A[nzc6[j]*6 + nzc6[k]] += P_t3_s2_s0[ip][j]*P_t3_s2_s0[ip][k]*Gip0;
           // Number of operations to compute entry = 3
-          A[nzc7[j]*6 + nzc7[k]] += P_t2_s2_s1[ip][j]*P_t2_s2_s1[ip][k]*Gip0;
+          A[nzc5[j]*6 + nzc5[k]] += P_t3_s2_s0[ip][j]*P_t3_s2_s0[ip][k]*Gip0;
         }// end loop over 'k'
       }// end loop over 'j'
       
@@ -16057,13 +16583,13 @@ void UFC_NSEMomentum2DBilinearForm_cell_integral_0::tabulate_tensor(double* A,
         for (unsigned int k = 0; k < 2; k++)
         {
           // Number of operations to compute entry = 3
-          A[nzc7[j]*6 + nzc10[k]] += P_t1_p1_a0_s1[ip][k]*P_t2_s2_s1[ip][j]*Gip1;
+          A[nzc5[j]*6 + nzc7[k]] += P_t3_p1_a0_s0[ip][k]*P_t3_s2_s0[ip][j]*Gip1;
           // Number of operations to compute entry = 3
-          A[nzc9[j]*6 + nzc5[k]] += P_t1_p1_a0_s1[ip][k]*P_t2_s2_s1[ip][j]*Gip1;
+          A[nzc6[j]*6 + nzc9[k]] += P_t3_p1_a0_s0[ip][k]*P_t3_s2_s0[ip][j]*Gip1;
           // Number of operations to compute entry = 3
-          A[nzc9[j]*6 + nzc4[k]] += P_t1_p1_a0_s1[ip][k]*P_t2_s2_s1[ip][j]*Gip2;
+          A[nzc5[j]*6 + nzc11[k]] += P_t3_p1_a0_s0[ip][k]*P_t3_s2_s0[ip][j]*Gip2;
           // Number of operations to compute entry = 3
-          A[nzc7[j]*6 + nzc11[k]] += P_t1_p1_a0_s1[ip][k]*P_t2_s2_s1[ip][j]*Gip2;
+          A[nzc6[j]*6 + nzc10[k]] += P_t3_p1_a0_s0[ip][k]*P_t3_s2_s0[ip][j]*Gip2;
         }// end loop over 'k'
       }// end loop over 'j'
       
@@ -16085,7 +16611,7 @@ UFC_NSEMomentum2DBilinearForm::~UFC_NSEMomentum2DBilinearForm()
 /// Return a string identifying the form
 const char* UFC_NSEMomentum2DBilinearForm::signature() const
 {
-    return "-w6_a0[0, 1, 2] | va0[0, 1, 2]*vi1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -0.5w5_a0[0]w6_a1[0, 1, 2]w0_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a4[0, 1]]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w5_a0[0]w6_a1[0, 1, 2]w10_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a4[0, 1]]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w5_a0[0]w7_a1[0]w5_a2[0]w8_a3[0](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w5_a0[0]w7_a1[0]w5_a2[0]w8_a3[0](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + 0.5w5_a0[0]w7_a1[0]w5_a2[0]w9_a3[0](dXa4[0, 1]/dxa6[0, 1])(dXa5[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + -0.5w5_a0[0]w5_a1[0]w8_a2[0](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w5_a1[0]w8_a2[0](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + -0.5w5_a0[0]w5_a1[0]w9_a2[0](dXa3[0, 1]/dxa5[0, 1])(dXa4[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + 0.25w5_a0[0]w7_a1[0]w12_a2[0](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.25w5_a0[0]w7_a1[0]w12_a2[0](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + -0.25w5_a0[0]w12_a1[0](dXa2[0, 1]/dxb0[0, 1])(dXa3[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*((d/dXa2[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.25w5_a0[0]w12_a1[0](dXa2[0, 1]/dxa5[0, 1])(dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0]*((d/dXa2[0, 1])vi1[0, 1, 2, 3, 4, 5][a4[0, 1]])*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][a5[0, 1]])*dX(0) + -0.5w5_a0[0]w7_a1[0]w2_a2[0](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w3_a1[0]w1_a2[0, 1]w1_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w5_a0[0]w3_a1[0]w1_a2[0, 1]w11_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w5_a0[0]w3_a1[0]w11_a2[0, 1]w1_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w3_a1[0]w11_a2[0, 1]w11_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w4_a1[0](dXa2[0, 1]/dxa5[0, 1])(dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0]*((d/dXa2[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][a4[0, 1]])*dX(0)";
+    return "-w7_a0[0]w6_a1[0, 1, 2] | va0[0]*va1[0, 1, 2]*vi1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + w7_a0[0]w13_a1[0] | va0[0]*va1[0]*vi1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w13_a0[0] | va0[0]*vi1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -0.5w5_a0[0]w6_a1[0, 1, 2]w0_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a4[0, 1]]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w5_a0[0]w6_a1[0, 1, 2]w10_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a4[0, 1]]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w5_a0[0]w7_a1[0]w5_a2[0]w8_a3[0](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w5_a0[0]w7_a1[0]w5_a2[0]w8_a3[0](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + 0.5w5_a0[0]w7_a1[0]w5_a2[0]w9_a3[0](dXa4[0, 1]/dxa6[0, 1])(dXa5[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + -0.5w5_a0[0]w5_a1[0]w8_a2[0](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w5_a1[0]w8_a2[0](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + -0.5w5_a0[0]w5_a1[0]w9_a2[0](dXa3[0, 1]/dxa5[0, 1])(dXa4[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + 0.25w5_a0[0]w7_a1[0]w12_a2[0](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.25w5_a0[0]w7_a1[0]w12_a2[0](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + -0.25w5_a0[0]w12_a1[0](dXa2[0, 1]/dxb0[0, 1])(dXa3[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*((d/dXa2[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.25w5_a0[0]w12_a1[0](dXa2[0, 1]/dxa5[0, 1])(dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0]*((d/dXa2[0, 1])vi1[0, 1, 2, 3, 4, 5][a4[0, 1]])*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][a5[0, 1]])*dX(0) + -0.5w5_a0[0]w7_a1[0]w2_a2[0](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa3[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w3_a1[0]w1_a2[0, 1]w1_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w5_a0[0]w3_a1[0]w1_a2[0, 1]w11_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w5_a0[0]w3_a1[0]w11_a2[0, 1]w1_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w3_a1[0]w11_a2[0, 1]w11_a3[0, 1](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0, 1][a7[0, 1]]*((d/dXa4[0, 1])vi1[0, 1, 2, 3, 4, 5][b0[0, 1]])*va3[0, 1][a6[0, 1]]*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w5_a0[0]w4_a1[0](dXa2[0, 1]/dxa5[0, 1])(dXa3[0, 1]/dxa4[0, 1]) | va0[0]*va1[0]*((d/dXa2[0, 1])vi1[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][a4[0, 1]])*dX(0)";
 }
 
 /// Return the rank of the global tensor (r)
@@ -16097,7 +16623,7 @@ unsigned int UFC_NSEMomentum2DBilinearForm::rank() const
 /// Return the number of coefficients (n)
 unsigned int UFC_NSEMomentum2DBilinearForm::num_coefficients() const
 {
-    return 13;
+    return 14;
 }
 
 /// Return the number of cell integrals
@@ -16168,6 +16694,9 @@ ufc::finite_element* UFC_NSEMomentum2DBilinearForm::create_finite_element(unsign
     case 14:
       return new UFC_NSEMomentum2DBilinearForm_finite_element_14();
       break;
+    case 15:
+      return new UFC_NSEMomentum2DBilinearForm_finite_element_15();
+      break;
     }
     return 0;
 }
@@ -16221,6 +16750,9 @@ ufc::dof_map* UFC_NSEMomentum2DBilinearForm::create_dof_map(unsigned int i) cons
       break;
     case 14:
       return new UFC_NSEMomentum2DBilinearForm_dof_map_14();
+      break;
+    case 15:
+      return new UFC_NSEMomentum2DBilinearForm_dof_map_15();
       break;
     }
     return 0;
@@ -33047,6 +33579,766 @@ ufc::finite_element* UFC_NSEMomentum2DLinearForm_finite_element_17::create_sub_e
     return 0;
 }
 
+
+/// Constructor
+UFC_NSEMomentum2DLinearForm_finite_element_18::UFC_NSEMomentum2DLinearForm_finite_element_18() : ufc::finite_element()
+{
+    // Do nothing
+}
+
+/// Destructor
+UFC_NSEMomentum2DLinearForm_finite_element_18::~UFC_NSEMomentum2DLinearForm_finite_element_18()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the finite element
+const char* UFC_NSEMomentum2DLinearForm_finite_element_18::signature() const
+{
+    return "Discontinuous Lagrange finite element of degree 0 on a triangle";
+}
+
+/// Return the cell shape
+ufc::shape UFC_NSEMomentum2DLinearForm_finite_element_18::cell_shape() const
+{
+    return ufc::triangle;
+}
+
+/// Return the dimension of the finite element function space
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_18::space_dimension() const
+{
+    return 1;
+}
+
+/// Return the rank of the value space
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_18::value_rank() const
+{
+    return 0;
+}
+
+/// Return the dimension of the value space for axis i
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_18::value_dimension(unsigned int i) const
+{
+    return 1;
+}
+
+/// Evaluate basis function i at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_18::evaluate_basis(unsigned int i,
+                                   double* values,
+                                   const double* coordinates,
+                                   const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+      
+    // Compute determinant of Jacobian
+    const double detJ = J_00*J_11 - J_01*J_10;
+    
+    // Compute inverse of Jacobian
+    
+    // Get coordinates and map to the reference (UFC) element
+    double x = (element_coordinates[0][1]*element_coordinates[2][0] -\
+                element_coordinates[0][0]*element_coordinates[2][1] +\
+                J_11*coordinates[0] - J_01*coordinates[1]) / detJ;
+    double y = (element_coordinates[1][1]*element_coordinates[0][0] -\
+                element_coordinates[1][0]*element_coordinates[0][1] -\
+                J_10*coordinates[0] + J_00*coordinates[1]) / detJ;
+    
+    // Map coordinates to the reference square
+    if (std::abs(y - 1.0) < 1e-14)
+      x = -1.0;
+    else
+      x = 2.0 *x/(1.0 - y) - 1.0;
+    y = 2.0*y - 1.0;
+    
+    // Reset values
+    *values = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.707106781186548*psitilde_a_0*scalings_y_0*psitilde_bs_0_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.41421356237309}};
+    
+    // Extract relevant coefficients
+    const double coeff0_0 = coefficients0[dof][0];
+    
+    // Compute value(s)
+    *values = coeff0_0*basisvalue0;
+}
+
+/// Evaluate all basis functions at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_18::evaluate_basis_all(double* values,
+                                       const double* coordinates,
+                                       const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis() is not yet implemented.");
+}
+
+/// Evaluate order n derivatives of basis function i at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_18::evaluate_basis_derivatives(unsigned int i,
+                                               unsigned int n,
+                                               double* values,
+                                               const double* coordinates,
+                                               const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+      
+    // Compute determinant of Jacobian
+    const double detJ = J_00*J_11 - J_01*J_10;
+    
+    // Compute inverse of Jacobian
+    
+    // Get coordinates and map to the reference (UFC) element
+    double x = (element_coordinates[0][1]*element_coordinates[2][0] -\
+                element_coordinates[0][0]*element_coordinates[2][1] +\
+                J_11*coordinates[0] - J_01*coordinates[1]) / detJ;
+    double y = (element_coordinates[1][1]*element_coordinates[0][0] -\
+                element_coordinates[1][0]*element_coordinates[0][1] -\
+                J_10*coordinates[0] + J_00*coordinates[1]) / detJ;
+    
+    // Map coordinates to the reference square
+    if (std::abs(y - 1.0) < 1e-14)
+      x = -1.0;
+    else
+      x = 2.0 *x/(1.0 - y) - 1.0;
+    y = 2.0*y - 1.0;
+    
+    // Compute number of derivatives
+    unsigned int num_derivatives = 1;
+    
+    for (unsigned int j = 0; j < n; j++)
+      num_derivatives *= 2;
+    
+    
+    // Declare pointer to two dimensional array that holds combinations of derivatives and initialise
+    unsigned int **combinations = new unsigned int *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      combinations[j] = new unsigned int [n];
+      for (unsigned int k = 0; k < n; k++)
+        combinations[j][k] = 0;
+    }
+        
+    // Generate combinations of derivatives
+    for (unsigned int row = 1; row < num_derivatives; row++)
+    {
+      for (unsigned int num = 0; num < row; num++)
+      {
+        for (unsigned int col = n-1; col+1 > 0; col--)
+        {
+          if (combinations[row][col] + 1 > 1)
+            combinations[row][col] = 0;
+          else
+          {
+            combinations[row][col] += 1;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Compute inverse of Jacobian
+    const double Jinv[2][2] =  {{J_11 / detJ, -J_01 / detJ}, {-J_10 / detJ, J_00 / detJ}};
+    
+    // Declare transformation matrix
+    // Declare pointer to two dimensional array and initialise
+    double **transform = new double *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      transform[j] = new double [num_derivatives];
+      for (unsigned int k = 0; k < num_derivatives; k++)
+        transform[j][k] = 1;
+    }
+    
+    // Construct transformation matrix
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        for (unsigned int k = 0; k < n; k++)
+          transform[row][col] *= Jinv[combinations[col][k]][combinations[row][k]];
+      }
+    }
+    
+    // Reset values
+    for (unsigned int j = 0; j < 1*num_derivatives; j++)
+      values[j] = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.707106781186548*psitilde_a_0*scalings_y_0*psitilde_bs_0_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.41421356237309}};
+    
+    // Interesting (new) part
+    // Tables of derivatives of the polynomial base (transpose)
+    const static double dmats0[1][1] = \
+    {{0}};
+    
+    const static double dmats1[1][1] = \
+    {{0}};
+    
+    // Compute reference derivatives
+    // Declare pointer to array of derivatives on FIAT element
+    double *derivatives = new double [num_derivatives];
+    
+    // Declare coefficients
+    double coeff0_0 = 0;
+    
+    // Declare new coefficients
+    double new_coeff0_0 = 0;
+    
+    // Loop possible derivatives
+    for (unsigned int deriv_num = 0; deriv_num < num_derivatives; deriv_num++)
+    {
+      // Get values from coefficients array
+      new_coeff0_0 = coefficients0[dof][0];
+    
+      // Loop derivative order
+      for (unsigned int j = 0; j < n; j++)
+      {
+        // Update old coefficients
+        coeff0_0 = new_coeff0_0;
+    
+        if(combinations[deriv_num][j] == 0)
+        {
+          new_coeff0_0 = coeff0_0*dmats0[0][0];
+        }
+        if(combinations[deriv_num][j] == 1)
+        {
+          new_coeff0_0 = coeff0_0*dmats1[0][0];
+        }
+    
+      }
+      // Compute derivatives on reference element as dot product of coefficients and basisvalues
+      derivatives[deriv_num] = new_coeff0_0*basisvalue0;
+    }
+    
+    // Transform derivatives back to physical element
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        values[row] += transform[row][col]*derivatives[col];
+      }
+    }
+    // Delete pointer to array of derivatives on FIAT element
+    delete [] derivatives;
+    
+    // Delete pointer to array of combinations of derivatives and transform
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      delete [] combinations[row];
+      delete [] transform[row];
+    }
+    
+    delete [] combinations;
+    delete [] transform;
+}
+
+/// Evaluate order n derivatives of all basis functions at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_18::evaluate_basis_derivatives_all(unsigned int n,
+                                                   double* values,
+                                                   const double* coordinates,
+                                                   const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis_derivatives() is not yet implemented.");
+}
+
+/// Evaluate linear functional for dof i on the function f
+double UFC_NSEMomentum2DLinearForm_finite_element_18::evaluate_dof(unsigned int i,
+                                   const ufc::function& f,
+                                   const ufc::cell& c) const
+{
+    // The reference points, direction and weights:
+    const static double X[1][1][2] = {{{0.333333333333333, 0.333333333333333}}};
+    const static double W[1][1] = {{1}};
+    const static double D[1][1][1] = {{{1}}};
+    
+    const double * const * x = c.coordinates;
+    double result = 0.0;
+    // Iterate over the points:
+    // Evaluate basis functions for affine mapping
+    const double w0 = 1.0 - X[i][0][0] - X[i][0][1];
+    const double w1 = X[i][0][0];
+    const double w2 = X[i][0][1];
+    
+    // Compute affine mapping y = F(X)
+    double y[2];
+    y[0] = w0*x[0][0] + w1*x[1][0] + w2*x[2][0];
+    y[1] = w0*x[0][1] + w1*x[1][1] + w2*x[2][1];
+    
+    // Evaluate function at physical points
+    double values[1];
+    f.evaluate(values, y, c);
+    
+    // Map function values using appropriate mapping
+    // Affine map: Do nothing
+    
+    // Note that we do not map the weights (yet).
+    
+    // Take directional components
+    for(int k = 0; k < 1; k++)
+      result += values[k]*D[i][0][k];
+    // Multiply by weights 
+    result *= W[i][0];
+    
+    return result;
+}
+
+/// Evaluate linear functionals for all dofs on the function f
+void UFC_NSEMomentum2DLinearForm_finite_element_18::evaluate_dofs(double* values,
+                                  const ufc::function& f,
+                                  const ufc::cell& c) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Interpolate vertex values from dof values
+void UFC_NSEMomentum2DLinearForm_finite_element_18::interpolate_vertex_values(double* vertex_values,
+                                              const double* dof_values,
+                                              const ufc::cell& c) const
+{
+    // Evaluate at vertices and use affine mapping
+    vertex_values[0] = dof_values[0];
+    vertex_values[1] = dof_values[0];
+    vertex_values[2] = dof_values[0];
+}
+
+/// Return the number of sub elements (for a mixed element)
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_18::num_sub_elements() const
+{
+    return 1;
+}
+
+/// Create a new finite element for sub element i (for a mixed element)
+ufc::finite_element* UFC_NSEMomentum2DLinearForm_finite_element_18::create_sub_element(unsigned int i) const
+{
+    return new UFC_NSEMomentum2DLinearForm_finite_element_18();
+}
+
+
+/// Constructor
+UFC_NSEMomentum2DLinearForm_finite_element_19::UFC_NSEMomentum2DLinearForm_finite_element_19() : ufc::finite_element()
+{
+    // Do nothing
+}
+
+/// Destructor
+UFC_NSEMomentum2DLinearForm_finite_element_19::~UFC_NSEMomentum2DLinearForm_finite_element_19()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the finite element
+const char* UFC_NSEMomentum2DLinearForm_finite_element_19::signature() const
+{
+    return "Discontinuous Lagrange finite element of degree 0 on a triangle";
+}
+
+/// Return the cell shape
+ufc::shape UFC_NSEMomentum2DLinearForm_finite_element_19::cell_shape() const
+{
+    return ufc::triangle;
+}
+
+/// Return the dimension of the finite element function space
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_19::space_dimension() const
+{
+    return 1;
+}
+
+/// Return the rank of the value space
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_19::value_rank() const
+{
+    return 0;
+}
+
+/// Return the dimension of the value space for axis i
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_19::value_dimension(unsigned int i) const
+{
+    return 1;
+}
+
+/// Evaluate basis function i at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_19::evaluate_basis(unsigned int i,
+                                   double* values,
+                                   const double* coordinates,
+                                   const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+      
+    // Compute determinant of Jacobian
+    const double detJ = J_00*J_11 - J_01*J_10;
+    
+    // Compute inverse of Jacobian
+    
+    // Get coordinates and map to the reference (UFC) element
+    double x = (element_coordinates[0][1]*element_coordinates[2][0] -\
+                element_coordinates[0][0]*element_coordinates[2][1] +\
+                J_11*coordinates[0] - J_01*coordinates[1]) / detJ;
+    double y = (element_coordinates[1][1]*element_coordinates[0][0] -\
+                element_coordinates[1][0]*element_coordinates[0][1] -\
+                J_10*coordinates[0] + J_00*coordinates[1]) / detJ;
+    
+    // Map coordinates to the reference square
+    if (std::abs(y - 1.0) < 1e-14)
+      x = -1.0;
+    else
+      x = 2.0 *x/(1.0 - y) - 1.0;
+    y = 2.0*y - 1.0;
+    
+    // Reset values
+    *values = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.707106781186548*psitilde_a_0*scalings_y_0*psitilde_bs_0_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.41421356237309}};
+    
+    // Extract relevant coefficients
+    const double coeff0_0 = coefficients0[dof][0];
+    
+    // Compute value(s)
+    *values = coeff0_0*basisvalue0;
+}
+
+/// Evaluate all basis functions at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_19::evaluate_basis_all(double* values,
+                                       const double* coordinates,
+                                       const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis() is not yet implemented.");
+}
+
+/// Evaluate order n derivatives of basis function i at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_19::evaluate_basis_derivatives(unsigned int i,
+                                               unsigned int n,
+                                               double* values,
+                                               const double* coordinates,
+                                               const ufc::cell& c) const
+{
+    // Extract vertex coordinates
+    const double * const * element_coordinates = c.coordinates;
+    
+    // Compute Jacobian of affine map from reference cell
+    const double J_00 = element_coordinates[1][0] - element_coordinates[0][0];
+    const double J_01 = element_coordinates[2][0] - element_coordinates[0][0];
+    const double J_10 = element_coordinates[1][1] - element_coordinates[0][1];
+    const double J_11 = element_coordinates[2][1] - element_coordinates[0][1];
+      
+    // Compute determinant of Jacobian
+    const double detJ = J_00*J_11 - J_01*J_10;
+    
+    // Compute inverse of Jacobian
+    
+    // Get coordinates and map to the reference (UFC) element
+    double x = (element_coordinates[0][1]*element_coordinates[2][0] -\
+                element_coordinates[0][0]*element_coordinates[2][1] +\
+                J_11*coordinates[0] - J_01*coordinates[1]) / detJ;
+    double y = (element_coordinates[1][1]*element_coordinates[0][0] -\
+                element_coordinates[1][0]*element_coordinates[0][1] -\
+                J_10*coordinates[0] + J_00*coordinates[1]) / detJ;
+    
+    // Map coordinates to the reference square
+    if (std::abs(y - 1.0) < 1e-14)
+      x = -1.0;
+    else
+      x = 2.0 *x/(1.0 - y) - 1.0;
+    y = 2.0*y - 1.0;
+    
+    // Compute number of derivatives
+    unsigned int num_derivatives = 1;
+    
+    for (unsigned int j = 0; j < n; j++)
+      num_derivatives *= 2;
+    
+    
+    // Declare pointer to two dimensional array that holds combinations of derivatives and initialise
+    unsigned int **combinations = new unsigned int *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      combinations[j] = new unsigned int [n];
+      for (unsigned int k = 0; k < n; k++)
+        combinations[j][k] = 0;
+    }
+        
+    // Generate combinations of derivatives
+    for (unsigned int row = 1; row < num_derivatives; row++)
+    {
+      for (unsigned int num = 0; num < row; num++)
+      {
+        for (unsigned int col = n-1; col+1 > 0; col--)
+        {
+          if (combinations[row][col] + 1 > 1)
+            combinations[row][col] = 0;
+          else
+          {
+            combinations[row][col] += 1;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Compute inverse of Jacobian
+    const double Jinv[2][2] =  {{J_11 / detJ, -J_01 / detJ}, {-J_10 / detJ, J_00 / detJ}};
+    
+    // Declare transformation matrix
+    // Declare pointer to two dimensional array and initialise
+    double **transform = new double *[num_derivatives];
+        
+    for (unsigned int j = 0; j < num_derivatives; j++)
+    {
+      transform[j] = new double [num_derivatives];
+      for (unsigned int k = 0; k < num_derivatives; k++)
+        transform[j][k] = 1;
+    }
+    
+    // Construct transformation matrix
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        for (unsigned int k = 0; k < n; k++)
+          transform[row][col] *= Jinv[combinations[col][k]][combinations[row][k]];
+      }
+    }
+    
+    // Reset values
+    for (unsigned int j = 0; j < 1*num_derivatives; j++)
+      values[j] = 0;
+    
+    // Map degree of freedom to element degree of freedom
+    const unsigned int dof = i;
+    
+    // Generate scalings
+    const double scalings_y_0 = 1;
+    
+    // Compute psitilde_a
+    const double psitilde_a_0 = 1;
+    
+    // Compute psitilde_bs
+    const double psitilde_bs_0_0 = 1;
+    
+    // Compute basisvalues
+    const double basisvalue0 = 0.707106781186548*psitilde_a_0*scalings_y_0*psitilde_bs_0_0;
+    
+    // Table(s) of coefficients
+    const static double coefficients0[1][1] = \
+    {{1.41421356237309}};
+    
+    // Interesting (new) part
+    // Tables of derivatives of the polynomial base (transpose)
+    const static double dmats0[1][1] = \
+    {{0}};
+    
+    const static double dmats1[1][1] = \
+    {{0}};
+    
+    // Compute reference derivatives
+    // Declare pointer to array of derivatives on FIAT element
+    double *derivatives = new double [num_derivatives];
+    
+    // Declare coefficients
+    double coeff0_0 = 0;
+    
+    // Declare new coefficients
+    double new_coeff0_0 = 0;
+    
+    // Loop possible derivatives
+    for (unsigned int deriv_num = 0; deriv_num < num_derivatives; deriv_num++)
+    {
+      // Get values from coefficients array
+      new_coeff0_0 = coefficients0[dof][0];
+    
+      // Loop derivative order
+      for (unsigned int j = 0; j < n; j++)
+      {
+        // Update old coefficients
+        coeff0_0 = new_coeff0_0;
+    
+        if(combinations[deriv_num][j] == 0)
+        {
+          new_coeff0_0 = coeff0_0*dmats0[0][0];
+        }
+        if(combinations[deriv_num][j] == 1)
+        {
+          new_coeff0_0 = coeff0_0*dmats1[0][0];
+        }
+    
+      }
+      // Compute derivatives on reference element as dot product of coefficients and basisvalues
+      derivatives[deriv_num] = new_coeff0_0*basisvalue0;
+    }
+    
+    // Transform derivatives back to physical element
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      for (unsigned int col = 0; col < num_derivatives; col++)
+      {
+        values[row] += transform[row][col]*derivatives[col];
+      }
+    }
+    // Delete pointer to array of derivatives on FIAT element
+    delete [] derivatives;
+    
+    // Delete pointer to array of combinations of derivatives and transform
+    for (unsigned int row = 0; row < num_derivatives; row++)
+    {
+      delete [] combinations[row];
+      delete [] transform[row];
+    }
+    
+    delete [] combinations;
+    delete [] transform;
+}
+
+/// Evaluate order n derivatives of all basis functions at given point in cell
+void UFC_NSEMomentum2DLinearForm_finite_element_19::evaluate_basis_derivatives_all(unsigned int n,
+                                                   double* values,
+                                                   const double* coordinates,
+                                                   const ufc::cell& c) const
+{
+    throw std::runtime_error("The vectorised version of evaluate_basis_derivatives() is not yet implemented.");
+}
+
+/// Evaluate linear functional for dof i on the function f
+double UFC_NSEMomentum2DLinearForm_finite_element_19::evaluate_dof(unsigned int i,
+                                   const ufc::function& f,
+                                   const ufc::cell& c) const
+{
+    // The reference points, direction and weights:
+    const static double X[1][1][2] = {{{0.333333333333333, 0.333333333333333}}};
+    const static double W[1][1] = {{1}};
+    const static double D[1][1][1] = {{{1}}};
+    
+    const double * const * x = c.coordinates;
+    double result = 0.0;
+    // Iterate over the points:
+    // Evaluate basis functions for affine mapping
+    const double w0 = 1.0 - X[i][0][0] - X[i][0][1];
+    const double w1 = X[i][0][0];
+    const double w2 = X[i][0][1];
+    
+    // Compute affine mapping y = F(X)
+    double y[2];
+    y[0] = w0*x[0][0] + w1*x[1][0] + w2*x[2][0];
+    y[1] = w0*x[0][1] + w1*x[1][1] + w2*x[2][1];
+    
+    // Evaluate function at physical points
+    double values[1];
+    f.evaluate(values, y, c);
+    
+    // Map function values using appropriate mapping
+    // Affine map: Do nothing
+    
+    // Note that we do not map the weights (yet).
+    
+    // Take directional components
+    for(int k = 0; k < 1; k++)
+      result += values[k]*D[i][0][k];
+    // Multiply by weights 
+    result *= W[i][0];
+    
+    return result;
+}
+
+/// Evaluate linear functionals for all dofs on the function f
+void UFC_NSEMomentum2DLinearForm_finite_element_19::evaluate_dofs(double* values,
+                                  const ufc::function& f,
+                                  const ufc::cell& c) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Interpolate vertex values from dof values
+void UFC_NSEMomentum2DLinearForm_finite_element_19::interpolate_vertex_values(double* vertex_values,
+                                              const double* dof_values,
+                                              const ufc::cell& c) const
+{
+    // Evaluate at vertices and use affine mapping
+    vertex_values[0] = dof_values[0];
+    vertex_values[1] = dof_values[0];
+    vertex_values[2] = dof_values[0];
+}
+
+/// Return the number of sub elements (for a mixed element)
+unsigned int UFC_NSEMomentum2DLinearForm_finite_element_19::num_sub_elements() const
+{
+    return 1;
+}
+
+/// Create a new finite element for sub element i (for a mixed element)
+ufc::finite_element* UFC_NSEMomentum2DLinearForm_finite_element_19::create_sub_element(unsigned int i) const
+{
+    return new UFC_NSEMomentum2DLinearForm_finite_element_19();
+}
+
 /// Constructor
 UFC_NSEMomentum2DLinearForm_dof_map_0_0::UFC_NSEMomentum2DLinearForm_dof_map_0_0() : ufc::dof_map()
 {
@@ -38789,6 +40081,288 @@ ufc::dof_map* UFC_NSEMomentum2DLinearForm_dof_map_17::create_sub_dof_map(unsigne
 
 
 /// Constructor
+UFC_NSEMomentum2DLinearForm_dof_map_18::UFC_NSEMomentum2DLinearForm_dof_map_18() : ufc::dof_map()
+{
+    __global_dimension = 0;
+}
+
+/// Destructor
+UFC_NSEMomentum2DLinearForm_dof_map_18::~UFC_NSEMomentum2DLinearForm_dof_map_18()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the dof map
+const char* UFC_NSEMomentum2DLinearForm_dof_map_18::signature() const
+{
+    return "FFC dof map for Discontinuous Lagrange finite element of degree 0 on a triangle";
+}
+
+/// Return true iff mesh entities of topological dimension d are needed
+bool UFC_NSEMomentum2DLinearForm_dof_map_18::needs_mesh_entities(unsigned int d) const
+{
+    switch ( d )
+    {
+    case 0:
+      return false;
+      break;
+    case 1:
+      return false;
+      break;
+    case 2:
+      return true;
+      break;
+    }
+    return false;
+}
+
+/// Initialize dof map for mesh (return true iff init_cell() is needed)
+bool UFC_NSEMomentum2DLinearForm_dof_map_18::init_mesh(const ufc::mesh& m)
+{
+    __global_dimension = m.num_entities[2];
+    return false;
+}
+
+/// Initialize dof map for given cell
+void UFC_NSEMomentum2DLinearForm_dof_map_18::init_cell(const ufc::mesh& m,
+                              const ufc::cell& c)
+{
+    // Do nothing
+}
+
+/// Finish initialization of dof map for cells
+void UFC_NSEMomentum2DLinearForm_dof_map_18::init_cell_finalize()
+{
+    // Do nothing
+}
+
+/// Return the dimension of the global finite element function space
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_18::global_dimension() const
+{
+    return __global_dimension;
+}
+
+/// Return the dimension of the local finite element function space
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_18::local_dimension() const
+{
+    return 1;
+}
+
+// Return the geometric dimension of the coordinates this dof map provides
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_18::geometric_dimension() const
+{
+    return 2;
+}
+
+/// Return the number of dofs on each cell facet
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_18::num_facet_dofs() const
+{
+    return 0;
+}
+
+/// Return the number of dofs associated with each cell entity of dimension d
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_18::num_entity_dofs(unsigned int d) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the local-to-global mapping of dofs on a cell
+void UFC_NSEMomentum2DLinearForm_dof_map_18::tabulate_dofs(unsigned int* dofs,
+                                  const ufc::mesh& m,
+                                  const ufc::cell& c) const
+{
+    dofs[0] = c.entity_indices[2][0];
+}
+
+/// Tabulate the local-to-local mapping from facet dofs to cell dofs
+void UFC_NSEMomentum2DLinearForm_dof_map_18::tabulate_facet_dofs(unsigned int* dofs,
+                                        unsigned int facet) const
+{
+    switch ( facet )
+    {
+    case 0:
+      
+      break;
+    case 1:
+      
+      break;
+    case 2:
+      
+      break;
+    }
+}
+
+/// Tabulate the local-to-local mapping of dofs on entity (d, i)
+void UFC_NSEMomentum2DLinearForm_dof_map_18::tabulate_entity_dofs(unsigned int* dofs,
+                                  unsigned int d, unsigned int i) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the coordinates of all dofs on a cell
+void UFC_NSEMomentum2DLinearForm_dof_map_18::tabulate_coordinates(double** coordinates,
+                                         const ufc::cell& c) const
+{
+    const double * const * x = c.coordinates;
+    coordinates[0][0] = 0.333333333333333*x[0][0] + 0.333333333333333*x[1][0] + 0.333333333333333*x[2][0];
+    coordinates[0][1] = 0.333333333333333*x[0][1] + 0.333333333333333*x[1][1] + 0.333333333333333*x[2][1];
+}
+
+/// Return the number of sub dof maps (for a mixed element)
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_18::num_sub_dof_maps() const
+{
+    return 1;
+}
+
+/// Create a new dof_map for sub dof map i (for a mixed element)
+ufc::dof_map* UFC_NSEMomentum2DLinearForm_dof_map_18::create_sub_dof_map(unsigned int i) const
+{
+    return new UFC_NSEMomentum2DLinearForm_dof_map_18();
+}
+
+
+/// Constructor
+UFC_NSEMomentum2DLinearForm_dof_map_19::UFC_NSEMomentum2DLinearForm_dof_map_19() : ufc::dof_map()
+{
+    __global_dimension = 0;
+}
+
+/// Destructor
+UFC_NSEMomentum2DLinearForm_dof_map_19::~UFC_NSEMomentum2DLinearForm_dof_map_19()
+{
+    // Do nothing
+}
+
+/// Return a string identifying the dof map
+const char* UFC_NSEMomentum2DLinearForm_dof_map_19::signature() const
+{
+    return "FFC dof map for Discontinuous Lagrange finite element of degree 0 on a triangle";
+}
+
+/// Return true iff mesh entities of topological dimension d are needed
+bool UFC_NSEMomentum2DLinearForm_dof_map_19::needs_mesh_entities(unsigned int d) const
+{
+    switch ( d )
+    {
+    case 0:
+      return false;
+      break;
+    case 1:
+      return false;
+      break;
+    case 2:
+      return true;
+      break;
+    }
+    return false;
+}
+
+/// Initialize dof map for mesh (return true iff init_cell() is needed)
+bool UFC_NSEMomentum2DLinearForm_dof_map_19::init_mesh(const ufc::mesh& m)
+{
+    __global_dimension = m.num_entities[2];
+    return false;
+}
+
+/// Initialize dof map for given cell
+void UFC_NSEMomentum2DLinearForm_dof_map_19::init_cell(const ufc::mesh& m,
+                              const ufc::cell& c)
+{
+    // Do nothing
+}
+
+/// Finish initialization of dof map for cells
+void UFC_NSEMomentum2DLinearForm_dof_map_19::init_cell_finalize()
+{
+    // Do nothing
+}
+
+/// Return the dimension of the global finite element function space
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_19::global_dimension() const
+{
+    return __global_dimension;
+}
+
+/// Return the dimension of the local finite element function space
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_19::local_dimension() const
+{
+    return 1;
+}
+
+// Return the geometric dimension of the coordinates this dof map provides
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_19::geometric_dimension() const
+{
+    return 2;
+}
+
+/// Return the number of dofs on each cell facet
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_19::num_facet_dofs() const
+{
+    return 0;
+}
+
+/// Return the number of dofs associated with each cell entity of dimension d
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_19::num_entity_dofs(unsigned int d) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the local-to-global mapping of dofs on a cell
+void UFC_NSEMomentum2DLinearForm_dof_map_19::tabulate_dofs(unsigned int* dofs,
+                                  const ufc::mesh& m,
+                                  const ufc::cell& c) const
+{
+    dofs[0] = c.entity_indices[2][0];
+}
+
+/// Tabulate the local-to-local mapping from facet dofs to cell dofs
+void UFC_NSEMomentum2DLinearForm_dof_map_19::tabulate_facet_dofs(unsigned int* dofs,
+                                        unsigned int facet) const
+{
+    switch ( facet )
+    {
+    case 0:
+      
+      break;
+    case 1:
+      
+      break;
+    case 2:
+      
+      break;
+    }
+}
+
+/// Tabulate the local-to-local mapping of dofs on entity (d, i)
+void UFC_NSEMomentum2DLinearForm_dof_map_19::tabulate_entity_dofs(unsigned int* dofs,
+                                  unsigned int d, unsigned int i) const
+{
+    throw std::runtime_error("Not implemented (introduced in UFC v1.1).");
+}
+
+/// Tabulate the coordinates of all dofs on a cell
+void UFC_NSEMomentum2DLinearForm_dof_map_19::tabulate_coordinates(double** coordinates,
+                                         const ufc::cell& c) const
+{
+    const double * const * x = c.coordinates;
+    coordinates[0][0] = 0.333333333333333*x[0][0] + 0.333333333333333*x[1][0] + 0.333333333333333*x[2][0];
+    coordinates[0][1] = 0.333333333333333*x[0][1] + 0.333333333333333*x[1][1] + 0.333333333333333*x[2][1];
+}
+
+/// Return the number of sub dof maps (for a mixed element)
+unsigned int UFC_NSEMomentum2DLinearForm_dof_map_19::num_sub_dof_maps() const
+{
+    return 1;
+}
+
+/// Create a new dof_map for sub dof map i (for a mixed element)
+ufc::dof_map* UFC_NSEMomentum2DLinearForm_dof_map_19::create_sub_dof_map(unsigned int i) const
+{
+    return new UFC_NSEMomentum2DLinearForm_dof_map_19();
+}
+
+
+/// Constructor
 UFC_NSEMomentum2DLinearForm_cell_integral_0::UFC_NSEMomentum2DLinearForm_cell_integral_0() : ufc::cell_integral()
 {
     // Do nothing
@@ -38828,7 +40402,7 @@ void UFC_NSEMomentum2DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     
     
     // Compute element tensor (using quadrature representation, optimisation level 2)
-    // Total number of operations to compute element tensor (from this point): 2723
+    // Total number of operations to compute element tensor (from this point): 3597
     
     // Reset values of the element tensor block
     for (unsigned int j = 0; j < 6; j++)
@@ -38840,223 +40414,332 @@ void UFC_NSEMomentum2DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     const static double W0[4] = {-0.0795103454359941, -0.0454896545640056, -0.0795103454359941, -0.0454896545640056};
     // Array of quadrature weights (tensor/monomial term 1)
     const static double W1[4] = {0.0795103454359941, 0.0454896545640056, 0.0795103454359941, 0.0454896545640056};
-    // Array of quadrature weights (tensor/monomial terms (2, 3, 4, 8, 10, 11, 27))
+    // Array of quadrature weights (tensor/monomial terms (2, 3, 4, 14, 15, 40))
     const static double W2 = 0.25;
-    // Array of quadrature weights (tensor/monomial terms (5, 6, 7, 9, 12))
+    // Array of quadrature weights (tensor/monomial terms (5, 6, 7, 12, 13, 16))
     const static double W5 = -0.25;
-    // Array of quadrature weights (tensor/monomial terms (13, 15, 24, 25, 29))
-    const static double W13[4] = {-0.159020690871988, -0.0909793091280113, -0.159020690871988, -0.0909793091280113};
-    // Array of quadrature weights (tensor/monomial terms (14, 23, 26, 28))
-    const static double W14[4] = {0.159020690871988, 0.0909793091280113, 0.159020690871988, 0.0909793091280113};
-    // Array of quadrature weights (tensor/monomial terms (16, 17, 19, 21))
-    const static double W16 = -0.5;
-    // Array of quadrature weights (tensor/monomial terms (18, 20, 22))
-    const static double W18 = 0.5;
+    // Array of quadrature weights (tensor/monomial terms (8, 9, 28, 29))
+    const static double W8 = 0.125;
+    // Array of quadrature weights (tensor/monomial terms (10, 11, 24, 25))
+    const static double W10 = -0.125;
+    // Array of quadrature weights (tensor/monomial terms (17, 19, 21, 35, 36, 42))
+    const static double W17[4] = {-0.159020690871988, -0.0909793091280113, -0.159020690871988, -0.0909793091280113};
+    // Array of quadrature weights (tensor/monomial terms (18, 20, 34, 37, 41))
+    const static double W18[4] = {0.159020690871988, 0.0909793091280113, 0.159020690871988, 0.0909793091280113};
+    // Array of quadrature weights (tensor/monomial terms (22, 27, 31, 33, 38))
+    const static double W22 = 0.5;
+    // Array of quadrature weights (tensor/monomial terms (23, 26, 30, 32, 39))
+    const static double W23 = -0.5;
     
-    const static double P_t6_s3_s1_s0[1][2] = \
+    const static double P_t22_p0_a1_s1[1][2] = \
     {{-1, 1}};
     // Array of non-zero columns
-    static const unsigned int nzc0[2] = {3, 4};
+    static const unsigned int nzc1[2] = {3, 4};
     // Array of non-zero columns
-    static const unsigned int nzc1[2] = {3, 5};
+    static const unsigned int nzc0[2] = {3, 5};
     // Array of non-zero columns
-    static const unsigned int nzc4[2] = {0, 1};
+    static const unsigned int nzc2[2] = {0, 1};
     // Array of non-zero columns
     static const unsigned int nzc3[2] = {0, 2};
+    // Array of non-zero columns
+    static const unsigned int nzc17[2] = {0, 2};
+    // Array of non-zero columns
+    static const unsigned int nzc18[2] = {0, 1};
     
-    const static double P_t24_s4_a0_s0[4][2] = \
+    const static double P_t35_p0_a1_s1[4][2] = \
     {{-1, 1},
     {-1, 1},
     {-1, 1},
     {-1, 1}};
     // Array of non-zero columns
-    static const unsigned int nzc6[2] = {0, 2};
+    static const unsigned int nzc6[2] = {3, 5};
     // Array of non-zero columns
-    static const unsigned int nzc13[2] = {3, 5};
+    static const unsigned int nzc7[2] = {3, 4};
     // Array of non-zero columns
-    static const unsigned int nzc2[2] = {0, 1};
+    static const unsigned int nzc11[2] = {0, 2};
     // Array of non-zero columns
-    static const unsigned int nzc12[2] = {3, 4};
+    static const unsigned int nzc10[2] = {0, 1};
     
-    const static double P_t15_s1[4][3] = \
+    const static double P_t35_s2[4][3] = \
     {{0.666390246014701, 0.178558728263616, 0.155051025721682},
     {0.280019915499074, 0.0750311102226082, 0.644948974278318},
     {0.178558728263616, 0.666390246014701, 0.155051025721682},
     {0.0750311102226081, 0.280019915499074, 0.644948974278318}};
     // Array of non-zero columns
-    static const unsigned int nzc10[3] = {3, 4, 5};
+    static const unsigned int nzc13[3] = {0, 1, 2};
     // Array of non-zero columns
-    static const unsigned int nzc16[3] = {0, 1, 2};
+    static const unsigned int nzc12[3] = {3, 4, 5};
     
-    const static double P_t17_s1[1][3] = \
+    const static double P_t39_s3[1][3] = \
     {{0.333333333333333, 0.333333333333333, 0.333333333333333}};
     
-    // Number of operations to compute geometry constants = 1001
-    const double G0 = Jinv_00*W16*det*w[9][0];
-    const double G1 = Jinv_11*W16*det*w[9][0];
-    const double G2 = Jinv_01*W16*det*w[9][0];
-    const double G3 = Jinv_10*W16*det*w[9][0];
-    const double G4 = Jinv_00*W16*det*w[11][0]*w[12][0]*w[9][0];
-    const double G5 = Jinv_00*W18*det*w[12][0]*w[9][0];
-    const double G6 = Jinv_01*W16*det*w[11][0]*w[12][2]*w[9][0];
-    const double G7 = Jinv_01*W18*det*w[12][2]*w[9][0];
-    const double G8 = Jinv_10*W16*det*w[11][0]*w[12][1]*w[9][0];
-    const double G9 = Jinv_10*W18*det*w[12][1]*w[9][0];
-    const double G10 = Jinv_11*W16*det*w[11][0]*w[12][3]*w[9][0];
-    const double G11 = Jinv_11*W18*det*w[12][3]*w[9][0];
-    const double G12 = Jinv_00*W16*det*w[11][0]*w[12][1]*w[9][0];
-    const double G13 = Jinv_00*W18*det*w[12][1]*w[9][0];
-    const double G14 = Jinv_01*W16*det*w[11][0]*w[12][3]*w[9][0];
-    const double G15 = Jinv_01*W18*det*w[12][3]*w[9][0];
-    const double G16 = Jinv_10*W16*det*w[11][0]*w[12][0]*w[9][0];
-    const double G17 = Jinv_10*W18*det*w[12][0]*w[9][0];
-    const double G18 = Jinv_11*W16*det*w[11][0]*w[12][2]*w[9][0];
-    const double G19 = Jinv_11*W18*det*w[12][2]*w[9][0];
-    const double G20 = 2*Jinv_00*Jinv_00*W2*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G21 = 2*Jinv_00*Jinv_01*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G22 = 2*Jinv_00*Jinv_01*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G23 = 2*Jinv_00*Jinv_01*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G24 = 2*Jinv_00*Jinv_01*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G25 = 2*Jinv_00*Jinv_10*W2*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G26 = 2*Jinv_01*Jinv_01*W2*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G27 = 2*Jinv_01*Jinv_11*W2*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G28 = Jinv_00*Jinv_00*W5*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
-    const double G29 = Jinv_00*Jinv_00*W5*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G30 = Jinv_00*Jinv_10*W5*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
-    const double G31 = Jinv_00*Jinv_10*W5*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G32 = Jinv_00*Jinv_11*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G33 = Jinv_00*Jinv_11*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G34 = Jinv_00*Jinv_11*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G35 = Jinv_00*Jinv_11*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G36 = Jinv_01*Jinv_01*W5*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
-    const double G37 = Jinv_01*Jinv_01*W5*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G38 = Jinv_01*Jinv_10*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G39 = Jinv_01*Jinv_10*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G40 = Jinv_01*Jinv_10*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G41 = Jinv_01*Jinv_10*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G42 = Jinv_01*Jinv_11*W5*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
-    const double G43 = Jinv_01*Jinv_11*W5*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G44 = 2*Jinv_10*Jinv_10*W2*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G45 = 2*Jinv_10*Jinv_11*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G46 = 2*Jinv_10*Jinv_11*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G47 = 2*Jinv_10*Jinv_11*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G48 = 2*Jinv_10*Jinv_11*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G49 = 2*Jinv_11*Jinv_11*W2*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G50 = Jinv_10*Jinv_10*W5*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
-    const double G51 = Jinv_10*Jinv_10*W5*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G52 = Jinv_11*Jinv_11*W5*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
-    const double G53 = Jinv_11*Jinv_11*W5*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G54 = 2*Jinv_00*Jinv_00*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G55 = 2*Jinv_00*Jinv_00*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G56 = 2*Jinv_00*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G57 = 2*Jinv_00*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G58 = Jinv_00*Jinv_00*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G59 = Jinv_00*Jinv_00*W2*det*w[11][0]*w[5][0]*w[9][0];
-    const double G60 = Jinv_00*Jinv_00*W2*det*w[7][0]*w[9][0];
-    const double G61 = Jinv_00*Jinv_00*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G62 = Jinv_00*Jinv_01*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G63 = Jinv_00*Jinv_01*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G64 = Jinv_00*Jinv_01*W2*det*w[7][0]*w[9][0];
-    const double G65 = Jinv_00*Jinv_01*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G66 = Jinv_00*Jinv_01*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G67 = Jinv_00*Jinv_10*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G68 = Jinv_00*Jinv_10*W2*det*w[11][0]*w[5][0]*w[9][0];
-    const double G69 = Jinv_00*Jinv_10*W2*det*w[7][0]*w[9][0];
-    const double G70 = Jinv_00*Jinv_10*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G71 = Jinv_00*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G72 = Jinv_00*Jinv_11*W2*det*w[7][0]*w[9][0];
-    const double G73 = Jinv_00*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G74 = Jinv_01*Jinv_01*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G75 = Jinv_01*Jinv_01*W2*det*w[11][0]*w[5][0]*w[9][0];
-    const double G76 = Jinv_01*Jinv_01*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G77 = Jinv_01*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G78 = Jinv_01*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G79 = Jinv_01*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G80 = Jinv_01*Jinv_11*W2*det*w[11][0]*w[5][0]*w[9][0];
-    const double G81 = Jinv_01*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G82 = 2*Jinv_01*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G83 = 2*Jinv_01*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G84 = 2*Jinv_11*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G85 = 2*Jinv_11*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G86 = Jinv_00*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G87 = Jinv_00*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G88 = Jinv_01*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G89 = Jinv_01*Jinv_11*W2*det*w[7][0]*w[9][0];
-    const double G90 = Jinv_01*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G91 = Jinv_10*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G92 = Jinv_10*Jinv_10*W2*det*w[11][0]*w[5][0]*w[9][0];
-    const double G93 = Jinv_10*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G94 = Jinv_10*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G95 = Jinv_10*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G96 = Jinv_10*Jinv_11*W2*det*w[7][0]*w[9][0];
-    const double G97 = Jinv_10*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G98 = Jinv_10*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G99 = Jinv_11*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G100 = Jinv_11*Jinv_11*W2*det*w[11][0]*w[5][0]*w[9][0];
-    const double G101 = Jinv_11*Jinv_11*W2*det*w[7][0]*w[9][0];
-    const double G102 = Jinv_11*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G103 = 2*Jinv_01*Jinv_01*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G104 = 2*Jinv_01*Jinv_01*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G105 = Jinv_00*Jinv_00*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G106 = Jinv_00*Jinv_00*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G107 = Jinv_00*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G108 = Jinv_00*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G109 = Jinv_01*Jinv_01*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G110 = Jinv_01*Jinv_01*W2*det*w[7][0]*w[9][0];
-    const double G111 = Jinv_01*Jinv_01*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G112 = Jinv_01*Jinv_10*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G113 = Jinv_01*Jinv_10*W2*det*w[7][0]*w[9][0];
-    const double G114 = Jinv_01*Jinv_10*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G115 = 2*Jinv_10*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G116 = 2*Jinv_10*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G117 = Jinv_10*Jinv_10*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
-    const double G118 = Jinv_10*Jinv_10*W2*det*w[7][0]*w[9][0];
-    const double G119 = Jinv_10*Jinv_10*W5*det*w[14][0]*w[9][0]*w[9][0];
-    const double G120 = Jinv_11*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
-    const double G121 = Jinv_11*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
-    const double G122 = 2*Jinv_00*Jinv_10*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G123 = 2*Jinv_01*Jinv_11*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G124 = 2*Jinv_10*Jinv_10*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G125 = 2*Jinv_10*Jinv_11*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G126 = 2*Jinv_10*Jinv_11*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G127 = 2*Jinv_10*Jinv_11*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G128 = 2*Jinv_10*Jinv_11*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G129 = 2*Jinv_11*Jinv_11*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G130 = Jinv_00*Jinv_10*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
-    const double G131 = Jinv_00*Jinv_10*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G132 = Jinv_00*Jinv_11*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G133 = Jinv_00*Jinv_11*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G134 = Jinv_00*Jinv_11*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G135 = Jinv_00*Jinv_11*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G136 = Jinv_01*Jinv_10*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G137 = Jinv_01*Jinv_10*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G138 = Jinv_01*Jinv_10*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G139 = Jinv_01*Jinv_10*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G140 = Jinv_01*Jinv_11*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
-    const double G141 = Jinv_01*Jinv_11*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G142 = Jinv_10*Jinv_10*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
-    const double G143 = Jinv_10*Jinv_10*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G144 = Jinv_11*Jinv_11*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
-    const double G145 = Jinv_11*Jinv_11*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G146 = 2*Jinv_00*Jinv_00*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G147 = 2*Jinv_00*Jinv_01*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G148 = 2*Jinv_00*Jinv_01*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
-    const double G149 = 2*Jinv_00*Jinv_01*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
-    const double G150 = 2*Jinv_00*Jinv_01*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
-    const double G151 = 2*Jinv_01*Jinv_01*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G152 = Jinv_00*Jinv_00*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
-    const double G153 = Jinv_00*Jinv_00*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
-    const double G154 = Jinv_01*Jinv_01*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
-    const double G155 = Jinv_01*Jinv_01*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
-    const double G156 = Jinv_00*det*w[9][0];
-    const double G157 = Jinv_01*det*w[9][0];
-    const double G158 = Jinv_10*det*w[9][0];
-    const double G159 = Jinv_11*det*w[9][0];
-    const double G160 = det*w[9][0];
-    const double G161 = det*w[11][0]*w[9][0];
+    // Number of operations to compute geometry constants = 1585
+    const double G0 = Jinv_01*W23*det*w[9][0];
+    const double G1 = Jinv_11*W23*det*w[9][0];
+    const double G2 = Jinv_10*W23*det*w[9][0];
+    const double G3 = Jinv_00*W23*det*w[9][0];
+    const double G4 = Jinv_00*Jinv_01*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G5 = Jinv_00*Jinv_01*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G6 = Jinv_00*Jinv_11*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G7 = Jinv_00*Jinv_11*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G8 = Jinv_01*Jinv_01*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G9 = Jinv_01*Jinv_01*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G10 = Jinv_01*Jinv_11*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G11 = Jinv_01*Jinv_11*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G12 = Jinv_01*Jinv_10*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G13 = Jinv_01*Jinv_10*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G14 = Jinv_10*Jinv_11*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G15 = Jinv_10*Jinv_11*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G16 = Jinv_11*Jinv_11*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G17 = Jinv_11*Jinv_11*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G18 = Jinv_00*Jinv_10*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G19 = Jinv_00*Jinv_10*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G20 = Jinv_00*Jinv_11*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G21 = Jinv_00*Jinv_11*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G22 = Jinv_10*Jinv_10*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G23 = Jinv_10*Jinv_10*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G24 = Jinv_10*Jinv_11*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G25 = Jinv_10*Jinv_11*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G26 = Jinv_00*Jinv_00*W22*det*w[3][0]*w[6][0]*w[9][0];
+    const double G27 = Jinv_00*Jinv_00*W23*det*w[16][0]*w[6][0]*w[9][0];
+    const double G28 = Jinv_00*Jinv_01*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G29 = Jinv_00*Jinv_01*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G30 = Jinv_01*Jinv_10*W22*det*w[3][1]*w[6][0]*w[9][0];
+    const double G31 = Jinv_01*Jinv_10*W23*det*w[16][1]*w[6][0]*w[9][0];
+    const double G32 = Jinv_00*W22*det*w[12][1]*w[9][0];
+    const double G33 = Jinv_00*W23*det*w[11][0]*w[12][1]*w[9][0];
+    const double G34 = Jinv_01*W22*det*w[12][3]*w[9][0];
+    const double G35 = Jinv_01*W23*det*w[11][0]*w[12][3]*w[9][0];
+    const double G36 = Jinv_10*W22*det*w[12][1]*w[9][0];
+    const double G37 = Jinv_10*W23*det*w[11][0]*w[12][1]*w[9][0];
+    const double G38 = Jinv_11*W22*det*w[12][3]*w[9][0];
+    const double G39 = Jinv_11*W23*det*w[11][0]*w[12][3]*w[9][0];
+    const double G40 = Jinv_10*W22*det*w[12][0]*w[9][0];
+    const double G41 = Jinv_10*W23*det*w[11][0]*w[12][0]*w[9][0];
+    const double G42 = Jinv_11*W22*det*w[12][2]*w[9][0];
+    const double G43 = Jinv_11*W23*det*w[11][0]*w[12][2]*w[9][0];
+    const double G44 = Jinv_00*W22*det*w[12][0]*w[9][0];
+    const double G45 = Jinv_00*W23*det*w[11][0]*w[12][0]*w[9][0];
+    const double G46 = Jinv_01*W22*det*w[12][2]*w[9][0];
+    const double G47 = Jinv_01*W23*det*w[11][0]*w[12][2]*w[9][0];
+    const double G48 = 2*Jinv_00*Jinv_00*W2*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G49 = 2*Jinv_00*Jinv_01*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G50 = 2*Jinv_00*Jinv_01*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G51 = 2*Jinv_00*Jinv_01*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G52 = 2*Jinv_00*Jinv_01*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G53 = 2*Jinv_00*Jinv_10*W2*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G54 = 2*Jinv_01*Jinv_01*W2*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G55 = 2*Jinv_01*Jinv_11*W2*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G56 = Jinv_00*Jinv_00*W5*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
+    const double G57 = Jinv_00*Jinv_00*W5*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G58 = Jinv_00*Jinv_10*W5*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
+    const double G59 = Jinv_00*Jinv_10*W5*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G60 = Jinv_00*Jinv_11*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G61 = Jinv_00*Jinv_11*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G62 = Jinv_00*Jinv_11*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G63 = Jinv_00*Jinv_11*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G64 = Jinv_01*Jinv_01*W5*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
+    const double G65 = Jinv_01*Jinv_01*W5*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G66 = Jinv_01*Jinv_10*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G67 = Jinv_01*Jinv_10*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G68 = Jinv_01*Jinv_10*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G69 = Jinv_01*Jinv_10*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G70 = Jinv_01*Jinv_11*W5*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
+    const double G71 = Jinv_01*Jinv_11*W5*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G72 = 2*Jinv_10*Jinv_10*W2*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G73 = 2*Jinv_10*Jinv_11*W2*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G74 = 2*Jinv_10*Jinv_11*W2*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G75 = 2*Jinv_10*Jinv_11*W5*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G76 = 2*Jinv_10*Jinv_11*W5*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G77 = 2*Jinv_11*Jinv_11*W2*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G78 = Jinv_10*Jinv_10*W5*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
+    const double G79 = Jinv_10*Jinv_10*W5*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G80 = Jinv_11*Jinv_11*W5*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
+    const double G81 = Jinv_11*Jinv_11*W5*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G82 = 2*Jinv_01*Jinv_01*W10*det*w[17][0]*w[9][0];
+    const double G83 = 2*Jinv_01*Jinv_01*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G84 = 2*Jinv_01*Jinv_01*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G85 = 2*Jinv_01*Jinv_01*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G86 = 2*Jinv_01*Jinv_01*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G87 = 2*Jinv_01*Jinv_01*W8*det*w[17][0]*w[9][0];
+    const double G88 = 2*Jinv_01*Jinv_11*W10*det*w[17][0]*w[9][0];
+    const double G89 = 2*Jinv_01*Jinv_11*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G90 = 2*Jinv_01*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G91 = 2*Jinv_01*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G92 = 2*Jinv_01*Jinv_11*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G93 = 2*Jinv_01*Jinv_11*W8*det*w[17][0]*w[9][0];
+    const double G94 = Jinv_00*Jinv_00*W10*det*w[17][0]*w[9][0];
+    const double G95 = Jinv_00*Jinv_00*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G96 = Jinv_00*Jinv_00*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G97 = Jinv_00*Jinv_00*W22*det*w[11][0]*w[5][0]*w[9][0];
+    const double G98 = Jinv_00*Jinv_00*W5*det*w[11][0]*w[5][0]*w[9][0];
+    const double G99 = Jinv_00*Jinv_00*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G100 = Jinv_00*Jinv_00*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G101 = Jinv_00*Jinv_00*W8*det*w[17][0]*w[9][0];
+    const double G102 = Jinv_00*Jinv_01*W10*det*w[17][0]*w[9][0];
+    const double G103 = Jinv_00*Jinv_01*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G104 = Jinv_00*Jinv_01*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G105 = Jinv_00*Jinv_01*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G106 = Jinv_00*Jinv_01*W2*det*w[7][0]*w[9][0];
+    const double G107 = Jinv_00*Jinv_01*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G108 = Jinv_00*Jinv_01*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G109 = Jinv_00*Jinv_01*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G110 = Jinv_00*Jinv_01*W8*det*w[17][0]*w[9][0];
+    const double G111 = Jinv_00*Jinv_10*W10*det*w[17][0]*w[9][0];
+    const double G112 = Jinv_00*Jinv_10*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G113 = Jinv_00*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G114 = Jinv_00*Jinv_10*W22*det*w[11][0]*w[5][0]*w[9][0];
+    const double G115 = Jinv_00*Jinv_10*W5*det*w[11][0]*w[5][0]*w[9][0];
+    const double G116 = Jinv_00*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G117 = Jinv_00*Jinv_10*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G118 = Jinv_00*Jinv_10*W8*det*w[17][0]*w[9][0];
+    const double G119 = Jinv_00*Jinv_11*W10*det*w[17][0]*w[9][0];
+    const double G120 = Jinv_00*Jinv_11*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G121 = Jinv_00*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G122 = Jinv_00*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G123 = Jinv_00*Jinv_11*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G124 = Jinv_00*Jinv_11*W8*det*w[17][0]*w[9][0];
+    const double G125 = Jinv_01*Jinv_01*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G126 = Jinv_01*Jinv_01*W2*det*w[7][0]*w[9][0];
+    const double G127 = Jinv_01*Jinv_01*W22*det*w[11][0]*w[5][0]*w[9][0];
+    const double G128 = Jinv_01*Jinv_01*W5*det*w[11][0]*w[5][0]*w[9][0];
+    const double G129 = Jinv_01*Jinv_01*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G130 = Jinv_01*Jinv_10*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G131 = Jinv_01*Jinv_10*W2*det*w[7][0]*w[9][0];
+    const double G132 = Jinv_01*Jinv_10*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G133 = Jinv_01*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G134 = Jinv_01*Jinv_11*W2*det*w[7][0]*w[9][0];
+    const double G135 = Jinv_01*Jinv_11*W22*det*w[11][0]*w[5][0]*w[9][0];
+    const double G136 = Jinv_01*Jinv_11*W5*det*w[11][0]*w[5][0]*w[9][0];
+    const double G137 = Jinv_01*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G138 = 2*Jinv_11*Jinv_11*W10*det*w[17][0]*w[9][0];
+    const double G139 = 2*Jinv_11*Jinv_11*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G140 = 2*Jinv_11*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G141 = 2*Jinv_11*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G142 = 2*Jinv_11*Jinv_11*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G143 = 2*Jinv_11*Jinv_11*W8*det*w[17][0]*w[9][0];
+    const double G144 = Jinv_00*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G145 = Jinv_00*Jinv_11*W2*det*w[7][0]*w[9][0];
+    const double G146 = Jinv_00*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G147 = Jinv_01*Jinv_10*W10*det*w[17][0]*w[9][0];
+    const double G148 = Jinv_01*Jinv_10*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G149 = Jinv_01*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G150 = Jinv_01*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G151 = Jinv_01*Jinv_10*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G152 = Jinv_01*Jinv_10*W8*det*w[17][0]*w[9][0];
+    const double G153 = Jinv_10*Jinv_10*W10*det*w[17][0]*w[9][0];
+    const double G154 = Jinv_10*Jinv_10*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G155 = Jinv_10*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G156 = Jinv_10*Jinv_10*W22*det*w[11][0]*w[5][0]*w[9][0];
+    const double G157 = Jinv_10*Jinv_10*W5*det*w[11][0]*w[5][0]*w[9][0];
+    const double G158 = Jinv_10*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G159 = Jinv_10*Jinv_10*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G160 = Jinv_10*Jinv_10*W8*det*w[17][0]*w[9][0];
+    const double G161 = Jinv_10*Jinv_11*W10*det*w[17][0]*w[9][0];
+    const double G162 = Jinv_10*Jinv_11*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G163 = Jinv_10*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G164 = Jinv_10*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G165 = Jinv_10*Jinv_11*W2*det*w[7][0]*w[9][0];
+    const double G166 = Jinv_10*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G167 = Jinv_10*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G168 = Jinv_10*Jinv_11*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G169 = Jinv_10*Jinv_11*W8*det*w[17][0]*w[9][0];
+    const double G170 = Jinv_11*Jinv_11*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G171 = Jinv_11*Jinv_11*W2*det*w[7][0]*w[9][0];
+    const double G172 = Jinv_11*Jinv_11*W22*det*w[11][0]*w[5][0]*w[9][0];
+    const double G173 = Jinv_11*Jinv_11*W5*det*w[11][0]*w[5][0]*w[9][0];
+    const double G174 = Jinv_11*Jinv_11*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G175 = 2*Jinv_00*Jinv_10*W10*det*w[17][0]*w[9][0];
+    const double G176 = 2*Jinv_00*Jinv_10*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G177 = 2*Jinv_00*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G178 = 2*Jinv_00*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G179 = 2*Jinv_00*Jinv_10*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G180 = 2*Jinv_00*Jinv_10*W8*det*w[17][0]*w[9][0];
+    const double G181 = 2*Jinv_10*Jinv_10*W10*det*w[17][0]*w[9][0];
+    const double G182 = 2*Jinv_10*Jinv_10*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G183 = 2*Jinv_10*Jinv_10*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G184 = 2*Jinv_10*Jinv_10*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G185 = 2*Jinv_10*Jinv_10*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G186 = 2*Jinv_10*Jinv_10*W8*det*w[17][0]*w[9][0];
+    const double G187 = Jinv_00*Jinv_10*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G188 = Jinv_00*Jinv_10*W2*det*w[7][0]*w[9][0];
+    const double G189 = Jinv_00*Jinv_10*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G190 = Jinv_01*Jinv_11*W10*det*w[17][0]*w[9][0];
+    const double G191 = Jinv_01*Jinv_11*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G192 = Jinv_01*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G193 = Jinv_01*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G194 = Jinv_01*Jinv_11*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G195 = Jinv_01*Jinv_11*W8*det*w[17][0]*w[9][0];
+    const double G196 = Jinv_10*Jinv_10*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G197 = Jinv_10*Jinv_10*W2*det*w[7][0]*w[9][0];
+    const double G198 = Jinv_10*Jinv_10*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G199 = Jinv_11*Jinv_11*W10*det*w[17][0]*w[9][0];
+    const double G200 = Jinv_11*Jinv_11*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G201 = Jinv_11*Jinv_11*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G202 = Jinv_11*Jinv_11*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G203 = Jinv_11*Jinv_11*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G204 = Jinv_11*Jinv_11*W8*det*w[17][0]*w[9][0];
+    const double G205 = 2*Jinv_00*Jinv_00*W10*det*w[17][0]*w[9][0];
+    const double G206 = 2*Jinv_00*Jinv_00*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G207 = 2*Jinv_00*Jinv_00*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G208 = 2*Jinv_00*Jinv_00*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G209 = 2*Jinv_00*Jinv_00*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G210 = 2*Jinv_00*Jinv_00*W8*det*w[17][0]*w[9][0];
+    const double G211 = Jinv_00*Jinv_00*W2*det*w[11][0]*w[14][0]*w[9][0]*w[9][0];
+    const double G212 = Jinv_00*Jinv_00*W2*det*w[7][0]*w[9][0];
+    const double G213 = Jinv_00*Jinv_00*W5*det*w[14][0]*w[9][0]*w[9][0];
+    const double G214 = Jinv_01*Jinv_01*W10*det*w[17][0]*w[9][0];
+    const double G215 = Jinv_01*Jinv_01*W10*det*w[11][0]*w[17][0]*w[9][0];
+    const double G216 = Jinv_01*Jinv_01*W2*det*w[11][0]*w[13][0]*w[9][0]*w[9][0];
+    const double G217 = Jinv_01*Jinv_01*W5*det*w[13][0]*w[9][0]*w[9][0];
+    const double G218 = Jinv_01*Jinv_01*W8*det*w[11][0]*w[17][0]*w[9][0];
+    const double G219 = Jinv_01*Jinv_01*W8*det*w[17][0]*w[9][0];
+    const double G220 = 2*Jinv_00*Jinv_00*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G221 = 2*Jinv_00*Jinv_01*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G222 = 2*Jinv_00*Jinv_01*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G223 = 2*Jinv_00*Jinv_01*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G224 = 2*Jinv_00*Jinv_01*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G225 = 2*Jinv_00*Jinv_10*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G226 = 2*Jinv_01*Jinv_01*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G227 = 2*Jinv_01*Jinv_11*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G228 = Jinv_00*Jinv_00*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
+    const double G229 = Jinv_00*Jinv_00*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G230 = Jinv_00*Jinv_10*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
+    const double G231 = Jinv_00*Jinv_10*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G232 = Jinv_00*Jinv_11*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G233 = Jinv_00*Jinv_11*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G234 = Jinv_00*Jinv_11*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G235 = Jinv_00*Jinv_11*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G236 = Jinv_01*Jinv_01*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
+    const double G237 = Jinv_01*Jinv_01*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G238 = Jinv_01*Jinv_10*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G239 = Jinv_01*Jinv_10*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G240 = Jinv_01*Jinv_10*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G241 = Jinv_01*Jinv_10*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G242 = Jinv_01*Jinv_11*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
+    const double G243 = Jinv_01*Jinv_11*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G244 = 2*Jinv_10*Jinv_10*det*w[16][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G245 = 2*Jinv_10*Jinv_11*det*w[16][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G246 = 2*Jinv_10*Jinv_11*det*w[16][1]*w[3][0]*w[6][0]*w[9][0];
+    const double G247 = 2*Jinv_10*Jinv_11*det*w[16][0]*w[16][1]*w[6][0]*w[9][0];
+    const double G248 = 2*Jinv_10*Jinv_11*det*w[3][0]*w[3][1]*w[6][0]*w[9][0];
+    const double G249 = 2*Jinv_11*Jinv_11*det*w[16][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G250 = Jinv_10*Jinv_10*det*w[16][0]*w[16][0]*w[6][0]*w[9][0];
+    const double G251 = Jinv_10*Jinv_10*det*w[3][0]*w[3][0]*w[6][0]*w[9][0];
+    const double G252 = Jinv_11*Jinv_11*det*w[16][1]*w[16][1]*w[6][0]*w[9][0];
+    const double G253 = Jinv_11*Jinv_11*det*w[3][1]*w[3][1]*w[6][0]*w[9][0];
+    const double G254 = Jinv_00*det*w[9][0];
+    const double G255 = Jinv_01*det*w[9][0];
+    const double G256 = Jinv_10*det*w[9][0];
+    const double G257 = Jinv_11*det*w[9][0];
+    const double G258 = det*w[11][0];
+    const double G259 = det*w[18][0];
+    const double G260 = det*w[9][0];
+    const double G261 = det*w[11][0]*w[18][0];
+    const double G262 = det*w[11][0]*w[9][0];
     
-    // Loop quadrature points (tensor/monomial terms (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20, 21, 22, 27))
-    // Number of operations to compute element tensor for following IP loop = 338
+    // Loop quadrature points (tensor/monomial terms (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 38, 39, 40))
+    // Number of operations to compute element tensor for following IP loop = 540
     // Only 1 integration point, omitting IP loop.
     
     // Declare function values.
@@ -39073,56 +40756,74 @@ void UFC_NSEMomentum2DLinearForm_cell_integral_0::tabulate_tensor(double* A,
     double F10 = 0;
     double F11 = 0;
     double F12 = 0;
+    double F13 = 0;
+    double F14 = 0;
+    double F15 = 0;
+    double F16 = 0;
+    double F17 = 0;
+    double F18 = 0;
+    double F19 = 0;
     
     // Compute function values.
-    // Number of operations to compute values = 32
+    // Number of operations to compute values = 56
     for (unsigned int r = 0; r < 2; r++)
     {
-      F5 += P_t6_s3_s1_s0[0][r]*w[0][nzc4[r]];
-      F6 += P_t6_s3_s1_s0[0][r]*w[0][nzc3[r]];
-      F7 += P_t6_s3_s1_s0[0][r]*w[1][nzc4[r]];
-      F8 += P_t6_s3_s1_s0[0][r]*w[0][nzc0[r]];
-      F9 += P_t6_s3_s1_s0[0][r]*w[1][nzc0[r]];
-      F12 += P_t6_s3_s1_s0[0][r]*w[1][nzc1[r]];
-      F10 += P_t6_s3_s1_s0[0][r]*w[1][nzc3[r]];
-      F11 += P_t6_s3_s1_s0[0][r]*w[0][nzc1[r]];
+      F18 += P_t22_p0_a1_s1[0][r]*w[1][nzc3[r]];
+      F19 += P_t22_p0_a1_s1[0][r]*w[1][nzc0[r]];
+      F12 += P_t22_p0_a1_s1[0][r]*w[0][nzc2[r]];
+      F13 += P_t22_p0_a1_s1[0][r]*w[2][nzc2[r]];
+      F10 += P_t22_p0_a1_s1[0][r]*w[0][nzc0[r]];
+      F11 += P_t22_p0_a1_s1[0][r]*w[2][nzc0[r]];
+      F16 += P_t22_p0_a1_s1[0][r]*w[2][nzc3[r]];
+      F17 += P_t22_p0_a1_s1[0][r]*w[1][nzc1[r]];
+      F14 += P_t22_p0_a1_s1[0][r]*w[1][nzc2[r]];
+      F15 += P_t22_p0_a1_s1[0][r]*w[0][nzc3[r]];
+      F1 += P_t22_p0_a1_s1[0][r]*w[4][nzc18[r]];
+      F2 += P_t22_p0_a1_s1[0][r]*w[4][nzc17[r]];
+      F8 += P_t22_p0_a1_s1[0][r]*w[0][nzc1[r]];
+      F9 += P_t22_p0_a1_s1[0][r]*w[2][nzc1[r]];
     }// end loop over 'r'
     // Number of operations to compute values = 16
     for (unsigned int s = 0; s < 2; s++)
     {
-      F1 += P_t6_s3_s1_s0[0][s]*w[0][nzc4[s]];
-      F2 += P_t6_s3_s1_s0[0][s]*w[0][nzc3[s]];
-      F3 += P_t6_s3_s1_s0[0][s]*w[0][nzc0[s]];
-      F4 += P_t6_s3_s1_s0[0][s]*w[0][nzc1[s]];
+      F4 += P_t22_p0_a1_s1[0][s]*w[0][nzc1[s]];
+      F5 += P_t22_p0_a1_s1[0][s]*w[0][nzc0[s]];
+      F6 += P_t22_p0_a1_s1[0][s]*w[0][nzc2[s]];
+      F7 += P_t22_p0_a1_s1[0][s]*w[0][nzc3[s]];
+    }// end loop over 's'
+    // Number of operations to compute values = 6
+    for (unsigned int s = 0; s < 3; s++)
+    {
+      F3 += P_t39_s3[0][s]*w[10][s];
     }// end loop over 's'
     // Number of operations to compute values = 6
     for (unsigned int r = 0; r < 3; r++)
     {
-      F0 += P_t17_s1[0][r]*w[4][r];
+      F0 += P_t39_s3[0][r]*w[4][r];
     }// end loop over 'r'
     
-    // Number of operations to compute declarations = 268
-    const double Gip0 = F0*G0 + F10*G69 + F12*G72 + F7*G60 + F9*G64 + G4 + G5 + G6 + G7 + (G62 + G63 + G65 + G66)*F8 + (G71 + G73 + G77 + G78)*F11 + (G56 + G57 + G67 + G68 + G70 + G79 + G80 + G81)*F6 + (G54 + G55 + G58 + G59 + G61 + G74 + G75 + G76)*F5 + (G20 + G21 + G22 + G23 + G24 + G26 + G28 + G29 + G36 + G37)*F1 + (G25 + G27 + G30 + G31 + G32 + G33 + G34 + G35 + G38 + G39 + G40 + G41 + G42 + G43)*F2;
-    const double Gip1 = F0*G1 + F10*G96 + F12*G101 + F7*G72 + F9*G89 + G10 + G11 + G8 + G9 + (G94 + G95 + G97 + G98)*F6 + (G71 + G73 + G77 + G78)*F5 + (G68 + G80 + G82 + G83 + G86 + G87 + G88 + G90)*F8 + (G100 + G102 + G84 + G85 + G91 + G92 + G93 + G99)*F11 + (G44 + G45 + G46 + G47 + G48 + G49 + G50 + G51 + G52 + G53)*F4 + (G25 + G27 + G30 + G31 + G32 + G33 + G34 + G35 + G38 + G39 + G40 + G41 + G42 + G43)*F3;
-    const double Gip2 = F0*G2 + F10*G113 + F12*G89 + F7*G64 + F9*G110 + G12 + G13 + G14 + G15 + (G107 + G108 + G112 + G114)*F6 + (G62 + G63 + G65 + G66)*F5 + (G103 + G104 + G105 + G106 + G109 + G111 + G59 + G75)*F8 + (G68 + G80 + G82 + G83 + G86 + G87 + G88 + G90)*F11 + (G20 + G21 + G22 + G23 + G24 + G26 + G28 + G29 + G36 + G37)*F3 + (G25 + G27 + G30 + G31 + G32 + G33 + G34 + G35 + G38 + G39 + G40 + G41 + G42 + G43)*F4;
-    const double Gip3 = F0*G3 + F10*G118 + F12*G96 + F7*G69 + F9*G113 + G16 + G17 + G18 + G19 + (G107 + G108 + G112 + G114)*F8 + (G94 + G95 + G97 + G98)*F11 + (G100 + G115 + G116 + G117 + G119 + G120 + G121 + G92)*F6 + (G56 + G57 + G67 + G68 + G70 + G79 + G80 + G81)*F5 + (G44 + G45 + G46 + G47 + G48 + G49 + G50 + G51 + G52 + G53)*F2 + (G25 + G27 + G30 + G31 + G32 + G33 + G34 + G35 + G38 + G39 + G40 + G41 + G42 + G43)*F1;
+    // Number of operations to compute declarations = 440
+    const double Gip0 = F0*G0 + F14*G106 + F17*G126 + F18*G131 + F19*G134 + G32 + G33 + G34 + G35 + (G120 + G124)*F16 + (G103 + G110)*F13 + (G101 + G127 + G83 + G87 + G95 + G97)*F9 + (G119 + G121 + G122 + G123 + G130 + G132)*F15 + (G112 + G114 + G118 + G135 + G89 + G93)*F11 + (G102 + G104 + G105 + G107 + G108 + G109)*F12 + ((G10 + G11 + G6 + G7)*F2 + (G4 + G5 + G8 + G9)*F1)*F3 + (G48 + G49 + G50 + G51 + G52 + G54 + G56 + G57 + G64 + G65)*F4 + (G100 + G125 + G128 + G129 + G82 + G84 + G85 + G86 + G94 + G96 + G98 + G99)*F8 + (G111 + G113 + G115 + G116 + G117 + G133 + G136 + G137 + G88 + G90 + G91 + G92)*F10 + (G53 + G55 + G58 + G59 + G60 + G61 + G62 + G63 + G66 + G67 + G68 + G69 + G70 + G71)*F5;
+    const double Gip1 = F0*G1 + F14*G145 + F17*G134 + F18*G165 + F19*G171 + G36 + G37 + G38 + G39 + (G162 + G169)*F16 + (G148 + G152)*F13 + (G112 + G114 + G118 + G135 + G89 + G93)*F9 + (G161 + G163 + G164 + G166 + G167 + G168)*F15 + (G139 + G143 + G154 + G156 + G160 + G172)*F11 + (G144 + G146 + G147 + G149 + G150 + G151)*F12 + ((G14 + G15 + G16 + G17)*F2 + (G10 + G11 + G12 + G13)*F1)*F3 + (G72 + G73 + G74 + G75 + G76 + G77 + G78 + G79 + G80 + G81)*F5 + (G111 + G113 + G115 + G116 + G117 + G133 + G136 + G137 + G88 + G90 + G91 + G92)*F8 + (G138 + G140 + G141 + G142 + G153 + G155 + G157 + G158 + G159 + G170 + G173 + G174)*F10 + (G53 + G55 + G58 + G59 + G60 + G61 + G62 + G63 + G66 + G67 + G68 + G69 + G70 + G71)*F4;
+    const double Gip2 = F0*G2 + F14*G188 + F17*G131 + F18*G197 + F19*G165 + G40 + G41 + G42 + G43 + (G162 + G169)*F11 + (G120 + G124)*F9 + (G119 + G121 + G122 + G123 + G130 + G132)*F8 + (G156 + G172 + G182 + G186 + G200 + G204)*F16 + (G161 + G163 + G164 + G166 + G167 + G168)*F10 + (G114 + G135 + G176 + G180 + G191 + G195)*F13 + ((G22 + G23 + G24 + G25)*F2 + (G18 + G19 + G20 + G21)*F1)*F3 + (G72 + G73 + G74 + G75 + G76 + G77 + G78 + G79 + G80 + G81)*F7 + (G157 + G173 + G181 + G183 + G184 + G185 + G196 + G198 + G199 + G201 + G202 + G203)*F15 + (G115 + G136 + G175 + G177 + G178 + G179 + G187 + G189 + G190 + G192 + G193 + G194)*F12 + (G53 + G55 + G58 + G59 + G60 + G61 + G62 + G63 + G66 + G67 + G68 + G69 + G70 + G71)*F6;
+    const double Gip3 = F0*G3 + F14*G212 + F17*G106 + F18*G188 + F19*G145 + G44 + G45 + G46 + G47 + (G148 + G152)*F11 + (G103 + G110)*F9 + (G102 + G104 + G105 + G107 + G108 + G109)*F8 + (G114 + G135 + G176 + G180 + G191 + G195)*F16 + (G144 + G146 + G147 + G149 + G150 + G151)*F10 + (G127 + G206 + G210 + G215 + G219 + G97)*F13 + ((G18 + G19 + G30 + G31)*F2 + (G26 + G27 + G28 + G29)*F1)*F3 + (G48 + G49 + G50 + G51 + G52 + G54 + G56 + G57 + G64 + G65)*F6 + (G115 + G136 + G175 + G177 + G178 + G179 + G187 + G189 + G190 + G192 + G193 + G194)*F15 + (G128 + G205 + G207 + G208 + G209 + G211 + G213 + G214 + G216 + G217 + G218 + G98)*F12 + (G53 + G55 + G58 + G59 + G60 + G61 + G62 + G63 + G66 + G67 + G68 + G69 + G70 + G71)*F7;
     
     // Loop primary indices.
     // Number of operations for primary indices = 16
     for (unsigned int j = 0; j < 2; j++)
     {
       // Number of operations to compute entry = 2
-      A[nzc4[j]] += P_t6_s3_s1_s0[0][j]*Gip0;
+      A[nzc1[j]] += P_t22_p0_a1_s1[0][j]*Gip0;
       // Number of operations to compute entry = 2
-      A[nzc1[j]] += P_t6_s3_s1_s0[0][j]*Gip1;
+      A[nzc0[j]] += P_t22_p0_a1_s1[0][j]*Gip1;
       // Number of operations to compute entry = 2
-      A[nzc0[j]] += P_t6_s3_s1_s0[0][j]*Gip2;
+      A[nzc3[j]] += P_t22_p0_a1_s1[0][j]*Gip2;
       // Number of operations to compute entry = 2
-      A[nzc3[j]] += P_t6_s3_s1_s0[0][j]*Gip3;
+      A[nzc2[j]] += P_t22_p0_a1_s1[0][j]*Gip3;
     }// end loop over 'j'
     
-    // Loop quadrature points (tensor/monomial terms (0, 1, 13, 14, 15, 23, 24, 25, 26, 28, 29))
-    // Number of operations to compute element tensor for following IP loop = 1384
+    // Loop quadrature points (tensor/monomial terms (0, 1, 17, 18, 19, 20, 21, 34, 35, 36, 37, 41, 42))
+    // Number of operations to compute element tensor for following IP loop = 1472
     for (unsigned int ip = 0; ip < 4; ip++)
     {
       
@@ -39145,72 +40846,76 @@ void UFC_NSEMomentum2DLinearForm_cell_integral_0::tabulate_tensor(double* A,
       double F15 = 0;
       double F16 = 0;
       double F17 = 0;
+      double F18 = 0;
+      double F19 = 0;
       
       // Compute function values.
       // Number of operations to compute values = 6
       for (unsigned int u = 0; u < 3; u++)
       {
-        F3 += P_t15_s1[ip][u]*w[10][u];
+        F3 += P_t35_s2[ip][u]*w[10][u];
       }// end loop over 'u'
       // Number of operations to compute values = 36
       for (unsigned int s = 0; s < 3; s++)
       {
-        F6 += P_t15_s1[ip][s]*w[0][nzc16[s]];
-        F7 += P_t15_s1[ip][s]*w[15][nzc16[s]];
-        F8 += P_t15_s1[ip][s]*w[0][nzc10[s]];
-        F9 += P_t15_s1[ip][s]*w[15][nzc10[s]];
-        F14 += P_t15_s1[ip][s]*w[1][nzc10[s]];
-        F15 += P_t15_s1[ip][s]*w[1][nzc16[s]];
+        F6 += P_t35_s2[ip][s]*w[2][nzc13[s]];
+        F7 += P_t35_s2[ip][s]*w[15][nzc13[s]];
+        F8 += P_t35_s2[ip][s]*w[2][nzc12[s]];
+        F9 += P_t35_s2[ip][s]*w[15][nzc12[s]];
+        F14 += P_t35_s2[ip][s]*w[1][nzc13[s]];
+        F15 += P_t35_s2[ip][s]*w[1][nzc12[s]];
       }// end loop over 's'
       // Number of operations to compute values = 32
       for (unsigned int t = 0; t < 2; t++)
       {
-        F1 += P_t24_s4_a0_s0[ip][t]*w[2][nzc12[t]];
-        F2 += P_t24_s4_a0_s0[ip][t]*w[2][nzc13[t]];
-        F4 += P_t24_s4_a0_s0[ip][t]*w[2][nzc2[t]];
-        F5 += P_t24_s4_a0_s0[ip][t]*w[2][nzc6[t]];
-        F12 += P_t24_s4_a0_s0[ip][t]*w[0][nzc2[t]];
-        F13 += P_t24_s4_a0_s0[ip][t]*w[0][nzc6[t]];
-        F10 += P_t24_s4_a0_s0[ip][t]*w[0][nzc12[t]];
-        F11 += P_t24_s4_a0_s0[ip][t]*w[0][nzc13[t]];
+        F1 += P_t35_p0_a1_s1[ip][t]*w[2][nzc7[t]];
+        F2 += P_t35_p0_a1_s1[ip][t]*w[2][nzc6[t]];
+        F4 += P_t35_p0_a1_s1[ip][t]*w[2][nzc10[t]];
+        F5 += P_t35_p0_a1_s1[ip][t]*w[2][nzc11[t]];
+        F12 += P_t35_p0_a1_s1[ip][t]*w[0][nzc7[t]];
+        F13 += P_t35_p0_a1_s1[ip][t]*w[0][nzc6[t]];
+        F10 += P_t35_p0_a1_s1[ip][t]*w[0][nzc10[t]];
+        F11 += P_t35_p0_a1_s1[ip][t]*w[0][nzc11[t]];
       }// end loop over 't'
-      // Number of operations to compute values = 18
+      // Number of operations to compute values = 30
       for (unsigned int r = 0; r < 3; r++)
       {
-        F0 += P_t15_s1[ip][r]*w[10][r];
-        F16 += P_t15_s1[ip][r]*w[8][nzc10[r]];
-        F17 += P_t15_s1[ip][r]*w[8][nzc16[r]];
+        F0 += P_t35_s2[ip][r]*w[10][r];
+        F18 += P_t35_s2[ip][r]*w[1][nzc12[r]];
+        F19 += P_t35_s2[ip][r]*w[8][nzc12[r]];
+        F16 += P_t35_s2[ip][r]*w[1][nzc13[r]];
+        F17 += P_t35_s2[ip][r]*w[8][nzc13[r]];
       }// end loop over 'r'
       
-      // Number of operations to compute declarations = 226
-      const double Gip0 = (G160*W13[ip] + G161*W14[ip])*F16 + (((F10*G157 + F11*G159)*F9 + (F10*G156 + F11*G158)*F7)*W1[ip] + ((F6*G158 + F8*G159)*F2 + (F6*G156 + F8*G157)*F1)*W14[ip] + ((F10*G157 + F11*G159)*F8 + (F10*G156 + F11*G158)*F6)*W0[ip] + (F14*det + (F7*G158 + F9*G159)*F2 + (F7*G156 + F9*G157)*F1)*W13[ip])*F0;
-      const double Gip1 = (G160*W13[ip] + G161*W14[ip])*F17 + (((F6*G158 + F8*G159)*F5 + (F6*G156 + F8*G157)*F4)*W14[ip] + ((F12*G157 + F13*G159)*F9 + (F12*G156 + F13*G158)*F7)*W1[ip] + ((F12*G157 + F13*G159)*F8 + (F12*G156 + F13*G158)*F6)*W0[ip] + (F15*det + (F7*G158 + F9*G159)*F5 + (F7*G156 + F9*G157)*F4)*W13[ip])*F0;
-      const double Gip2 = (((G124 + G125 + G126 + G129)*F2 + (G122 + G123 + G132 + G133 + G136 + G137)*F1)*W13[ip] + ((G127 + G128 + G142 + G143 + G144 + G145)*F2 + (G130 + G131 + G134 + G135 + G138 + G139 + G140 + G141)*F1)*W14[ip])*F0*F3;
-      const double Gip3 = (((G146 + G147 + G148 + G151)*F1 + (G122 + G123 + G132 + G133 + G136 + G137)*F2)*W13[ip] + ((G149 + G150 + G152 + G153 + G154 + G155)*F1 + (G130 + G131 + G134 + G135 + G138 + G139 + G140 + G141)*F2)*W14[ip])*F0*F3;
-      const double Gip4 = (((G124 + G125 + G126 + G129)*F5 + (G122 + G123 + G132 + G133 + G136 + G137)*F4)*W13[ip] + ((G127 + G128 + G142 + G143 + G144 + G145)*F5 + (G130 + G131 + G134 + G135 + G138 + G139 + G140 + G141)*F4)*W14[ip])*F0*F3;
-      const double Gip5 = (((G146 + G147 + G148 + G151)*F4 + (G122 + G123 + G132 + G133 + G136 + G137)*F5)*W13[ip] + ((G149 + G150 + G152 + G153 + G154 + G155)*F4 + (G130 + G131 + G134 + G135 + G138 + G139 + G140 + G141)*F5)*W14[ip])*F0*F3;
+      // Number of operations to compute declarations = 236
+      const double Gip0 = (F16*G259 + F17*G260)*W17[ip] + (F16*G261 + F17*G262)*W18[ip] + (((F10*G255 + F11*G257)*F9 + (F10*G254 + F11*G256)*F7)*W1[ip] + ((F10*G255 + F11*G257)*F8 + (F10*G254 + F11*G256)*F6)*W0[ip] + ((F6*G256 + F8*G257)*F5 + (F6*G254 + F8*G255)*F4)*W18[ip] + (F14*G258 + (F7*G256 + F9*G257)*F5 + (F7*G254 + F9*G255)*F4)*W17[ip])*F0;
+      const double Gip1 = (F18*G259 + F19*G260)*W17[ip] + (F18*G261 + F19*G262)*W18[ip] + (((F12*G255 + F13*G257)*F9 + (F12*G254 + F13*G256)*F7)*W1[ip] + ((F12*G255 + F13*G257)*F8 + (F12*G254 + F13*G256)*F6)*W0[ip] + ((F6*G256 + F8*G257)*F2 + (F6*G254 + F8*G255)*F1)*W18[ip] + (F15*G258 + (F7*G256 + F9*G257)*F2 + (F7*G254 + F9*G255)*F1)*W17[ip])*F0;
+      const double Gip2 = (((G220 + G221 + G222 + G226)*W17[ip] + (G223 + G224 + G228 + G229 + G236 + G237)*W18[ip])*F1 + ((G225 + G227 + G232 + G233 + G238 + G239)*W17[ip] + (G230 + G231 + G234 + G235 + G240 + G241 + G242 + G243)*W18[ip])*F2)*F0*F3;
+      const double Gip3 = (((G244 + G245 + G246 + G249)*W17[ip] + (G247 + G248 + G250 + G251 + G252 + G253)*W18[ip])*F2 + ((G225 + G227 + G232 + G233 + G238 + G239)*W17[ip] + (G230 + G231 + G234 + G235 + G240 + G241 + G242 + G243)*W18[ip])*F1)*F0*F3;
+      const double Gip4 = (((G244 + G245 + G246 + G249)*W17[ip] + (G247 + G248 + G250 + G251 + G252 + G253)*W18[ip])*F5 + ((G225 + G227 + G232 + G233 + G238 + G239)*W17[ip] + (G230 + G231 + G234 + G235 + G240 + G241 + G242 + G243)*W18[ip])*F4)*F0*F3;
+      const double Gip5 = (((G220 + G221 + G222 + G226)*W17[ip] + (G223 + G224 + G228 + G229 + G236 + G237)*W18[ip])*F4 + ((G225 + G227 + G232 + G233 + G238 + G239)*W17[ip] + (G230 + G231 + G234 + G235 + G240 + G241 + G242 + G243)*W18[ip])*F5)*F0*F3;
       
       // Loop primary indices.
       // Number of operations for primary indices = 12
       for (unsigned int j = 0; j < 3; j++)
       {
         // Number of operations to compute entry = 2
-        A[nzc10[j]] += P_t15_s1[ip][j]*Gip0;
+        A[nzc13[j]] += P_t35_s2[ip][j]*Gip0;
         // Number of operations to compute entry = 2
-        A[nzc16[j]] += P_t15_s1[ip][j]*Gip1;
+        A[nzc12[j]] += P_t35_s2[ip][j]*Gip1;
       }// end loop over 'j'
       
       // Number of operations for primary indices = 16
       for (unsigned int j = 0; j < 2; j++)
       {
         // Number of operations to compute entry = 2
-        A[nzc13[j]] += P_t24_s4_a0_s0[ip][j]*Gip2;
+        A[nzc7[j]] += P_t35_p0_a1_s1[ip][j]*Gip2;
         // Number of operations to compute entry = 2
-        A[nzc12[j]] += P_t24_s4_a0_s0[ip][j]*Gip3;
+        A[nzc6[j]] += P_t35_p0_a1_s1[ip][j]*Gip3;
         // Number of operations to compute entry = 2
-        A[nzc6[j]] += P_t24_s4_a0_s0[ip][j]*Gip4;
+        A[nzc11[j]] += P_t35_p0_a1_s1[ip][j]*Gip4;
         // Number of operations to compute entry = 2
-        A[nzc2[j]] += P_t24_s4_a0_s0[ip][j]*Gip5;
+        A[nzc10[j]] += P_t35_p0_a1_s1[ip][j]*Gip5;
       }// end loop over 'j'
       
     }// end loop over 'ip'
@@ -39231,7 +40936,7 @@ UFC_NSEMomentum2DLinearForm::~UFC_NSEMomentum2DLinearForm()
 /// Return a string identifying the form
 const char* UFC_NSEMomentum2DLinearForm::signature() const
 {
-    return "-0.5w9_a0[0]w10_a1[0, 1, 2]w0_a2[0, 1, 2, 3, 4, 5]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w9_a0[0]w10_a1[0, 1, 2]w15_a2[0, 1, 2, 3, 4, 5]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w9_a0[0]w11_a1[0]w9_a2[0]w13_a3[0]w0_a4[0, 1, 2, 3, 4, 5](dXa5[0, 1]/dxb0[0, 1])(dXa6[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa5[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w11_a1[0]w9_a2[0]w13_a3[0]w0_a4[0, 1, 2, 3, 4, 5](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa5[0, 1])va4[0, 1, 2, 3, 4, 5][a7[0, 1]])*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][a8[0, 1]])*dX(0) + 0.5w9_a0[0]w11_a1[0]w9_a2[0]w14_a3[0]w0_a4[0, 1, 2, 3, 4, 5](dXa5[0, 1]/dxa7[0, 1])(dXa6[0, 1]/dxa8[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa5[0, 1])va4[0, 1, 2, 3, 4, 5][a7[0, 1]])*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][a8[0, 1]])*dX(0) + -0.5w9_a0[0]w9_a1[0]w13_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w9_a0[0]w9_a1[0]w13_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + -0.5w9_a0[0]w9_a1[0]w14_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa6[0, 1])(dXa5[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + 0.5w9_a0[0]w11_a1[0]w5_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w9_a0[0]w6_a1[0]w3_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w3_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w6_a1[0]w3_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w16_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w6_a1[0]w16_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w3_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w9_a0[0]w6_a1[0]w16_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w16_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w10_a0[0, 1, 2]w1_a1[0, 1, 2, 3, 4, 5] | va0[0, 1, 2]*va1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + w9_a0[0]w10_a1[0, 1, 2]w0_a2[0, 1, 2, 3, 4, 5]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w9_a0[0]w10_a1[0, 1, 2]w15_a2[0, 1, 2, 3, 4, 5]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w9_a0[0]w11_a1[0]w12_a2[0, 1, 2, 3](dXa3[0, 1]/dx0) | va0[0]*va1[0]*va2[0, 1, 2, 3][b0[0, 1]]*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w4_a1[0, 1, 2](dXa2[0, 1]/dxa3[0, 1]) | va0[0]*va1[0, 1, 2]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][a3[0, 1]])*dX(0) + w9_a0[0]w12_a1[0, 1, 2, 3](dXa2[0, 1]/dx0) | va0[0]*va1[0, 1, 2, 3][b0[0, 1]]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w11_a1[0]w12_a2[0, 1, 2, 3](dXa3[0, 1]/dx1) | va0[0]*va1[0]*va2[0, 1, 2, 3][2]*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][0])*dX(0) + w9_a0[0]w12_a1[0, 1, 2, 3](dXa2[0, 1]/dx1) | va0[0]*va1[0, 1, 2, 3][2]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][0])*dX(0) + -w9_a0[0]w11_a1[0]w12_a2[0, 1, 2, 3](dXa3[0, 1]/dx1) | va0[0]*va1[0]*va2[0, 1, 2, 3][3]*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][1])*dX(0) + w9_a0[0]w12_a1[0, 1, 2, 3](dXa2[0, 1]/dx1) | va0[0]*va1[0, 1, 2, 3][3]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][1])*dX(0) + w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w3_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w3_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w3_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w16_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w16_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w3_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w16_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w16_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w7_a1[0]w1_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*((d/dXa3[0, 1])va2[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a5[0, 1]])*dX(0) + w9_a0[0]w11_a1[0]w8_a2[0, 1, 2, 3, 4, 5] | va0[0]*va1[0]*va2[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w9_a0[0]w8_a1[0, 1, 2, 3, 4, 5] | va0[0]*va1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0)";
+    return "-0.5w9_a0[0]w10_a1[0, 1, 2]w2_a2[0, 1, 2, 3, 4, 5]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w9_a0[0]w10_a1[0, 1, 2]w15_a2[0, 1, 2, 3, 4, 5]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + 0.5w9_a0[0]w11_a1[0]w9_a2[0]w13_a3[0]w0_a4[0, 1, 2, 3, 4, 5](dXa5[0, 1]/dxb0[0, 1])(dXa6[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa5[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w11_a1[0]w9_a2[0]w13_a3[0]w0_a4[0, 1, 2, 3, 4, 5](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa5[0, 1])va4[0, 1, 2, 3, 4, 5][a7[0, 1]])*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][a8[0, 1]])*dX(0) + 0.5w9_a0[0]w11_a1[0]w9_a2[0]w14_a3[0]w0_a4[0, 1, 2, 3, 4, 5](dXa5[0, 1]/dxa7[0, 1])(dXa6[0, 1]/dxa8[0, 1]) | va0[0]*va1[0]*va2[0]*va3[0]*((d/dXa5[0, 1])va4[0, 1, 2, 3, 4, 5][a7[0, 1]])*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][a8[0, 1]])*dX(0) + -0.5w9_a0[0]w9_a1[0]w13_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w9_a0[0]w9_a1[0]w13_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + -0.5w9_a0[0]w9_a1[0]w14_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa6[0, 1])(dXa5[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + 0.25w9_a0[0]w11_a1[0]w17_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.25w9_a0[0]w11_a1[0]w17_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + -0.25w9_a0[0]w17_a1[0]w0_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*((d/dXa3[0, 1])va2[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.25w9_a0[0]w17_a1[0]w0_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*((d/dXa3[0, 1])va2[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + -0.5w9_a0[0]w11_a1[0]w5_a2[0]w0_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w9_a0[0]w6_a1[0]w3_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w3_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w6_a1[0]w3_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w16_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.5w9_a0[0]w6_a1[0]w16_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w3_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.5w9_a0[0]w6_a1[0]w16_a2[0, 1]w0_a3[0, 1, 2, 3, 4, 5]w16_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*va2[0, 1][a8[0, 1]]*((d/dXa5[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w11_a0[0]w10_a1[0, 1, 2]w1_a2[0, 1, 2, 3, 4, 5] | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + w11_a0[0]w18_a1[0]w1_a2[0, 1, 2, 3, 4, 5] | va0[0]*va1[0]*va2[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w18_a0[0]w1_a1[0, 1, 2, 3, 4, 5] | va0[0]*va1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + w9_a0[0]w10_a1[0, 1, 2]w2_a2[0, 1, 2, 3, 4, 5]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w9_a0[0]w10_a1[0, 1, 2]w15_a2[0, 1, 2, 3, 4, 5]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0, 1, 2]*va2[0, 1, 2, 3, 4, 5][a5[0, 1]]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + w9_a0[0]w11_a1[0]w5_a2[0]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w11_a1[0]w12_a2[0, 1, 2, 3](dXa3[0, 1]/dx0) | va0[0]*va1[0]*va2[0, 1, 2, 3][b0[0, 1]]*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.25w9_a0[0]w11_a1[0]w17_a2[0]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxb0[0, 1])(dXa5[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -0.25w9_a0[0]w11_a1[0]w17_a2[0]w2_a3[0, 1, 2, 3, 4, 5](dXa4[0, 1]/dxa7[0, 1])(dXa5[0, 1]/dxa6[0, 1]) | va0[0]*va1[0]*va2[0]*((d/dXa4[0, 1])va3[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa5[0, 1])vi0[0, 1, 2, 3, 4, 5][a7[0, 1]])*dX(0) + -w9_a0[0]w4_a1[0, 1, 2](dXa2[0, 1]/dxa3[0, 1]) | va0[0]*va1[0, 1, 2]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][a3[0, 1]])*dX(0) + w9_a0[0]w12_a1[0, 1, 2, 3](dXa2[0, 1]/dx0) | va0[0]*va1[0, 1, 2, 3][b0[0, 1]]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.25w9_a0[0]w17_a1[0]w2_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxb0[0, 1])(dXa4[0, 1]/dxb0[0, 1]) | va0[0]*va1[0]*((d/dXa3[0, 1])va2[0, 1, 2, 3, 4, 5][b0[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + 0.25w9_a0[0]w17_a1[0]w2_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*((d/dXa3[0, 1])va2[0, 1, 2, 3, 4, 5][a5[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a6[0, 1]])*dX(0) + -w9_a0[0]w11_a1[0]w12_a2[0, 1, 2, 3](dXa3[0, 1]/dx1) | va0[0]*va1[0]*va2[0, 1, 2, 3][2]*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][0])*dX(0) + w9_a0[0]w12_a1[0, 1, 2, 3](dXa2[0, 1]/dx1) | va0[0]*va1[0, 1, 2, 3][2]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][0])*dX(0) + -w9_a0[0]w11_a1[0]w12_a2[0, 1, 2, 3](dXa3[0, 1]/dx1) | va0[0]*va1[0]*va2[0, 1, 2, 3][3]*((d/dXa3[0, 1])vi0[0, 1, 2, 3, 4, 5][1])*dX(0) + w9_a0[0]w12_a1[0, 1, 2, 3](dXa2[0, 1]/dx1) | va0[0]*va1[0, 1, 2, 3][3]*((d/dXa2[0, 1])vi0[0, 1, 2, 3, 4, 5][1])*dX(0) + w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w3_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w3_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w3_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w16_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + -w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w16_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w3_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + w9_a0[0]w6_a1[0]w10_a2[0, 1, 2]w16_a3[0, 1]w2_a4[0, 1, 2, 3, 4, 5]w10_a5[0, 1, 2]w16_a6[0, 1](dXa7[0, 1]/dxa10[0, 1])(dXa8[0, 1]/dxa9[0, 1]) | va0[0]*va1[0]*va2[0, 1, 2]*va3[0, 1][a10[0, 1]]*((d/dXa7[0, 1])va4[0, 1, 2, 3, 4, 5][b0[0, 1]])*va5[0, 1, 2]*va6[0, 1][a9[0, 1]]*((d/dXa8[0, 1])vi0[0, 1, 2, 3, 4, 5][b0[0, 1]])*dX(0) + w9_a0[0]w6_a1[0]w4_a2[0, 1, 2]w10_a3[0, 1, 2]w3_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*((d/dXa5[0, 1])va2[0, 1, 2])*va3[0, 1, 2]*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][a8[0, 1]])*dX(0) + -w9_a0[0]w6_a1[0]w4_a2[0, 1, 2]w10_a3[0, 1, 2]w16_a4[0, 1](dXa5[0, 1]/dxa8[0, 1])(dXa6[0, 1]/dxa7[0, 1]) | va0[0]*va1[0]*((d/dXa5[0, 1])va2[0, 1, 2])*va3[0, 1, 2]*va4[0, 1][a7[0, 1]]*((d/dXa6[0, 1])vi0[0, 1, 2, 3, 4, 5][a8[0, 1]])*dX(0) + 0.5w9_a0[0]w7_a1[0]w1_a2[0, 1, 2, 3, 4, 5](dXa3[0, 1]/dxa6[0, 1])(dXa4[0, 1]/dxa5[0, 1]) | va0[0]*va1[0]*((d/dXa3[0, 1])va2[0, 1, 2, 3, 4, 5][a6[0, 1]])*((d/dXa4[0, 1])vi0[0, 1, 2, 3, 4, 5][a5[0, 1]])*dX(0) + w9_a0[0]w11_a1[0]w8_a2[0, 1, 2, 3, 4, 5] | va0[0]*va1[0]*va2[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0) + -w9_a0[0]w8_a1[0, 1, 2, 3, 4, 5] | va0[0]*va1[0, 1, 2, 3, 4, 5][b0[0, 1]]*vi0[0, 1, 2, 3, 4, 5][b0[0, 1]]*dX(0)";
 }
 
 /// Return the rank of the global tensor (r)
@@ -39243,7 +40948,7 @@ unsigned int UFC_NSEMomentum2DLinearForm::rank() const
 /// Return the number of coefficients (n)
 unsigned int UFC_NSEMomentum2DLinearForm::num_coefficients() const
 {
-    return 17;
+    return 19;
 }
 
 /// Return the number of cell integrals
@@ -39323,6 +41028,12 @@ ufc::finite_element* UFC_NSEMomentum2DLinearForm::create_finite_element(unsigned
     case 17:
       return new UFC_NSEMomentum2DLinearForm_finite_element_17();
       break;
+    case 18:
+      return new UFC_NSEMomentum2DLinearForm_finite_element_18();
+      break;
+    case 19:
+      return new UFC_NSEMomentum2DLinearForm_finite_element_19();
+      break;
     }
     return 0;
 }
@@ -39385,6 +41096,12 @@ ufc::dof_map* UFC_NSEMomentum2DLinearForm::create_dof_map(unsigned int i) const
       break;
     case 17:
       return new UFC_NSEMomentum2DLinearForm_dof_map_17();
+      break;
+    case 18:
+      return new UFC_NSEMomentum2DLinearForm_dof_map_18();
+      break;
+    case 19:
+      return new UFC_NSEMomentum2DLinearForm_dof_map_19();
       break;
     }
     return 0;
