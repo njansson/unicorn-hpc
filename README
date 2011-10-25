@@ -62,7 +62,7 @@ chapter "Turbulent Flow and Fluid-Structure Interaction" and section
 To verify correct installation and functionality of Unicorn, follow
 these steps:
 
-1. $ source local.sh (Configure and setup environment variables)
+1. source local.sh (Configure and setup environment variables)
 2. make install (Compile and install)
 3. cd ucsolver/icns/cube
 4. make
