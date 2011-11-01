@@ -240,7 +240,7 @@ void ElasticSmoother::submesh(Mesh& mesh, Mesh& sub,
 			      MeshFunction<int>& old2new_cell)
 {
   
-  dolfin_debug("Entering create submesh");
+  //dolfin_debug("Entering create submesh");
 
   old2new_vertex.init(mesh, 0);
   old2new_cell.init(mesh, mesh.topology().dim());
@@ -367,7 +367,7 @@ void ElasticSmoother::submesh(Mesh& mesh, Mesh& sub,
   sub.distdata().invalid_numbering();
   sub.renumber();
 
-  dolfin_debug("submesh created"); 
+  //  dolfin_debug("submesh created"); 
   //  File submesh("submesh.pvd");
   //  submesh << sub;
   
