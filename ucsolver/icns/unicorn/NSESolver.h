@@ -123,6 +123,8 @@ namespace dolfin {
 	  return dolfin::sor;
 	else if (type == "ilu")
 	  return dolfin::ilu;
+	else if (type == "dilu")
+	  return dolfin::dilu;
 	else if (type == "amg")
 	  return dolfin::amg;
 	else
