@@ -96,6 +96,7 @@ NodeNormal& NodeNormal::operator=(NodeNormal& node_normal)
 //-----------------------------------------------------------------------------
 void NodeNormal::ComputeNormal(Mesh& mesh)
 {
+
   mesh.renumber();
   uint rank = MPI::processNumber();
   uint pe_size = MPI::numProcesses();
@@ -238,7 +239,7 @@ void NodeNormal::ComputeNormal(Mesh& mesh)
       for (int j = 0; j < Ncol; j++)
 	n1[j] =  n_block[B(0,j,Nrow)];
 
-      real alpha_max = DOLFIN_PI / 6.0;
+      real alpha_max = (real) dolfin_get("alpha_max");
       int Nrow_ns1 = 0; // it will be number of rows for the ns1_block
       int Nrow_ns2 = 0; // it will be number of rows for the ns2_block
 
