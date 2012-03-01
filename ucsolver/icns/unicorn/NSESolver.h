@@ -47,8 +47,6 @@ namespace dolfin {
       // Cleanup
       void clear();
       
-      // Compute cell diameter
-      static void ComputeCellSize(Mesh& mesh, Vector& hvector);
       
       // Get minimum cell diameter
       static void GetMinimumCellSize(Mesh& mesh, real& hmin);
@@ -125,6 +123,8 @@ namespace dolfin {
 	  return dolfin::sor;
 	else if (type == "ilu")
 	  return dolfin::ilu;
+	else if (type == "dilu")
+	  return dolfin::dilu;
 	else if (type == "amg")
 	  return dolfin::amg;
 	else
@@ -147,6 +147,8 @@ namespace dolfin {
       real T;
       real nu;
       real ubar;
+      real hmin;
+      bool schur;
 
       Checkpoint& chkp;
       long& w_limit;
@@ -162,6 +164,18 @@ namespace dolfin {
 
     };
     
+    class TimeStepFunction : public Function
+    {
+    public:
+    TimeStepFunction(Mesh& mesh) : Function(mesh) {}
+      void eval(real* values, const real* p) const
+      {
+	values[0] = *k;
+      }
+      
+      real* k;
+    };
+
   }}
 
 #endif

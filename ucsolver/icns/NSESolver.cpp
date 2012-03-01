@@ -21,6 +21,7 @@
 #include <dolfin/fem/UFC.h>
 
 #include "unicorn/Drag3D.h"
+#include "unicorn/Drag3D_Int.h"
 #include "unicorn/NSESolver.h"
 #include "unicorn/NSEMomentum3D.h"
 #include "unicorn/NSEContinuity3D.h"
@@ -155,20 +156,21 @@ void NSESolver::solve()
   td.sync(&t);
 
   // Set time step (proportional to the minimum cell diameter) 
-  real hmin;
   GetMinimumCellSize(mesh, hmin);  
 
   real k = 0.15*hmin/ubar; 
 
- if(dolfin::MPI::processNumber() == 0)
-   dolfin_set("output destination","terminal");
- message("beta: %f", (real) dolfin_get("beta"));
- message("nu: %f", nu);
- message("ubar: %f",ubar);
- message("hmin: %f",hmin);
- message("k: %f",k);
- dolfin_set("output destination","silent");
- 
+  schur = true;
+  
+  if(dolfin::MPI::processNumber() == 0)
+    dolfin_set("output destination","terminal");
+  message("beta: %f", (real) dolfin_get("beta"));
+  message("nu: %f", nu);
+  message("ubar: %f",ubar);
+  message("hmin: %f",hmin);
+  message("k: %f",k);
+  dolfin_set("output destination","silent");
+  
   Function u; // velocity
   Function up; // primal velocity
   Function upm; // Cell mean primal velocity
@@ -178,12 +180,22 @@ void NSESolver::solve()
   Function dtu; // Time derivative of velocity
   Function dtup; // Time derivative of primal velocity
   Function p;   // pressure
+  Function p0;   // pressure from previous iteration
   Function pp;   // primal pressure
   Function vol_inv;  // 1 / volume of element
   Function res_m;  // momentum residual
   Function delta1, delta2; // stabilization coefficients
 
-  Function fk(mesh, k);
+  //Function fk(mesh, k);
+  TimeStepFunction *fk = new TimeStepFunction(mesh);
+  fk->k = &k;
+
+  TimeStepFunction *fk_con = new TimeStepFunction(mesh);
+  fk_con->k = &k;
+  real zero = 0.0;
+  if(!schur)
+    fk_con->k = &zero;
+
   Function fnu(mesh, nu);
 
   Function tau_1, tau_2, normal;
@@ -196,26 +208,29 @@ void NSESolver::solve()
   Form* Lres_m = 0;
   Form* LG = 0;
   Form** MF = new Form*[aero_f.size()];
+  Form** MF_Int = new Form*[aero_f.size()];
   
   if ( nsd == 3 )
   {
     if(solver_type == "primal")
     {
-      amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
-      Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
-      acon = new NSEContinuity3DBilinearForm(delta1);
-      Lcon = new NSEContinuity3DLinearForm(uc, delta1);
+      amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,*fk,fnu);
+      Lmom = new NSEMomentum3DLinearForm(um,u0,f,p,delta1,delta2,tau_1,tau_2,beta,*fk,fnu);
+      acon = new NSEContinuity3DBilinearForm(delta1, *fk);
+      Lcon = new NSEContinuity3DLinearForm(uc, delta1, p0, *fk);
 
-      for(uint i = 0; i < aero_f.size(); i++)
+      for(uint i = 0; i < aero_f.size(); i++) {
 	MF[i] = new Drag3DFunctional(*aero_f[i], dtu, u, um, p, fnu, delta1, delta2, f);
+	MF_Int[i] = new Drag3D_IntFunctional(normal, *aero_f[i], p);
+      }
 
     }
     else if(solver_type == "dual")
     {
-      amom = new NSEDualMomentum3DBilinearForm(um,delta1,delta2,fk,fnu,up);
-      Lmom = new NSEDualMomentum3DLinearForm(um,u0,f,p,delta1,delta2,fk,fnu,up);
-      acon = new NSEDualContinuity3DBilinearForm(delta1);
-      Lcon = new NSEDualContinuity3DLinearForm(uc);
+      amom = new NSEDualMomentum3DBilinearForm(um,delta1,delta2,*fk,fnu,up);
+      Lmom = new NSEDualMomentum3DLinearForm(um,u0,f,p,delta1,delta2,*fk,fnu,up);
+      acon = new NSEDualContinuity3DBilinearForm(delta1, *fk);
+      Lcon = new NSEDualContinuity3DLinearForm(uc, p0, *fk);
       Lres_m   = new NSEResMomentum3DLinearForm(pp, up, dtup, vol_inv);
       LG = new NSEDualGradient3DLinearForm(u, vol_inv);
     }
@@ -234,7 +249,7 @@ void NSESolver::solve()
   // xcvel: linearized velocity 
   // xvel:  current velocity 
   // pvel:  current pressure 
-  Vector xvel, xdtvel, x0vel, xcvel, xmvel, xpre, xppre, xpvel,xpmvel, xdtpvel;
+  Vector xvel, xdtvel, x0vel, xcvel, xmvel, xpre, x0pre, xppre, xpvel,xpmvel, xdtpvel;
 
   Vector vol_invx;         // vol_invx: needed for the computing strong residual               
   Vector res_mx;           // res_mx: needed for storing the momentum residual                 
@@ -251,7 +266,7 @@ void NSESolver::solve()
 
   // Initialize algebraic solvers   
   KrylovSolver solver_con(krylov_method(dolfin_get("krylov_method")),
-			  pc_type(dolfin_get("krylov_pc")));
+  			  pc_type(dolfin_get("krylov_pc")));
   KrylovSolver solver_mom(krylov_method(dolfin_get("krylov_method")));
 
   u.init(mesh, xvel, *amom, 1);
@@ -260,6 +275,7 @@ void NSESolver::solve()
   uc.init(mesh, xcvel, *Lcon, 1);
   um.init(mesh, xmvel, *amom, 2);
   p.init(mesh, xpre, *Lmom, 4);
+  p0.init(mesh, x0pre, *Lmom, 4);
   delta1.init(mesh, d1vector, *amom, 3);
   delta2.init(mesh, d2vector, *amom, 4);
   tau_1.init(mesh, tau_1x, *amom, 6); 
@@ -273,6 +289,7 @@ void NSESolver::solve()
   func.push_back(&uc);
   func.push_back(&um);
   func.push_back(&p);
+  func.push_back(&p0);
   func.push_back(&delta1);
   func.push_back(&delta2);
 
@@ -307,6 +324,7 @@ void NSESolver::solve()
   xmvel.zero();
   xvel.zero();
   xpre.zero();
+  x0pre.zero();
 
   u.sync_ghosts(); // velocity
   up.sync_ghosts(); // primal velocity
@@ -317,6 +335,7 @@ void NSESolver::solve()
   dtu.sync_ghosts(); // Time derivative of velocity
   dtup.sync_ghosts(); // Time derivative of primal velocity
   p.sync_ghosts();   // pressure
+  p0.sync_ghosts();   // pressure
   pp.sync_ghosts();   // primal pressure
   vol_inv.sync_ghosts();  // 1 / volume of element
   res_m.sync_ghosts();  // momentum residual
@@ -448,11 +467,15 @@ void NSESolver::solve()
   }
 
   // Residual, tolerance and maxmimum number of fixed point iterations
-  real residual;
+  real residual, residual2;
+  real residual_c, residual_m;
   real rtol = 1.0e-2;
+  real rtol2 = 1.0e-3;
   int iteration;
-  int max_iteration = 50;  
+  int max_iteration = 10;  
 
+  if(!schur)
+    rtol = 1e6;
 
   // Represent primal in space-time
   SpaceTimeFunction* Up = 0;
@@ -499,6 +522,17 @@ void NSESolver::solve()
   while (t<T) 
   {
     
+    // Increase time-step after a startup phase
+    if(time_step > 40)
+    {
+      k = 0.5*hmin/ubar;
+      max_iteration = 20;
+      if(solver_type == "dual")
+      {
+	k = 0.5*hmin/ubar;
+      }
+    }
+
     time_step++;
     if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
@@ -515,25 +549,42 @@ void NSESolver::solve()
 
     // Set current velocity to velocity at previous time step 
     x0vel = xvel;
+    u0.sync_ghosts();
 
     // Initialize residual 
     residual = 2*rtol;
+    residual2 = 2*rtol2;
     iteration = 0;
+
 
     MPI::startTimer(iter_time);
     // Fix-point iteration for non-linear problem 
-    while (residual > rtol && iteration < max_iteration){
+    while ((residual > rtol && iteration < max_iteration) ||
+	   (residual2 > rtol2 && iteration < max_iteration) ||
+	   iteration < 1){
+
+      x0pre -= xpre;
+      xcvel -= xvel;
+
+      if(dolfin::MPI::processNumber() == 0)
+        dolfin_set("output destination","terminal");      
+      message("pressure diff: %g %g", x0pre.norm(linf), xpre.norm(linf));
+      message("velocity diff: %g %g", xcvel.norm(linf), xvel.norm(linf));
+      dolfin_set("output destination","silent");    
 
       // Set linearized velocity to current velocity 
       xcvel = xvel;
+      x0pre = xpre;
+      uc.sync_ghosts();
+      u0.sync_ghosts();
 
       // Compute stabilization parameters
       tic();
 
-      ComputeStabilization(mesh,u0,nu,k,d1vector,d2vector, *Lmom);
-
       if(dolfin::MPI::processNumber() == 0)
         dolfin_set("output destination","terminal");
+      ComputeStabilization(mesh,u0,nu,k,d1vector,d2vector, *Lmom);
+
       message("Compute stab took %g seconds",toc());
       dolfin_set("output destination","silent");
 
@@ -548,6 +599,19 @@ void NSESolver::solve()
       assembler.assemble(Acon, *acon, false);
       assembler.assemble(bcon, *Lcon, false);
       bc_con.apply(Acon, bcon, *acon);
+
+      if(dolfin::MPI::processNumber() == 0)
+      dolfin_set("output destination","terminal");
+      message("Solve linear system: continuity");
+      // Solve the linear system for the continuity equation 
+      tic();      
+      solver_con.solve(Acon, xpre, bcon);
+      dolfin_set("output destination","silent");      
+      if(dolfin::MPI::processNumber() == 0)
+        dolfin_set("output destination","terminal");      
+      message("Linear solve took %g seconds",toc());
+
+
 
       if(dolfin::MPI::processNumber() == 0)
         dolfin_set("output destination","terminal");
@@ -572,25 +636,9 @@ void NSESolver::solve()
       // Compute residual for continuity equation 
       Acon.mult(xpre,residual_con);
       residual_con -= bcon;
-      if(dolfin::MPI::processNumber() == 0)
-        dolfin_set("output destination","terminal");      
-      message("Momentum residual  : l2 norm = %e",residual_mom.norm());
-      message("continuity residual: l2 norm = %e",residual_con.norm());
-      message("Total NSE residual : l2 norm = %e",sqrt(sqr(residual_mom.norm()) + sqr(residual_con.norm())));
-      dolfin_set("output destination","silent");    
-  
-      residual = sqrt(sqr(residual_mom.norm()) + sqr(residual_con.norm()));
 
-      if(dolfin::MPI::processNumber() == 0)
-      dolfin_set("output destination","terminal");
-      message("Solve linear system: continuity");
-      // Solve the linear system for the continuity equation 
-      tic();      
-      solver_con.solve(Acon, xpre, bcon);
-      dolfin_set("output destination","silent");      
-      if(dolfin::MPI::processNumber() == 0)
-        dolfin_set("output destination","terminal");      
-      message("Linear solve took %g seconds",toc());
+  
+      residual2 = sqrt(sqr(residual_mom.norm()) + sqr(residual_con.norm()));
 
       message("Solve linear system: momentum");
       dolfin_set("output destination","silent");      
@@ -605,11 +653,40 @@ void NSESolver::solve()
       // Compute time derivative of primal velocity
       ComputeTimeDerivative(mesh, u, u0, k, dtu);
 
+      residual = 0;
+
+      residual_con = xpre;
+      residual_con -= x0pre;
+      residual_c = 0;
+      if(xpre.norm(linf) > 1.0e-8)
+      {
+	residual_c = residual_con.norm(l2) / xpre.norm(l2);
+	residual += residual_c;
+      }
+
+      residual_mom = xvel;
+      residual_mom -= xcvel;
+      residual_m = 0;
+      if(xvel.norm(linf) > 1.0e-8)
+      {
+	residual_m = residual_mom.norm(l2) / xvel.norm(l2);
+	residual += residual_m;
+      }
+
+      if(dolfin::MPI::processNumber() == 0)
+        dolfin_set("output destination","terminal");      
+      message("Momentum residual  : l2 norm = %e",residual_m);
+      message("continuity residual: l2 norm = %e",residual_c);
+      message("Total NSE residual : l2 norm = %e",residual);
+      message("Residual2 : l2 norm = %e",residual2);
+      dolfin_set("output destination","silent");    
+
       iteration++;
     }
     if(dolfin::MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");      
-    message("Fix-point took %g seconds",MPI::stopTimer(iter_time));
+    message("Fix-point took %g seconds, %d iterations, k: %g, t: %g",
+	    MPI::stopTimer(iter_time), iteration, k, t);
     dolfin_set("output destination","silent");      
     
     if(solver_type == "dual")
@@ -629,6 +706,12 @@ void NSESolver::solve()
       for (uint i = 0; i < aero_f.size(); i++)
       {
 	force = assembler.assemble(*MF[i]);
+	if( MPI::processNumber() == 0) 
+	  forceFile << force  << "\t";
+      }	
+      for (uint i = 0; i < aero_f.size(); i++)
+      {
+	force = assembler.assemble(*MF_Int[i]);
 	if( MPI::processNumber() == 0) 
 	  forceFile << force  << "\t";
       }	
@@ -739,6 +822,7 @@ void NSESolver::solve()
   
   if(solver_type == "primal") {
     delete[] MF;
+    delete[] MF_Int;
   }
   else if(solver_type == "dual") {
     delete Up;
@@ -761,7 +845,7 @@ void NSESolver::solve()
 
       dolfin_set("Load balancer redistribute", false);      
 
-      Form *primal_amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,fk,fnu);
+      Form *primal_amom = new NSEMomentum3DBilinearForm(um,delta1,delta2,tau_1,tau_2,beta,*fk,fnu);
 
       Function u_primal;
       Vector xu_primal;
@@ -786,34 +870,7 @@ void NSESolver::solve()
     else
       AdaptiveRefinement::refine(mesh, cell_marker);
   }
-
-
-
   
-}
-//-----------------------------------------------------------------------------
-void NSESolver::ComputeCellSize(Mesh& mesh, Vector& hvector)
-{  
-  //real* harr = hvector.down_cast<PETScVector>().array();
-  real *h = new real[mesh.numCells()];
-  uint *rows = new uint[mesh.numCells()];
-
-  // Compute cell size h
-  hvector.init(mesh.numCells());	
-  for (CellIterator cell(mesh); !cell.end(); ++cell)
-  {
-    h[(*cell).index()] = (*cell).diameter();
-    if (MPI::numProcesses() > 1)
-      rows[(*cell).index()] = mesh.distdata().get_cell_global(cell->index());
-    else
-      rows[(*cell).index()] = (*cell).diameter();
-  }
-
-  hvector.set(h, mesh.numCells(), rows);
-  hvector.apply();
-
-  delete[] h;
-  delete[] rows;
 }
 //-----------------------------------------------------------------------------
 void NSESolver::GetMinimumCellSize(Mesh& mesh, real& hmin)
@@ -845,8 +902,19 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
   //   d1 = C1 * h^2  
   //   d2 = C2 * h^2  
 
+  // FIXME: we should use k iff CFL < 1
+  //  real kk = 0.25*hmin/ubar; 
+  real kk = k;
+
   real C1 = 4.0;   
   real C2 = 2.0;   
+
+  if(schur)
+  {
+    // Use conservative stabilization parameters for the release
+    C1 = 4.0;
+    C2 = 2.0;
+  }
 
   UFC ufc(form.form(), mesh, form.dofMaps());
   real normw; 
@@ -900,7 +968,7 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
       cid = (*cell).index();
     
     if ( (nu < 1.0e-10) || ((h/nu) > 1.0) ){
-      d1_block[ci] =  C1 * (0.5 / sqrt( 1.0/sqr(k) + sqr(normw/h)));
+      d1_block[ci] =  C1 * (0.5 / sqrt( 1.0/sqr(kk) + sqr(normw/h)));
       d2_block[ci] = C2 * h;
     } else {
       d1_block[ci] = C1 * sqr(h);

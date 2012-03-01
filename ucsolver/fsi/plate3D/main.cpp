@@ -75,10 +75,11 @@ namespace Geo
   
   bool isStructure(Point r)
   {
-    // Define the area that the pin occupies
-    return (((0.5 - bmarg) < r[0] && r[0] < (0.5 + 0.00625 / 1.0 + bmarg)) &&
-	    ((0.0 - bmarg) < r[1] && r[1] < (0.2 + bmarg)) &&
-	    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)));
+    // // Define the area that the pin occupies
+    // return (((0.5 - bmarg) < r[0] && r[0] < (0.5 + 0.00625 / 1.0 + bmarg)) &&
+    // 	    ((0.0 - bmarg) < r[1] && r[1] < (0.2 + bmarg)) &&
+    // 	    ((0.45 - bmarg) < r[2] && r[2] < (0.55 + bmarg)));
+    return true;
   }
 }
 
@@ -337,7 +338,7 @@ void transform(Mesh& mesh)
   }
 }
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_tim)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* structure_mesh)
 {
   real T = dolfin_get("T");
   real dual_T = dolfin_get("dual_T");
@@ -389,27 +390,86 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_tim)
 
   MeshFunction<bool> solid_cells(mesh, mesh.topology().dim());
 
+  bool existRegionFile = structure_mesh;
+   
+  IntersectionDetector *idetector;
+   
+  if (existRegionFile) 
+  {
+    std::cout << "Region file exists" << std::endl;
+    idetector = new IntersectionDetector(*structure_mesh);
+  }
+  else
+  {
+    std::cout << "Region file doesn't exist" << std::endl;
+  }
+
   for (CellIterator c(mesh); !c.end(); ++c)
   {
     Cell& cell = *c;
     Point mp = cell.midpoint();
 
-    solid_cells.set(cell, Geo::isStructure(mp));
-    //solid_cells.set(cell, false);
-    if(solid_cells.get(cell))
-    {
-      std::cout << "solid0" << std::endl;
-    }
+   if (existRegionFile)
+   {
+     Array<unsigned int> overlap_cells;
+     overlap_cells.clear();
+     idetector->overlap(mp, overlap_cells);
+     
+     bool bfnd = false;
+     for(int i=0; i < overlap_cells.size(); i++)
+     {	
+       Cell testcell(*structure_mesh, overlap_cells[i]);
+       if (structure_mesh->type().intersects(testcell,mp))
+       {
+	 std::cout << "solid cell" << std::endl;
+	 bfnd = true;
+	 break;
+       }			
+     }
+     
+     solid_cells.set(cell, bfnd);
+     
+   }
+   else
+     solid_cells.set(cell, Geo::isStructure(mp));
+   //solid_cells.set(cell, false);
+   if(solid_cells.get(cell))
+   {
+     std::cout << "solid0" << std::endl;
+   }
   }
-
+  
   MeshFunction<bool> solid_vertices(mesh, 0);
-
+  
   for (VertexIterator v(mesh); !v.end(); ++v)
   {
     Vertex& vertex = *v;
     Point p = vertex.point();
-
-    solid_vertices.set(vertex, Geo::isStructure(p));
+    
+    if (existRegionFile)
+    {
+      Array<unsigned int> overlap_cells;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);
+      
+      bool bfnd = false;
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      
+      solid_vertices.set(vertex, bfnd);
+      
+    }
+    else
+      solid_vertices.set(vertex, Geo::isStructure(p));
   }
 
   Function U, U0;
@@ -417,9 +477,19 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_tim)
 //   dolfin_set("Krylov relative tolerance", 1.0e-12);
 //   dolfin_set("Krylov absolute tolerance", 1.0e-20);
 
-  NSESolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
-		    p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
-                    ubar, td, "primal"); 
+  // MeshFunction<int> old2new_vertex;
+  // MeshFunction<int> old2new_cells;
+  // Mesh sub;
+  // ElasticSmoother::submesh(mesh, sub, solid_cells, old2new_vertex, old2new_cells);
+
+  // File submeshfile("sub.xml");
+  // File submeshfile2("sub.pvd");
+  // submeshfile << sub;
+  // submeshfile2 << sub;
+
+  UCSolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
+		   p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
+		   ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
   dolfin_set("ODE discrete tolerance", 1.0e-2);
   dolfin_set("ODE maximum iterations", 30);
@@ -447,12 +517,15 @@ int main(int argc, char* argv[])
   Checkpoint chkp;
   int iter = 0;
 
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  Mesh* structure_mesh;
+
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
 //   mesh.refine();
 //   mesh.refine();
 
-  for(int i = 0; i < 10; i++)
+  //for(int i = 0; i < 10; i++)
+  for(int i = 0; i < 0; i++)
   {
     MeshFunction<bool> cell_refinement_marker(mesh);
     cell_refinement_marker.init(mesh.topology().dim());
@@ -486,7 +559,7 @@ int main(int argc, char* argv[])
       }
     }
     
-    if(dolfin::MPI::processNumber() == 0)
+    if(MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     
     const std::string refine_type = dolfin_get("adapt_algorithm");
@@ -498,7 +571,7 @@ int main(int argc, char* argv[])
       dolfin::error("Unknown refinement algorithm");
     dolfin_set("output destination","silent");
     
-    if(dolfin::MPI::processNumber() == 0)
+    if(MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     message("cells after: %d", mesh.distdata().global_numCells());
     message("vertices after: %d", mesh.distdata().global_numVertices());
@@ -515,7 +588,7 @@ int main(int argc, char* argv[])
       cell_refinement_marker.set(c->index(), true);
     }
 
-    if(dolfin::MPI::processNumber() == 0)
+    if(MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     
     const std::string refine_type = dolfin_get("adapt_algorithm");
@@ -527,14 +600,19 @@ int main(int argc, char* argv[])
       dolfin::error("Unknown refinement algorithm");
     dolfin_set("output destination","silent");
     
-    if(dolfin::MPI::processNumber() == 0)
+    if(MPI::processNumber() == 0)
       dolfin_set("output destination","terminal");
     message("cells after: %d", mesh.distdata().global_numCells());
     message("vertices after: %d", mesh.distdata().global_numVertices());
     dolfin_set("output destination","silent"); 
   }
 
-  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
+  std::vector<Function *>func;
+  std::vector<Vector *> vec;
+
+  //chkp.write("foo", false, 0.0, mesh, func, vec, true);
+
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
   dolfin_finalize();
    return 0;

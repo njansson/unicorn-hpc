@@ -11,9 +11,9 @@ rivara	  adapt_algorithm - adaptive refinement type
 1	  adapt_project - adaptive projection
 
 10.0       T - final time, primal solver
-10.0	  dual_T - final time, dual solver
+5.0	  dual_T - final time, dual solver
 1.0       Ubar - free stream velocity
 
-gmres	  krylov_method - krylov method
-amg	  krylov_pc - preconditioner
+bicgstab  krylov_method - krylov method
+jacobi	  krylov_pc - preconditioner
 1	  krylov_pc_keep - reuse preconditioner

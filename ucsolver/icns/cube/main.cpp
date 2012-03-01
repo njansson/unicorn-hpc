@@ -7,7 +7,7 @@
 //
 //
 // Unicorn test problem from "Automated Scientific Computing" of turbulent flow past a cube.
-// The output quantity in "aero_f.dat" is the drag force F (second column). The drag coefficient is Cd = 2F.
+// The output quantity in "aero_f.dat" is the drag force F (second column). The drag coefficient is Cd = 2F/0.2^2.
 // 
 
 #include <stdlib.h>
@@ -31,12 +31,12 @@ using namespace dolfin::unicorn;
 
 real bmarg = 1.0e-3 + DOLFIN_EPS;
 
-real xmin = -10.0;
-real xmax = 30.0;
-real ymin = -10.0;
-real ymax = 10.0;
-real zmin = -10.0;
-real zmax = 10.0;
+real xmin = 0.0;
+real xmax = 3.0;
+real ymin = 0.0;
+real ymax = 1.0;
+real zmin = 0.0;
+real zmax = 1.0;
 real xcenter = 0.5;
 real ycenter = 0.7;
 real radius = 0.05;
@@ -115,9 +115,9 @@ public:
   Dual_BC_Momentum_3D(Mesh& mesh) : Function(mesh) {}
   void eval(real* values, const real* x) const
   {
-    if ( (x[0] > -0.5 - bmarg) && (x[0] < 0.5 + bmarg) &&
-	 (x[1] > -0.5 - bmarg) && (x[1] < 0.5 + bmarg) &&
-	 (x[2] > -0.5 - bmarg) && (x[2] < 0.5 + bmarg) )
+    if ( (x[0] > 0.1 - bmarg) && (x[0] < 2.9 + bmarg) &&
+	 (x[1] > 0.1 - bmarg) && (x[1] < 0.9 + bmarg) &&
+	 (x[2] > 0.1 - bmarg) && (x[2] < 0.9 + bmarg) )
     {
       values[0] = -1.0;
       values[1] = 0.0;
@@ -158,9 +158,9 @@ public:
       values[i] = 0.0;
     }
 
-    if ( (x[0] > -0.5 - bmarg) && (x[0] < 0.5 + bmarg) &&
-	 (x[1] > -0.5 - bmarg) && (x[1] < 0.5 + bmarg) &&
-	 (x[2] > -0.5 - bmarg) && (x[2] < 0.5 + bmarg) )
+    if ( (x[0] > 0.1 - bmarg) && (x[0] < 2.9 + bmarg) &&
+	 (x[1] > 0.1 - bmarg) && (x[1] < 0.9 + bmarg) &&
+	 (x[2] > 0.1 - bmarg) && (x[2] < 0.9 + bmarg) )
       values[0] = 1.0;
   }
 };
@@ -178,9 +178,9 @@ public:
       values[i] = 0.0;
     }
 
-    if ( (x[0] > -0.5 - bmarg) && (x[0] < 0.5 + bmarg) &&
-	 (x[1] > -0.5 - bmarg) && (x[1] < 0.5 + bmarg) &&
-	 (x[2] > -0.5 - bmarg) && (x[2] < 0.5 + bmarg) )
+    if ( (x[0] > 0.1 - bmarg) && (x[0] < 2.9 + bmarg) &&
+	 (x[1] > 0.1 - bmarg) && (x[1] < 0.9 + bmarg) &&
+	 (x[2] > 0.1 - bmarg) && (x[2] < 0.9 + bmarg) )
       values[1] = 1.0;
   }
 };
@@ -205,7 +205,7 @@ public:
   }
 };
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* structure_mesh)
 {
   
   real T = dolfin_get("T");
@@ -266,7 +266,7 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
   }
 
   NSESolver dsolver(mesh, node_normal, f, beta, aero_f, dual_bc_mom,
-		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, td, "dual");
+  		    dual_bc_con, dual_T, nu, ubar, chkp, w_limit, td, "dual");
   dsolver.solve();
     
   if (w_limit) {
@@ -281,13 +281,16 @@ int main(int argc, char* argv[])
   timeval s_time;
   gettimeofday(&s_time, NULL);
   Mesh mesh;  
+  Mesh* structure_mesh = 0;
   long w_limit = 0;
   Checkpoint chkp;
   int iter = 0;
 
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
+  //mesh.refine();
+
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
   dolfin_finalize();
   return 0;

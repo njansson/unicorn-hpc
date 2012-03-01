@@ -66,14 +66,15 @@ namespace Geo
   
   bool isStructure(Point r)
   {
-    // Define the area that the pin occupies
-    // return (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
-    // 	    ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
-    real val =
-      (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
-       ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
-    std::cout << "isStructure: " << val << std::endl;
-    return val;
+    // // Define the area that the pin occupies
+    // // return (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
+    // // 	    ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
+    // real val =
+    //   (((pin_start_x - margin) < r[0] && r[0] < (pin_end_x + margin)) &&
+    //    ((pin_start_y - margin) < r[1] && r[1] < (pin_end_y + margin)));
+    // std::cout << "isStructure: " << val << std::endl;
+    // return val;
+    return true;
   }
 }
 
@@ -326,7 +327,7 @@ public:
 };
 
 
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time, Mesh* structure_mesh)
 {
   real T = dolfin_get("T");
   real dual_T = dolfin_get("dual_T");
@@ -374,28 +375,97 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 
   MeshFunction<bool> solid_cells(mesh, mesh.topology().dim());
 
+  bool existRegionFile = structure_mesh;
+   
+  IntersectionDetector *idetector;
+   
+  if (existRegionFile) 
+  {
+    std::cout << "Region file exists" << std::endl;
+    idetector = new IntersectionDetector(*structure_mesh);
+  }
+  else
+  {
+    std::cout << "Region file doesn't exist" << std::endl;
+  }
+
   for (CellIterator c(mesh); !c.end(); ++c)
   {
     Cell& cell = *c;
     Point mp = cell.midpoint();
 
-    solid_cells.set(cell, Geo::isStructure(mp));
-    //solid_cells.set(cell, false);
-    if(solid_cells.get(cell))
-    {
-      std::cout << "solid0" << std::endl;
-    }
+   if (existRegionFile)
+   {
+     Array<unsigned int> overlap_cells;
+     overlap_cells.clear();
+     idetector->overlap(mp, overlap_cells);
+     
+     bool bfnd = false;
+     for(int i=0; i < overlap_cells.size(); i++)
+     {	
+       Cell testcell(*structure_mesh, overlap_cells[i]);
+       if (structure_mesh->type().intersects(testcell,mp))
+       {
+	 std::cout << "solid cell" << std::endl;
+	 bfnd = true;
+	 break;
+       }			
+     }
+     
+     solid_cells.set(cell, bfnd);
+     
+   }
+   else
+     solid_cells.set(cell, Geo::isStructure(mp));
+   //solid_cells.set(cell, false);
+   if(solid_cells.get(cell))
+   {
+     std::cout << "solid0" << std::endl;
+   }
   }
-
+  
   MeshFunction<bool> solid_vertices(mesh, 0);
-
+  
   for (VertexIterator v(mesh); !v.end(); ++v)
   {
     Vertex& vertex = *v;
     Point p = vertex.point();
-
-    solid_vertices.set(vertex, Geo::isStructure(p));
+    
+    if (existRegionFile)
+    {
+      Array<unsigned int> overlap_cells;
+      overlap_cells.clear();
+      idetector->overlap(p, overlap_cells);
+      
+      bool bfnd = false;
+      
+      for(int i=0; i < overlap_cells.size();i++)
+      {
+	Cell testcell(*structure_mesh,overlap_cells[i]);
+	if (structure_mesh->type().intersects(testcell,p))
+	{
+	  std::cout << "solid vertex" << std::endl;
+	  bfnd = true;
+	  break;
+	}			
+      }
+      
+      solid_vertices.set(vertex, bfnd);
+      
+    }
+    else
+      solid_vertices.set(vertex, Geo::isStructure(p));
   }
+
+  // MeshFunction<int> old2new_vertex;
+  // MeshFunction<int> old2new_cells;
+  // Mesh sub;
+  // ElasticSmoother::submesh(mesh, sub, solid_cells, old2new_vertex, old2new_cells);
+
+  // File submeshfile("sub.xml");
+  // File submeshfile2("sub.pvd");
+  // submeshfile << sub;
+  // submeshfile2 << sub;
 
   real rho_s = 1.0;
 
@@ -404,11 +474,11 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 //   dolfin_set("Krylov relative tolerance", 1.0e-12);
 //   dolfin_set("Krylov absolute tolerance", 1.0e-20);
 
-  NSESolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
+  UCSolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum, p_bc_pressure,
 		    p_bc_density, &density, solid_cells, solid_vertices, T, nu, mu, nu_s, rho_s,
                     ubar, td, "primal"); 
   dolfin_set("Adaptive refinement percentage", 5.0);
-  dolfin_set("ODE discrete tolerance", 1.0e-5);
+  dolfin_set("ODE discrete tolerance", 1.0e-2);
   dolfin_set("ODE maximum iterations", 30);
   dolfin_set("PDE number of samples", 500);  
 
@@ -425,13 +495,13 @@ int main(int argc, char* argv[])
   long w_limit = 0;
   Checkpoint chkp;
   int iter = 0;
+  Mesh* structure_mesh;
 
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  //mesh.refine();
-  //mesh.refine();
+  mesh.refine();
 
-  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve, structure_mesh);
 
   dolfin_finalize();
   return 0;

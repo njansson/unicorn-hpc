@@ -1,10 +1,8 @@
-// Copyright (C) 2005 Johan Hoffman.
-// Licensed under the GNU GPL Version 2.
+// Copyright (C) 2009 Johan Jansson.
+// Licensed under the GNU LGPL Version 3.
 //
-// Modified by Anders Logg 2006.
-//
-// First added:  2005
-// Last changed: 2006-05-07
+// First added:  2009
+// Last changed: 2011-10-25
 
 #ifndef __NSE_SOLVER_H
 #define __NSE_SOLVER_H
@@ -20,16 +18,16 @@
 namespace dolfin {
   namespace unicorn {
   // This is a solver for the time dependent incompressible 
-  // Navier-Stokes equations. 
+  // Unified Continuum (Navier-Stokes/fluid-structure interaction) equations. 
 
     class PointerConstantFunction;
     
-    class NSESolver : public TimeDependentPDE
+    class UCSolver : public TimeDependentPDE
     {
     public:
       
       // Create the Navier-Stokes solver
-      NSESolver(Mesh& mesh, Function& U, Function& U0,
+      UCSolver(Mesh& mesh, Function& U, Function& U0,
 		Function& f, Function& fc,
 		Function& phi, Function& beta,
 		Array<BoundaryCondition*>& bc_mom, 
@@ -41,7 +39,7 @@ namespace dolfin {
 		real T, real nu, real mu, real nu_s, real rho_s, real ubar, TimeDependent& td,
 		std::string solver_type);
       
-      ~NSESolver();
+      ~UCSolver();
 
       // Solve Navier-Stokes equations
       void solve_old();
@@ -87,6 +85,7 @@ namespace dolfin {
       void smoothMesh();
       void deform(Function& X);
       void deform_fluid(Function& X);
+      void deform_solid(Function& X);
       
     protected:
 

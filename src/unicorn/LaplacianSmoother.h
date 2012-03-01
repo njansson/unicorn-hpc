@@ -10,6 +10,22 @@
 #include <unicorn/Project.h>
 #include <dolfin/fem/UFC.h>
 
+#if HAVE_SUNPERF_H
+#include <sunperf.h>
+#elif HAVE_SCSL_CBLAS_H
+#include <cmplrs/cblas.h>
+#elif HAVE_GSL_CBLAS_H
+extern "C" {
+#include <gsl_cblas.h>
+}
+#elif HAVE_CBLAS_H
+extern "C" {
+#include <cblas.h>
+}
+#endif
+
+#define RM(row,col,nrow) ((row) + ((nrow)*(col)))
+
 namespace dolfin { namespace unicorn
 {
 //-----------------------------------------------------------------------------
@@ -27,7 +43,8 @@ namespace dolfin { namespace unicorn
 		MeshFunction<bool>& masked_vertices,
 		MeshFunction<real>& h0,
 		Vector* node_values,
-		Vector& motionx);
+		Vector& motionx,
+		bool reset);
 
     void maph0(Mesh& mesh, Mesh& sub, MeshFunction<int>& cell_map,
 	       MeshFunction<real>& h0, MeshFunction<real>& subh0);
@@ -45,6 +62,9 @@ namespace dolfin { namespace unicorn
 			MeshFunction<int>& old2new_cell);
     
     Mesh& mesh;
+    Matrix* storeA;
+    Vector* storeb;
+    //Assembler* assembler;
     
     // Sub domain for Dirichlet boundary condition
     class DirichletBoundary : public SubDomain

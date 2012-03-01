@@ -12,6 +12,8 @@ using namespace dolfin;
 LaplacianSmoother::LaplacianSmoother(Mesh& mesh) : mesh(mesh)
 {
   cout << "LaplacianSmoother ctor" << endl;
+  storeA = new Matrix;
+  storeb = new Vector;
 }
 //-----------------------------------------------------------------------------
 void LaplacianSmoother::maph0(Mesh& mesh, Mesh& sub,
@@ -38,7 +40,8 @@ void LaplacianSmoother::smooth(MeshFunction<bool>& smoothed_cells,
 			       MeshFunction<bool>& masked_vertices,
 			       MeshFunction<real>& h0,
 			       Vector* node_values,
-			       Vector& motionx)
+			       Vector& motionx,
+			       bool reset)
 {
   cout << "laplacian smooth" << endl;
   int d = mesh.topology().dim();
@@ -74,11 +77,15 @@ void LaplacianSmoother::smooth(MeshFunction<bool>& smoothed_cells,
     L = new Laplacian3DLinearForm(f);
   }
   
-  Matrix A;
-  Vector b;
+  Matrix& A = *storeA;
+  Vector& b = *storeb;
 
-  assemble(A, *a, sub);
-  assemble(b, *L, sub);
+  //bool reset = true;
+
+  Assembler assembler(sub);
+
+  assembler.assemble(A, *a, reset);
+  assembler.assemble(b, *L, reset);
 
   bc0.apply(A, b, *a);
   bc1.apply(A, b, *a);
