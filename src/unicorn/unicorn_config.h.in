@@ -71,5 +71,3 @@
 /* Version of Unicorn */
 #undef UNICORN_VERSION
 
-/* Version number of package */
-#undef VERSION
