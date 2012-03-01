@@ -239,6 +239,8 @@ void NodeNormal::ComputeNormal(Mesh& mesh)
       for (int j = 0; j < Ncol; j++)
 	n1[j] =  n_block[B(0,j,Nrow)];
 
+      if(!ParameterSystem::parameters.defined("alpha_max"))
+	dolfin_add("alpha_max", DOLFIN_PI/3.0);
       real alpha_max = (real) dolfin_get("alpha_max");
       int Nrow_ns1 = 0; // it will be number of rows for the ns1_block
       int Nrow_ns2 = 0; // it will be number of rows for the ns2_block
