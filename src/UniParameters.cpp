@@ -37,6 +37,7 @@ void UniParameters::parse_parameters(std::string fname)
   parameters["adapt_algorithm"] = _STR_;
   parameters["adapt_project"] = _BOOL_;
   parameters["adapt_type"] = _STR_;
+  parameters["alpha_max"] = _REAL_;
   parameters["T"] = _REAL_;
   parameters["Ubar"] = _REAL_;
   parameters["dual_T"] = _REAL_;
