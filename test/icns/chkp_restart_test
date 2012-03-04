@@ -6,4 +6,8 @@ if [ ! -d "iter_1" ]; then
     echo "*** Output directory not created" 1>&2
     exit 1
 fi
-mpirun -np 4 ./cylinder -p parameters -c iter_1/primal0 -i 1
+if which mpirun >/dev/null; then
+    mpirun -np 4 ./cylinder -p parameters -c iter_1/primal0 -i 1
+else
+    mpiexec -np 4 ./cylinder -p parameters -c iter_1/primal0 -i 1
+fi

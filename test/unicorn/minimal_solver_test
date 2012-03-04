@@ -4,7 +4,11 @@ echo '=============================='
 for i in 1 4 9 
 do
 rm -fr iter*
-mpirun -np $i ./minimal -p parameters -m usquare.xml
+if which mpirun  >/dev/null; then
+    mpirun -np $i ./minimal -p parameters -m usquare.xml
+else 
+    mpiexec -np $i ./minimal -p parameters -m usquare.xml
+fi
 if [ ! -d "iter_4" ]; then
     echo "*** Output directory not created" 1>&2
     exit 1
