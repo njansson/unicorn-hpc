@@ -3,10 +3,10 @@
 //
 // Existing code for Dirichlet BC is used
 //
-// Modified by Niclas Jansson, 2008-2010.
+// Modified by Niclas Jansson, 2008-2012.
 // 
 // First added:  2007-05-01
-// Last changed: 2010-01-21
+// Last changed: 2012-03-04
 
 
 #include <dolfin.h>
@@ -16,10 +16,10 @@
 #include "unicorn/SlipBC.h"
 #include "unicorn/NodeNormal.h"
 
+#include <cmath>
 #include <cstring>
 #include <map>
 
-#define max(a,b) (a > b ? a : b) ;
 
 using namespace dolfin;
 using namespace dolfin::unicorn;
@@ -332,9 +332,9 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
       n3 = node_normal.normal[2].get(node);
 
     // find maximum of the normal components and put them to the diagonal 
-    real maxn = max(fabs(n1), fabs(n2));
+    real maxn = fmax(fabs(n1), fabs(n2));
     if (nsdim == 3)
-      maxn = max(maxn, fabs(n3));
+      maxn = fmax(maxn, fabs(n3));
 
     // r1, r2, r3 are rows which are corresponds to the boundary point
     // find the maximum component of the normal and put it to the diagonal
@@ -402,8 +402,8 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
       }
       
       // find maximum of the normal components and put them to the diagonal 
-      real maxn = max(fabs(nn1), fabs(nn2));
-      maxn = max(maxn, fabs(nn3));
+      real maxn = fmax(fabs(nn1), fabs(nn2));
+      maxn = fmax(maxn, fabs(nn3));
       
       // r1, r2, r3 are rows which are corresponds to the boundary point
       // find the maximum component of the normal and put it to the diagonal
@@ -434,15 +434,15 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
 	  
 
       maxn = 0.0;
-      maxn = max(fabs(tt1), fabs(tt2)); 
-      maxn = max(maxn, fabs(tt3));
+      maxn = fmax(fabs(tt1), fabs(tt2)); 
+      maxn = fmax(maxn, fabs(tt3));
 	  
       // Start rearanging rows
       if (fabs(fabs(tt1) - maxn) < DOLFIN_EPS) {       // tt1 is a largest component
 	r2 = nodes[0]; 
 	r3 = (r1 == nodes[1] ?  nodes[2] : nodes[1]) ;
 	if (r2 == r1) {
-	  real mm = max(fabs(tt2), fabs(tt3));
+	  real mm = fmax(fabs(tt2), fabs(tt3));
 	  if ( fabs(fabs(tt2) - mm) < DOLFIN_EPS) {
 	    r2 = nodes[1]; 
 	    r3 = nodes[2];
@@ -457,7 +457,7 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
 	r2 = nodes[1];
 	r3 = (r1 == nodes[0] ? nodes[2] : nodes[0]) ;
 	if (r2 == r1) {
-	  real mm = max(fabs(tt1), fabs(tt3));
+	  real mm = fmax(fabs(tt1), fabs(tt3));
 	  if (fabs(fabs(tt1) - mm) < DOLFIN_EPS) {
 	    r2 = nodes[0]; 
 	    r3 = nodes[2];
@@ -472,7 +472,7 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
 	r2 = nodes[2]; 
 	r3 = (r1 == nodes[0] ? nodes[1] : nodes[0]) ;
 	if (r2 == r1) {
-	  real mm = max(fabs(tt1), fabs(tt2));
+	  real mm = fmax(fabs(tt1), fabs(tt2));
 	  if (fabs(fabs(tt1) - mm) < DOLFIN_EPS) {
 	    r2 = nodes[0]; 
 	    r3 = nodes[1];
@@ -522,9 +522,9 @@ void SlipBC::applySlipBC(Matrix& A, Matrix& As, Vector& b, Mesh& mesh,
       real row_d12 = a1[ind2] * t11 + a2[ind2] * t12 + a3[ind2] * t13 ;
       real row_d22 = a1[ind2] * t21 + a2[ind2] * t22 + a3[ind2] * t23 ;
 
-      real maxr = max(fabs(row_d11), fabs(row_d21));
-      maxr = max(maxr, fabs(row_d12));
-      maxr = max(maxr, fabs(row_d22));
+      real maxr = fmax(fabs(row_d11), fabs(row_d21));
+      maxr = fmax(maxr, fabs(row_d12));
+      maxr = fmax(maxr, fabs(row_d22));
 	  
       // define new rows according the above maximum:
       uint row_d1 = 0;
