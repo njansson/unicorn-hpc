@@ -368,7 +368,7 @@ void NSESolver::solve()
 #endif
     File p_file(p_filename.str());
     p_file >> u.vector();
-    u.sync_ghosts();   
+    u.sync_ghosts();  
     dolfin_set("adapt_projected", false);
   }
 
@@ -952,7 +952,7 @@ void NSESolver::ComputeStabilization(Mesh& mesh, Function& w, real nu, real k,
 
     normw = 0.0;
 
-    for(uint i =0; i < local_dim ; i++)
+    for(uint i =0; i < (3 * local_dim) ; i++)
       normw += sqr( *(wp++) );
 
     normw = sqrt(normw);
