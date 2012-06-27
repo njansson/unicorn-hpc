@@ -3,15 +3,15 @@ The initial data for Unicorn solver:
 1.0       beta - friction coefficient  
 0.00001       nu - viscosity
 
-5         n_samples - number of samples 
+3         n_samples - number of samples 
 2         adapt_iter - number of adaptive iterations
 0.001     adapt_tol - adaptive tolerance
 5         adapt_percentage - adaptive percentage 
 rivara	  adapt_algorithm - adaptive refinement type
 1	  adapt_project - adaptive projection
 
-0.1       T - final time, primal solver
-0.05	  dual_T - final time, dual solver
+0.05     T - final time, primal solver
+0.025	  dual_T - final time, dual solver
 1.0       Ubar - free stream velocity
 
 bicgstab  krylov_method - krylov method
