@@ -420,12 +420,17 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
   projected.vector().zero();
   projected.sync_ghosts();
   
+  real gts_tol = dolfin_get("GTS Tolerance");
+  real geom_tol = dolfin_get("Geometrical Tolerance Tetrahedron");
+
+  dolfin_set("GTS Tolerance",1e-10);
+  dolfin_set("Geometrical Tolerance Tetrahedron", 1e-8);    
   for (CellIterator c(new_mesh); !c.end(); ++c) {
     
     
     ufc.update(*c, new_mesh.distdata());
     (refined->dofMaps())[0].tabulate_dofs(local_indices, ufc.cell, c->index());
-    
+
     for (VertexIterator v(*c); !v.end(); ++v) {
       
       
@@ -483,6 +488,8 @@ void AdaptiveRefinement::project(Mesh& new_mesh, Function& post_x,
 	delete v_e;
     }
   }
+  dolfin_set("GTS Tolerance", gts_tol);
+  dolfin_set("Geometrical Tolerance Tetrahedron", geom_tol);    
   
   if ( i > 0) {
     x_proj.set(vv, i, indices);
